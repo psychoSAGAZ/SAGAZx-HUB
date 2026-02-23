@@ -4348,6 +4348,13 @@ end
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
     ["forro"] = {
+        {name = "AMIGO", id = "91119180724905"},
+        {name = "Amor Verdadeiro", id = "123455164277076"},
+        {name = "Deixa Eu Ficar", id = "82929658013383"},
+        {name = "MTG ZUM ZUM ", id = "92446612272052"},
+        {name = "PASSINHO DO BARÃO", id = "127786586963377"},
+        {name = "BOYS DO FORRO", id = "139462268046679"},
+		
         {name = "Quem é o louco", id = "106958630419629"},
         {name = "Última chance", id = "84053362849165"},
         {name = "The king", id = "120324849313242"},
@@ -4369,7 +4376,21 @@ createMusicDropdown("Forro", {
 
 -- Dropdown "Músicas e Memes Aleatórios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
-    ["forro"] = {
+    ["Músicas e Memes Aleatorios"] = {
+    {name = "Stray War", id = "120102995443063"},
+    {name = "AllNigt", id = "98310334398449"},
+    {name = "No More", id = "1846458016"},
+    {name = "Bring Me To Iife", id = "111417042398302"},
+    {name = "SunMoon", id = "91995598699901"},
+    {name = "n sei...", id = "119589720384457"},
+    {name = "AirPlane", id = "73197748961359"},
+    {name = "Dark Nigth (melodia)", id = "103504594968244"},
+    {name = "Countin Stars", id = "118957335322667"},
+    {name = "Five Nights", id = "89258052168328"},
+    {name = "Forgot", id = "76908132937245"},
+    {name = "Let The World Burn", id = "111351357978027"},
+    {name = "Mimosa 2000", id = "137329447492960"},
+	
         {name = "Dança do Canguru", id = "86876136192157"},
         {name = "ANXIETY (Amapiano Re-fix)", id = "101483901475189"}, 
         {name = "Megalovania but its only the melodies", id = "104500091160463"},
@@ -4394,6 +4415,12 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+    {name = "Mensagem", id = "130637458480604"},
+    {name = "Sente o Som DO Tapa", id = "97708834121472"},
+    {name = "Toma Jatada", id = "91493452201730"},
+    {name = "Onda Que é Bom", id = "134130716324734"},
+    {name = "Meia Noite", id = "82117652303865"},
+
         {name = "fuga na viatura", id = "131891110268352"},
         {name = "CVRL", id = "124244582950595"},
         {name = "MONTAGEM ARABIANA (Pke Gaz1nh)", id = "78076624091098"},
@@ -4424,6 +4451,11 @@ createMusicDropdown("Funk", {
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
     ["phonk"] = {
+        {name = "Amor Sem Final", id = "127038714548359"},
+        {name = "Renicht Espectral", id = "119202700760169"},
+        {name = "Cutemak Phonk", id = "120871403922972"},
+        {name = "Sento e me Acabo", id = "124140125253346"},
+		
         {name = "wyles", id = "85385155970460"},
         {name = "phonk kawai", id = "91502410121438"},
         {name = "vem no pocpoc", id = "102333419023382"},
