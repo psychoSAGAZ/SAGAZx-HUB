@@ -25,11 +25,49 @@ game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eCo
 
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/ndjdjfhfbdbbdd/refs/heads/main/README.md"))()
 
+-- CONFIG DO SOM
+local ClickSoundSettings = {
+    Enabled = true,
+    SoundId = "rbxassetid://18998603679", -- pode trocar
+    Volume = 0.1
+}
+
+-- FUNÇÃO DO SOM
+local function PlayClickSound()
+    if ClickSoundSettings.Enabled then
+        local sound = Instance.new("Sound")
+        sound.SoundId = ClickSoundSettings.SoundId
+        sound.Volume = ClickSoundSettings.Volume
+        sound.Parent = game:GetService("SoundService")
+        sound:Play()
+        sound.Ended:Connect(function()
+            sound:Destroy()
+        end)
+    end
+end
+
+-- CONECTA SOM EM TODOS OS BOTÕES
+local function ConnectButtons(parent)
+    local function check(obj)
+        if obj:IsA("TextButton") or obj:IsA("ImageButton") then
+            obj.Activated:Connect(PlayClickSound)
+        end
+    end
+
+    for _, v in pairs(parent:GetDescendants()) do
+        check(v)
+    end
+
+    parent.DescendantAdded:Connect(check)
+end
+
 local Window = redzlib:MakeWindow({
     Title = "SAGAZx HUB| brookhaven",
     SubTitle = "| by SAGAZx",
     SaveFolder = "SAGAZxConfig"
 })
+
+ConnectButtons(game:GetService("CoreGui"))
 
 Window:AddMinimizeButton({
     Button = { Image = "rbxassetid://86050226751861", BackgroundTransparency = 0 },
