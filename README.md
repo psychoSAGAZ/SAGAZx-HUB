@@ -4348,6 +4348,8 @@ end
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
     ["forro"] = {
+	    { name = "Forro Ja Cansou", id = 74812784884330},
+    	{ name = "Lembro Ate Hoje", id = 71531533552899 },
         {name = "AMIGO", id = "91119180724905"},
         {name = "Amor Verdadeiro", id = "123455164277076"},
         {name = "Deixa Eu Ficar", id = "82929658013383"},
@@ -4377,21 +4379,12 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatórios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
-    {name = "Stray War", id = "120102995443063"},
-    {name = "AllNigt", id = "98310334398449"},
-    {name = "No More", id = "1846458016"},
-    {name = "Bring Me To Iife", id = "111417042398302"},
-    {name = "SunMoon", id = "91995598699901"},
-    {name = "n sei...", id = "119589720384457"},
-    {name = "AirPlane", id = "73197748961359"},
-    {name = "Dark Nigth (melodia)", id = "103504594968244"},
-    {name = "Countin Stars", id = "118957335322667"},
-    {name = "Five Nights", id = "89258052168328"},
-    {name = "Forgot", id = "76908132937245"},
-    {name = "Let The World Burn", id = "111351357978027"},
-    {name = "Mimosa 2000", id = "137329447492960"},
-	
-        {name = "Dança do Canguru", id = "86876136192157"},
+    	{ name = "Want To Love", id = 104846670980072 },
+        { name = "Backrooms", id = 120817494107898 },
+        {name = "Stray War", id = "120102995443063"},
+        {name = "Bring Me To Iife", id = "111417042398302"},
+        {name = "n sei...", id = "119589720384457"},
+        
         {name = "ANXIETY (Amapiano Re-fix)", id = "101483901475189"}, 
         {name = "Megalovania but its only the melodies", id = "104500091160463"},
         {name = "androphono strikes back", id = "78312089943968"},
@@ -4404,6 +4397,28 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
         {name = "AscensÃ£o do Monarca", id = "101864243033211"},
         {name = "carro do ovo", id = "3148329638"},
         {name = "MIKU MIKU HATSUNE", id = "112783541496955"},
+        
+        {name = "AirPlane", id = "73197748961359"},
+        {name = "Dark Nigth (melodia)", id = "103504594968244"},
+        {name = "Countin Stars", id = "118957335322667"},
+        {name = "Five Nights", id = "89258052168328"},
+        {name = "Forgot", id = "76908132937245"},
+        {name = "Let The World Burn", id = "111351357978027"},
+        {name = "Mimosa 2000", id = "137329447492960"},
+        {name = "SunMoon", id = "91995598699901"},
+        {name = "AllNigt", id = "98310334398449"},
+        {name = "No More", id = "1846458016"},
+    	{ name = "Samba", id = 1836175030 },
+    	{ name = "Samba2", id = 1838888602 },
+        { name = "Stephen Walking - JC-08", id = 7028970358 },
+        { name = "Grant - Color", id = 7023828725 },
+        { name = "Conro - All I Want", id = 7023680426 },
+        { name = "Grant - Are We Still Young", id = 5410086445 },
+        { name = "Stonebank - Fire", id = 7028985831 },
+        { name = "Rootkit - Taking Me Higher", id = 5410081542 },
+        { name = "Duumu - Forward", id = 5410081471 },
+        { name = "Tony Romera - I Can't", id = 5410082805 },
+        { name = "Musicas de Piano Acustico", id = 1838457617 },
         {name = "", id = ""},
         {name = "", id = ""},
         {name = "", id = ""},
@@ -4415,12 +4430,13 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+	{ name = "Sou Teu Fã", id = 85342086082111 },
     {name = "Mensagem", id = "130637458480604"},
     {name = "Sente o Som DO Tapa", id = "97708834121472"},
     {name = "Toma Jatada", id = "91493452201730"},
     {name = "Onda Que é Bom", id = "134130716324734"},
     {name = "Meia Noite", id = "82117652303865"},
-
+    {name = "Dança do Canguru", id = "86876136192157"},
         {name = "fuga na viatura", id = "131891110268352"},
         {name = "CVRL", id = "124244582950595"},
         {name = "MONTAGEM ARABIANA (Pke Gaz1nh)", id = "78076624091098"},
@@ -4477,7 +4493,13 @@ createMusicDropdown("Phonk", {
         {name = " FUTABA", id = "91834632690710"},
         {name = "GOTH FUNK", id = "97662362226511"},
         {name = "SUBURBANA", id = "139825057894568"},
-        
+    	{ name = "Slowed Vapo No Vapo", id = 106317184644394 },
+    	{ name = "Ultra Slowed", id = 84733736048142 },
+    	{ name = "tuber 93", id = 1839246711 },
+    	{ name = "Blassed Mane", id = 16831108393 },
+    	{ name = "Mtg Balada", id = 83797836818857 },	
+        { name = "PASSO BEM SOLTO", id = 119936139925486 },
+        { name = "Kerosene Cyristal Castels", id = 17647322226 },
         {name = "", id = ""},
         {name = "", id = ""},
         {name = "", id = ""},
