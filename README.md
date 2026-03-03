@@ -1,3 +1,113 @@
+--// SERVIÇOS
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+--// GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "RedzHubIntro"
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = PlayerGui
+
+-- Fundo
+local bg = Instance.new("Frame")
+bg.Size = UDim2.fromScale(1,1)
+bg.BackgroundColor3 = Color3.fromRGB(0,0,0)
+bg.BackgroundTransparency = 1
+bg.Parent = screenGui
+
+-- Logo
+local logo = Instance.new("TextLabel")
+logo.Size = UDim2.new(0.6,0,0.2,0)
+logo.Position = UDim2.new(0.5,0,-0.2,0)
+logo.AnchorPoint = Vector2.new(0.5,0.5)
+logo.BackgroundTransparency = 1
+logo.Text = "SAGAZx HUB"
+logo.TextScaled = true
+logo.Font = Enum.Font.GothamBold
+logo.TextColor3 = Color3.fromRGB(128, 86, 255)
+logo.TextStrokeTransparency = 0.3
+logo.TextStrokeColor3 = Color3.fromRGB(128, 86, 255)
+logo.Parent = screenGui
+
+local logoGradient = Instance.new("UIGradient")
+logoGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(128, 86, 255)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(60,0,0)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(128, 86, 255))
+}
+logoGradient.Rotation = 45
+logoGradient.Parent = logo
+
+-- Subtítulo
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(0,200,0,25)
+subtitle.Position = UDim2.new(0.5,0,0.58,0)
+subtitle.AnchorPoint = Vector2.new(0.5,0.5)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "by SAGAZx"
+subtitle.TextColor3 = Color3.fromRGB(128, 86, 255)
+subtitle.TextTransparency = 1
+subtitle.TextScaled = true
+subtitle.Font = Enum.Font.Gotham
+subtitle.Parent = screenGui
+
+-- Barra de carregamento
+local loadFrame = Instance.new("Frame")
+loadFrame.Size = UDim2.new(0,0,0.02,0)
+loadFrame.Position = UDim2.new(0.5,0,0.85,0)
+loadFrame.AnchorPoint = Vector2.new(0.5,0)
+loadFrame.BackgroundColor3 = Color3.fromRGB(128, 86, 255)
+loadFrame.BorderSizePixel = 0
+loadFrame.Parent = screenGui
+
+-- Função Tween
+local function tween(obj, info, props)
+	return TweenService:Create(obj, info, props)
+end
+
+-- Fade fundo
+tween(bg, TweenInfo.new(0.5), {BackgroundTransparency = 0}):Play()
+task.wait(0.6)
+
+-- Entrada logo
+tween(logo, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+	Position = UDim2.new(0.5,0,0.4,0)
+}):Play()
+
+task.wait(1)
+
+-- Subtítulo aparece
+tween(subtitle, TweenInfo.new(1), {TextTransparency = 0}):Play()
+
+-- Barra carrega
+tween(loadFrame, TweenInfo.new(2, Enum.EasingStyle.Linear), {
+	Size = UDim2.new(0.8,0,0.02,0)
+}):Play()
+
+-- Som
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://107004225739474"
+sound.Volume = 2
+sound.Parent = screenGui
+sound:Play()
+
+-- Saída
+task.wait(2.5)
+
+tween(bg, TweenInfo.new(0.8), {BackgroundTransparency = 1}):Play()
+tween(logo, TweenInfo.new(0.8), {TextTransparency = 1}):Play()
+tween(subtitle, TweenInfo.new(0.8), {TextTransparency = 1}):Play()
+tween(loadFrame, TweenInfo.new(0.8), {BackgroundTransparency = 1}):Play()
+
+task.wait(1)
+screenGui:Destroy()
+
+--nome roleplay
+
 local args = {
     "RolePlayName",
     "SAGAZx HUB"
