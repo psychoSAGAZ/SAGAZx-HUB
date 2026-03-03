@@ -1,3 +1,27 @@
+local args = {
+    "RolePlayName",
+    "SAGAZx HUB"
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args))
+local args = {
+    "PickingRPNameColor",
+    Color3.fromRGB(55, 68, 165)
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eColo1r"):FireServer(unpack(args))
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+
+local args1 = {
+    "RolePlayBio",
+    "BEM-VINDO " .. localPlayer.DisplayName
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eTex1t"):FireServer(unpack(args1))
+
+local args2 = {
+    "PickingRPBioColor",
+    Color3.fromRGB(87, 191, 255)
+}
+
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/ndjdjfhfbdbbdd/refs/heads/main/README.md"))()
 
 local Window = redzlib:MakeWindow({
