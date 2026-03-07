@@ -1,3 +1,6 @@
+----------------------------------------------------------------------------------------------------------------
+-----------------------------------------Aba Intro-----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 --// SERVIÇOS
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
@@ -106,8 +109,9 @@ tween(loadFrame, TweenInfo.new(0.8), {BackgroundTransparency = 1}):Play()
 task.wait(1)
 screenGui:Destroy()
 
---nome roleplay
-
+----------------------------------------------------------------------------------------------------------------
+-----------------------------------------Aba Nome de entrada-----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 local args = {
     "RolePlayName",
     "SAGAZx HUB"
@@ -133,6 +137,9 @@ local args2 = {
 }
 game:GetService("ReplicatedStorage"):WaitForChild("RE"):WaitForChild("1RPNam1eColo1r"):FireServer(unpack(args2))
 
+----------------------------------------------------------------------------------------------------------------
+-----------------------------------------Aba Redz Lib-----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/ndjdjfhfbdbbdd/refs/heads/main/README.md"))()
 
 -- CONFIG DO SOM
@@ -2074,6 +2081,10 @@ FlingTab:AddButton({
     end
 })
 
+----------------------------------------------------------------------------------------------------------------
+-----------------------------------------Aba Antis-----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+
 local Tab4= Window:MakeTab({ "| Antis", "shield" })
 
 Tab4:AddToggle({
@@ -2499,9 +2510,29 @@ Tab5:AddButton({
             task.wait(0.3)
         end
 
-        if tonumber(PDesc.IdleAnimation) then
-            Remotes.Wear:InvokeServer(tonumber(PDesc.IdleAnimation))
-            task.wait(0.3)
+        -- COPIAR TODAS AS ANIMAÇÕES (ANTI-DESEQUIPAR)
+        local CurrentDesc = LHumanoid:GetAppliedDescription()
+
+        local Animations = {
+            {PDesc.IdleAnimation, CurrentDesc.IdleAnimation},
+            {PDesc.WalkAnimation, CurrentDesc.WalkAnimation},
+            {PDesc.RunAnimation, CurrentDesc.RunAnimation},
+            {PDesc.JumpAnimation, CurrentDesc.JumpAnimation},
+            {PDesc.FallAnimation, CurrentDesc.FallAnimation},
+            {PDesc.ClimbAnimation, CurrentDesc.ClimbAnimation},
+            {PDesc.SwimAnimation, CurrentDesc.SwimAnimation}
+        }
+
+        for _, animData in ipairs(Animations) do
+            local targetAnim = animData[1]
+            local currentAnim = animData[2]
+
+            if tonumber(targetAnim) and targetAnim ~= 0 then
+                if tostring(targetAnim) ~= tostring(currentAnim) then
+                    Remotes.Wear:InvokeServer(tonumber(targetAnim))
+                    task.wait(0.35)
+                end
+            end
         end
 
         local Bag = TPlayer:FindFirstChild("PlayersBag")
@@ -2528,6 +2559,7 @@ Tab5:AddButton({
 
     end
 })
+
 
 Tab5:AddSection({ "Salva skins" })
 
@@ -2598,7 +2630,16 @@ local function GetCurrentAvatarData()
         },
 
         Accessories = {},
-        Animation = Desc.IdleAnimation
+
+        Animations = {
+            Idle = Desc.IdleAnimation,
+            Walk = Desc.WalkAnimation,
+            Run = Desc.RunAnimation,
+            Jump = Desc.JumpAnimation,
+            Fall = Desc.FallAnimation,
+            Climb = Desc.ClimbAnimation,
+            Swim = Desc.SwimAnimation
+        }
     }
 
     for _, acc in ipairs(Desc:GetAccessories(true)) do
@@ -2614,9 +2655,63 @@ local function GetCurrentAvatarData()
 
     return SkinData
 end
-
 -- =========================
--- APLICAR SKIN (CORRIGIDO)
+-- PEGA AVATA DO PLAYER SELECIONADO 
+-- =========================
+local function GetAvatarDataFromPlayer(targetPlayer)
+
+    if not targetPlayer then return nil end
+
+    local Char = targetPlayer.Character or targetPlayer.CharacterAdded:Wait()
+    local Humanoid = Char:FindFirstChildOfClass("Humanoid")
+    if not Humanoid then return nil end
+
+    local Desc = Humanoid:GetAppliedDescription()
+
+    local SkinData = {
+        Body = {
+            Torso = Desc.Torso,
+            RightArm = Desc.RightArm,
+            LeftArm = Desc.LeftArm,
+            RightLeg = Desc.RightLeg,
+            LeftLeg = Desc.LeftLeg,
+            Head = Desc.Head
+        },
+
+        Clothing = {
+            Shirt = Desc.Shirt,
+            Pants = Desc.Pants,
+            Face = Desc.Face
+        },
+
+        Accessories = {},
+
+        Animations = {
+            Idle = Desc.IdleAnimation,
+            Walk = Desc.WalkAnimation,
+            Run = Desc.RunAnimation,
+            Jump = Desc.JumpAnimation,
+            Fall = Desc.FallAnimation,
+            Climb = Desc.ClimbAnimation,
+            Swim = Desc.SwimAnimation
+        }
+    }
+
+    for _, acc in ipairs(Desc:GetAccessories(true)) do
+        if acc.AssetId and tonumber(acc.AssetId) then
+            table.insert(SkinData.Accessories, tonumber(acc.AssetId))
+        end
+    end
+
+    local BodyColor = Char:FindFirstChild("Body Colors")
+    if BodyColor then
+        SkinData.BodyColor = tostring(BodyColor.HeadColor)
+    end
+
+    return SkinData
+end
+-- =========================
+-- APLICAR SKIN
 -- =========================
 
 local function AplicarSkin(data)
@@ -2627,12 +2722,12 @@ local function AplicarSkin(data)
     local Char = LP.Character or LP.CharacterAdded:Wait()
     local Humanoid = Char:FindFirstChildOfClass("Humanoid")
 
-    if not Humanoid then 
+    if not Humanoid then
         warn("Humanoid não encontrado")
-        return 
+        return
     end
 
-    -- RESETAR ACESSÓRIOS ATUAIS
+    -- RESETAR ACESSÓRIOS
     local CurrentDesc = Humanoid:GetAppliedDescription()
 
     for _, acc in ipairs(CurrentDesc:GetAccessories(true)) do
@@ -2644,7 +2739,7 @@ local function AplicarSkin(data)
 
     task.wait(0.4)
 
-    -- CORPO (FORMATO CORRETO)
+    -- CORPO
     if data.Body then
 
         local argsBody = {
@@ -2697,9 +2792,30 @@ local function AplicarSkin(data)
         task.wait(0.3)
     end
 
-    -- ANIMAÇÃO
-    if tonumber(data.Animation) then
-        Remotes.Wear:InvokeServer(tonumber(data.Animation))
+    -- ANIMAÇÕES (ANTI BUG)
+    if data.Animations then
+
+        local CurrentDesc = Humanoid:GetAppliedDescription()
+
+        local AnimList = {
+            {data.Animations.Idle, CurrentDesc.IdleAnimation},
+            {data.Animations.Walk, CurrentDesc.WalkAnimation},
+            {data.Animations.Run, CurrentDesc.RunAnimation},
+            {data.Animations.Jump, CurrentDesc.JumpAnimation},
+            {data.Animations.Fall, CurrentDesc.FallAnimation},
+            {data.Animations.Climb, CurrentDesc.ClimbAnimation},
+            {data.Animations.Swim, CurrentDesc.SwimAnimation}
+        }
+
+        for _, anim in ipairs(AnimList) do
+            local target = anim[1]
+            local current = anim[2]
+
+            if tonumber(target) and tostring(target) ~= tostring(current) then
+                Remotes.Wear:InvokeServer(tonumber(target))
+                task.wait(0.35)
+            end
+        end
     end
 
     print("Skin aplicada com sucesso!")
@@ -2723,6 +2839,7 @@ local SelectedSkin = nil
 local Dropdown
 
 local function RefreshDropdown()
+
     if not Dropdown then return end
 
     local novaLista = GetSkinList()
@@ -2755,63 +2872,13 @@ Dropdown = Tab5:AddDropdown({
         SelectedSkin = option
     end
 })
-
--- =========================
--- PEGAR AVATAR DE OUTRO PLAYER
--- =========================
-
-local function GetAvatarDataFromPlayer(targetPlayer)
-
-    if not targetPlayer then return nil end
-
-    local Char = targetPlayer.Character or targetPlayer.CharacterAdded:Wait()
-    local Humanoid = Char:FindFirstChildOfClass("Humanoid")
-    if not Humanoid then return nil end
-
-    local Desc = Humanoid:GetAppliedDescription()
-
-    local SkinData = {
-        Body = {
-            Torso = Desc.Torso,
-            RightArm = Desc.RightArm,
-            LeftArm = Desc.LeftArm,
-            RightLeg = Desc.RightLeg,
-            LeftLeg = Desc.LeftLeg,
-            Head = Desc.Head
-        },
-
-        Clothing = {
-            Shirt = Desc.Shirt,
-            Pants = Desc.Pants,
-            Face = Desc.Face
-        },
-
-        Accessories = {},
-        Animation = Desc.IdleAnimation
-    }
-
-    for _, acc in ipairs(Desc:GetAccessories(true)) do
-        if acc.AssetId and tonumber(acc.AssetId) then
-            table.insert(SkinData.Accessories, tonumber(acc.AssetId))
-        end
-    end
-
-    local BodyColor = Char:FindFirstChild("Body Colors")
-    if BodyColor then
-        SkinData.BodyColor = tostring(BodyColor.HeadColor)
-    end
-
-    return SkinData
-end
-
-
 -- =========================
 -- SALVAR SKIN DO PLAYER SELECIONADO
 -- =========================
-
 Tab5:AddButton({
     Name = "Salvar Skin do Player Selecionado",
     Callback = function()
+
         if not SelectedPlayerAvatar then
             warn("Nenhum player selecionado.")
             return
@@ -2823,8 +2890,7 @@ Tab5:AddButton({
             return
         end
 
-        -- Se PlayerSkinName estiver vazio ou nil, usa o nome do player
-        local nomeFinal = (PlayerSkinName and PlayerSkinName:match("%S")) and PlayerSkinName or SelectedPlayerAvatar
+        local nomeFinal = tostring(SelectedPlayerAvatar)
 
         local PlayerData = GetAvatarDataFromPlayer(targetPlayer)
         if not PlayerData then
@@ -2836,13 +2902,13 @@ Tab5:AddButton({
         SaveFile()
         RefreshDropdown()
 
-        CreateNotification("Sucesso", "Skin salva de "..SelectedPlayerAvatar, 3)
         print("Skin salva do player:", nomeFinal)
+
     end
 })
 
 -- =========================
--- SALVAR
+-- SALVAR SKIN ATUAL
 -- =========================
 
 Tab5:AddButton({
@@ -2867,8 +2933,6 @@ Tab5:AddButton({
     end
 })
 
-
-
 -- =========================
 -- CARREGAR
 -- =========================
@@ -2876,11 +2940,13 @@ Tab5:AddButton({
 Tab5:AddButton({
     Name = "Carregar Skin",
     Callback = function()
+
         if SelectedSkin and Skins[SelectedSkin] then
             AplicarSkin(Skins[SelectedSkin])
         else
             warn("Nenhuma skin selecionada.")
         end
+
     end
 })
 
@@ -2891,13 +2957,18 @@ Tab5:AddButton({
 Tab5:AddButton({
     Name = "Deletar Skin",
     Callback = function()
+
         if SelectedSkin and Skins[SelectedSkin] then
+
             Skins[SelectedSkin] = nil
             SaveFile()
             SelectedSkin = nil
             RefreshDropdown()
+
             print("Skin deletada.")
+
         end
+
     end
 })
 
@@ -5111,4 +5182,5 @@ local Toggle = Tab9:AddToggle({
         toggleESP(Value)
     end
 })
+
 
