@@ -195,7 +195,12 @@ Window:AddMinimizeButton({
 ----------------------------------------------------------------------------------------------------------------
 local Tab1 = Window:MakeTab({ "| Ini­cio", "menu" })
 
-
+Tab1:AddDiscordInvite({
+    Name = "SAGAZx",
+    Description = "Me Siga No Discord e TikTok",
+    Logo = "rbxassetid://86050226751861",
+    Invite = "Discord: ''https://discord.gg/xWcFhEgg''         TikTok: ''tiktok.com/@sagazx_xd''   ",
+})
 
 Tab1:AddSection({Name = "Perfil"})
 
