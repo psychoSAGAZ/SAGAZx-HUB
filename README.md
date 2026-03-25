@@ -62,7 +62,7 @@ local nickname = player.Name
 
 -- Novo bloco igual ao do Executor
 Tab1:AddParagraph({"Nickname", nickname})
-Tab1:AddParagraph({"Versão", "2.0.1"})
+Tab1:AddParagraph({"Versão", "2.0.5"})
 
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Cliente-----------------------------------------------------
