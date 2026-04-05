@@ -1,9 +1,10 @@
 -------------------------------------------Intro e Nome ----------------------------------------------------------------
 loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
+
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Redz Lib-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
-local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/ndjdjfhfbdbbdd/refs/heads/main/README.md"))()
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/REDZ-lib-TESTE/refs/heads/main/README.md"))()
 
 local Window = redzlib:MakeWindow({
     Title = "SAGAZx HUB| brookhaven",
@@ -11,10 +12,13 @@ local Window = redzlib:MakeWindow({
     SaveFolder = "SAGAZxConfig"
 })
 
+
 Window:AddMinimizeButton({
     Button = { Image = "rbxassetid://86050226751861", BackgroundTransparency = 0 },
     Corner = { CornerRadius = UDim.new(0, 8) },
 })
+
+
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Home-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -62,7 +66,24 @@ local nickname = player.Name
 
 -- Novo bloco igual ao do Executor
 Tab1:AddParagraph({"Nickname", nickname})
-Tab1:AddParagraph({"Versão", "2.0.5"})
+Tab1:AddParagraph({"Versão", "2.0.9"})
+
+Tab1:AddSection({Name = "Outros"}) 
+
+Tab1:AddButton({
+    Name = "Deletar Brookhaven News",
+    Description = "Faz Muira Zuada",
+    Callback = function()
+        local obj = workspace:FindFirstChild("BrookavenNewsSign")
+
+        if obj then
+            obj:Destroy()
+            print("BrookavenNewsSign deletado!")
+        else
+            warn("Objeto não encontrado.")
+        end
+    end
+})
 
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Cliente-----------------------------------------------------
@@ -1437,6 +1458,7 @@ Players.PlayerRemoving:Connect(function(plr)
 
     UpdateDropdown()
 end)
+
 
 
 local viewing = false
@@ -3028,6 +3050,8 @@ Tab4:AddToggle({
 })
 
 
+
+
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Avatar---------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -3208,6 +3232,31 @@ Tab5:AddButton({
             return
         end
 
+               -- RESETAR LOCALPLAYER
+        local LDesc = LHumanoid:GetAppliedDescription()
+
+        for _, acc in ipairs(LDesc:GetAccessories(true)) do
+            if acc.AssetId and tonumber(acc.AssetId) then
+                Remotes.Wear:InvokeServer(tonumber(acc.AssetId))
+                task.wait(0.2)
+            end
+        end
+
+        if tonumber(LDesc.Shirt) then
+            Remotes.Wear:InvokeServer(tonumber(LDesc.Shirt))
+            task.wait(0.2)
+        end
+
+        if tonumber(LDesc.Pants) then
+            Remotes.Wear:InvokeServer(tonumber(LDesc.Pants))
+            task.wait(0.2)
+        end
+
+        if tonumber(LDesc.Face) then
+            Remotes.Wear:InvokeServer(tonumber(LDesc.Face))
+            task.wait(0.2)
+        end
+
         -- RESETAR LOCALPLAYER
         local LDesc = LHumanoid:GetAppliedDescription()
 
@@ -3232,6 +3281,59 @@ Tab5:AddButton({
             Remotes.Wear:InvokeServer(tonumber(LDesc.Face))
             task.wait(0.2)
         end
+
+       -- RESETAR LOCALPLAYER
+        local LDesc = LHumanoid:GetAppliedDescription()
+
+        for _, acc in ipairs(LDesc:GetAccessories(true)) do
+            if acc.AssetId and tonumber(acc.AssetId) then
+                Remotes.Wear:InvokeServer(tonumber(acc.AssetId))
+                task.wait(0.2)
+            end
+        end
+
+        if tonumber(LDesc.Shirt) then
+            Remotes.Wear:InvokeServer(tonumber(LDesc.Shirt))
+            task.wait(0.2)
+        end
+
+        if tonumber(LDesc.Pants) then
+            Remotes.Wear:InvokeServer(tonumber(LDesc.Pants))
+            task.wait(0.2)
+        end
+
+        if tonumber(LDesc.Face) then
+            Remotes.Wear:InvokeServer(tonumber(LDesc.Face))
+            task.wait(0.2)
+        end
+        
+               -- RESETAR LOCALPLAYER
+        local LDesc = LHumanoid:GetAppliedDescription()
+
+        for _, acc in ipairs(LDesc:GetAccessories(true)) do
+            if acc.AssetId and tonumber(acc.AssetId) then
+                Remotes.Wear:InvokeServer(tonumber(acc.AssetId))
+                task.wait(0.2)
+            end
+        end
+
+        if tonumber(LDesc.Shirt) then
+            Remotes.Wear:InvokeServer(tonumber(LDesc.Shirt))
+            task.wait(0.2)
+        end
+
+        if tonumber(LDesc.Pants) then
+            Remotes.Wear:InvokeServer(tonumber(LDesc.Pants))
+            task.wait(0.2)
+        end
+
+        if tonumber(LDesc.Face) then
+            Remotes.Wear:InvokeServer(tonumber(LDesc.Face))
+            task.wait(0.2)
+        end
+        
+
+        
 
         -- COPIAR DO ALVO
         local PDesc = THumanoid:GetAppliedDescription()
@@ -3478,6 +3580,9 @@ local function GetAvatarDataFromPlayer(targetPlayer)
 
     return SkinData
 end
+
+
+
 -- =========================
 -- APLICAR SKIN
 -- =========================
@@ -3487,27 +3592,134 @@ local function AplicarSkin(data)
     if not data then return end
 
     local LP = Players.LocalPlayer
-    local Char = LP.Character or LP.CharacterAdded:Wait()
-    local Humanoid = Char:FindFirstChildOfClass("Humanoid")
+    local LChar = LP.Character or LP.CharacterAdded:Wait()
+    local LHumanoid = LChar:FindFirstChildOfClass("Humanoid")
 
-    if not Humanoid then
+    if not LHumanoid then
         warn("Humanoid não encontrado")
         return
     end
 
-    -- RESETAR ACESSÓRIOS
-    local CurrentDesc = Humanoid:GetAppliedDescription()
+    --------------------------------------------------
+    -- RESET 1 (IGUAL COPIER)
+    --------------------------------------------------
 
-    for _, acc in ipairs(CurrentDesc:GetAccessories(true)) do
+    local LDesc = LHumanoid:GetAppliedDescription()
+
+    for _, acc in ipairs(LDesc:GetAccessories(true)) do
         if acc.AssetId and tonumber(acc.AssetId) then
             Remotes.Wear:InvokeServer(tonumber(acc.AssetId))
-            task.wait(0.3)
+            task.wait(0.2)
         end
     end
 
-    task.wait(0.4)
+    if tonumber(LDesc.Shirt) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Shirt))
+        task.wait(0.2)
+    end
 
-    -- CORPO
+    if tonumber(LDesc.Pants) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Pants))
+        task.wait(0.2)
+    end
+
+    if tonumber(LDesc.Face) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Face))
+        task.wait(0.2)
+    end
+
+
+    --------------------------------------------------
+    -- RESET 2
+    --------------------------------------------------
+
+    local LDesc = LHumanoid:GetAppliedDescription()
+
+    for _, acc in ipairs(LDesc:GetAccessories(true)) do
+        if acc.AssetId and tonumber(acc.AssetId) then
+            Remotes.Wear:InvokeServer(tonumber(acc.AssetId))
+            task.wait(0.2)
+        end
+    end
+
+    if tonumber(LDesc.Shirt) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Shirt))
+        task.wait(0.2)
+    end
+
+    if tonumber(LDesc.Pants) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Pants))
+        task.wait(0.2)
+    end
+
+    if tonumber(LDesc.Face) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Face))
+        task.wait(0.2)
+    end
+
+
+    --------------------------------------------------
+    -- RESET 3
+    --------------------------------------------------
+
+    local LDesc = LHumanoid:GetAppliedDescription()
+
+    for _, acc in ipairs(LDesc:GetAccessories(true)) do
+        if acc.AssetId and tonumber(acc.AssetId) then
+            Remotes.Wear:InvokeServer(tonumber(acc.AssetId))
+            task.wait(0.2)
+        end
+    end
+
+    if tonumber(LDesc.Shirt) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Shirt))
+        task.wait(0.2)
+    end
+
+    if tonumber(LDesc.Pants) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Pants))
+        task.wait(0.2)
+    end
+
+    if tonumber(LDesc.Face) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Face))
+        task.wait(0.2)
+    end
+
+
+    --------------------------------------------------
+    -- RESET 4
+    --------------------------------------------------
+
+    local LDesc = LHumanoid:GetAppliedDescription()
+
+    for _, acc in ipairs(LDesc:GetAccessories(true)) do
+        if acc.AssetId and tonumber(acc.AssetId) then
+            Remotes.Wear:InvokeServer(tonumber(acc.AssetId))
+            task.wait(0.2)
+        end
+    end
+
+    if tonumber(LDesc.Shirt) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Shirt))
+        task.wait(0.2)
+    end
+
+    if tonumber(LDesc.Pants) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Pants))
+        task.wait(0.2)
+    end
+
+    if tonumber(LDesc.Face) then
+        Remotes.Wear:InvokeServer(tonumber(LDesc.Face))
+        task.wait(0.2)
+    end
+
+
+    --------------------------------------------------
+    -- APLICAR CORPO
+    --------------------------------------------------
+
     if data.Body then
 
         local argsBody = {
@@ -3522,10 +3734,14 @@ local function AplicarSkin(data)
         }
 
         Remotes.ChangeCharacterBody:InvokeServer(unpack(argsBody))
-        task.wait(0.6)
+        task.wait(0.5)
     end
 
+
+    --------------------------------------------------
     -- ROUPAS
+    --------------------------------------------------
+
     if data.Clothing then
 
         if tonumber(data.Clothing.Shirt) then
@@ -3544,7 +3760,11 @@ local function AplicarSkin(data)
         end
     end
 
+
+    --------------------------------------------------
     -- ACESSÓRIOS
+    --------------------------------------------------
+
     if data.Accessories then
         for _, id in ipairs(data.Accessories) do
             if tonumber(id) then
@@ -3554,18 +3774,26 @@ local function AplicarSkin(data)
         end
     end
 
+
+    --------------------------------------------------
     -- COR
+    --------------------------------------------------
+
     if data.BodyColor then
         Remotes.ChangeBodyColor:FireServer(tostring(data.BodyColor))
         task.wait(0.3)
     end
 
-    -- ANIMAÇÕES (ANTI BUG)
+
+    --------------------------------------------------
+    -- ANIMAÇÕES (MESMO SISTEMA COPIER)
+    --------------------------------------------------
+
     if data.Animations then
 
-        local CurrentDesc = Humanoid:GetAppliedDescription()
+        local CurrentDesc = LHumanoid:GetAppliedDescription()
 
-        local AnimList = {
+        local Animations = {
             {data.Animations.Idle, CurrentDesc.IdleAnimation},
             {data.Animations.Walk, CurrentDesc.WalkAnimation},
             {data.Animations.Run, CurrentDesc.RunAnimation},
@@ -3575,18 +3803,21 @@ local function AplicarSkin(data)
             {data.Animations.Swim, CurrentDesc.SwimAnimation}
         }
 
-        for _, anim in ipairs(AnimList) do
-            local target = anim[1]
-            local current = anim[2]
+        for _, animData in ipairs(Animations) do
+            local targetAnim = animData[1]
+            local currentAnim = animData[2]
 
-            if tonumber(target) and tostring(target) ~= tostring(current) then
-                Remotes.Wear:InvokeServer(tonumber(target))
+            if tonumber(targetAnim)
+            and targetAnim ~= 0
+            and tostring(targetAnim) ~= tostring(currentAnim) then
+
+                Remotes.Wear:InvokeServer(tonumber(targetAnim))
                 task.wait(0.35)
             end
         end
     end
 
-    print("Skin aplicada com sucesso!")
+    print("Skin aplicada (Sistema Copier)")
 end
 
 -- =========================
@@ -3640,13 +3871,15 @@ Dropdown = Tab5:AddDropdown({
         SelectedSkin = option
     end
 })
+
 -- =========================
--- SALVAR SKIN DO PLAYER SELECIONADO
+-- SALVAR SKIN DO PLAYER SELECIONADO (USANDO TEXTBOX)
 -- =========================
 Tab5:AddButton({
     Name = "Salvar Skin do Player Selecionado",
     Callback = function()
 
+        -- verifica player selecionado
         if not SelectedPlayerAvatar then
             warn("Nenhum player selecionado.")
             return
@@ -3658,23 +3891,31 @@ Tab5:AddButton({
             return
         end
 
-        local nomeFinal = tostring(SelectedPlayerAvatar)
+        -- pega nome digitado
+        local nomeLimpo = tostring(SkinName):gsub("^%s*(.-)%s*$", "%1")
 
+        if nomeLimpo == "" then
+            warn("Digite um nome na TextBox.")
+            return
+        end
+
+        -- captura skin do player
         local PlayerData = GetAvatarDataFromPlayer(targetPlayer)
         if not PlayerData then
             warn("Não foi possível capturar a skin.")
             return
         end
 
-        Skins[nomeFinal] = PlayerData
+        -- salva com nome da textbox
+        Skins[nomeLimpo] = PlayerData
+
         SaveFile()
         RefreshDropdown()
 
-        print("Skin salva do player:", nomeFinal)
+        print("Skin salva como:", nomeLimpo)
 
     end
 })
-
 -- =========================
 -- SALVAR SKIN ATUAL
 -- =========================
@@ -3686,7 +3927,7 @@ Tab5:AddButton({
         local nomeLimpo = tostring(SkinName):gsub("^%s*(.-)%s*$", "%1")
 
         if nomeLimpo == "" then
-            warn("Digite um nome válido.")
+            warn("Digite um nome vÃ¡lido.")
             return
         end
 
@@ -3739,7 +3980,6 @@ Tab5:AddButton({
 
     end
 })
-
 
 
 Tab5:AddSection({ "FIRE FE COLOR" })
@@ -6071,5 +6311,4 @@ Tab9:AddButton({
         tocarMusica("")
     end
 })
-
 
