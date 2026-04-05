@@ -1,5 +1,5 @@
 -------------------------------------------Intro e Nome ----------------------------------------------------------------
-loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
+--loadstring(game:HttpGet("https://raw.githubusercontent.com--/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
 
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Redz Lib-----------------------------------------------------
