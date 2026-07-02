@@ -1,0 +1,82 @@
+-- Variáveis do Script de Invisibilidade
+repeat task.wait() until game.Players.LocalPlayer
+local LocalPlayer = game.Players.LocalPlayer
+local IsInvisible = false
+local MainGui = nil
+
+-- Função para atualizar a transparência em tempo real
+local function UpdateTransparency()
+    local Character = LocalPlayer.Character
+    if not Character then return end
+    
+    local transparency = IsInvisible and 0.5 or 0
+    
+    for _, descendant in pairs(Character:GetDescendants()) do
+        if descendant:IsA("BasePart") then
+            -- Não mexemos na HumanoidRootPart para não bugar o movimento
+            if descendant.Name ~= "HumanoidRootPart" then
+                descendant.Transparency = transparency
+            end
+        elseif descendant:IsA("Decal") then -- Isso esconde rostos e adesivos de roupas!
+            descendant.Transparency = transparency
+        end
+    end
+end
+
+-- Criar a GUI do Botão
+local function CreateButtonGUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    local ToggleButton = Instance.new("TextButton")
+    local UICorner = Instance.new("UICorner")
+
+    ScreenGui.Name = "InvisButtonGui"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Enabled = false 
+    
+    ToggleButton.Size = UDim2.new(0, 80, 0, 30)
+    ToggleButton.Position = UDim2.new(0, 837, 0, -37)
+    ToggleButton.Text = "Invisível"
+    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    ToggleButton.Parent = ScreenGui
+    
+    UICorner.CornerRadius = UDim.new(0, 10)
+    UICorner.Parent = ToggleButton
+
+    -- Função de Ativar/Desativar
+    ToggleButton.MouseButton1Click:Connect(function()
+        IsInvisible = not IsInvisible
+        UpdateTransparency() -- Aplica a transparência na hora
+        ToggleButton.BackgroundColor3 = IsInvisible and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    end)
+
+    ScreenGui.Parent = game:GetService("CoreGui")
+    return ScreenGui
+end
+
+MainGui = CreateButtonGUI()
+
+-- Loop principal (Consertado para trocas de skin)
+game:GetService("RunService").Heartbeat:Connect(function()
+    if LocalPlayer.Character then
+        -- Se estiver invisível, garante que peças novas (da skin) também fiquem transparentes
+        if IsInvisible then
+            UpdateTransparency()
+            
+            local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+            if root and hum then
+                local OriginalCFrame = root.CFrame
+                local DownCFrame = OriginalCFrame * CFrame.new(0, -10000, 0)
+                
+                root.CFrame = DownCFrame
+                hum.CameraOffset = (DownCFrame:ToObjectSpace(CFrame.new(OriginalCFrame.Position))).Position
+                
+                game:GetService("RunService").RenderStepped:Wait()
+                
+                root.CFrame = OriginalCFrame
+                hum.CameraOffset = Vector3.new(0, 0, 0)
+            end
+        end
+    end
+end)
