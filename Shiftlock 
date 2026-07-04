@@ -16,7 +16,6 @@ local MaxLength = 900000
 local EnabledOffset = CFrame.new(1.7, 0, 0)
 local DisabledOffset = CFrame.new(-1.7, 0, 0)
 local Active
-local ToggleState = false -- Controla se o Toggle da Redz Lib está ativado
 
 ShiftLockScreenGui.Name = "Shiftlock (CoreGui)"
 ShiftLockScreenGui.Parent = CoreGui
@@ -27,9 +26,12 @@ ShiftLockScreenGui.Enabled = false
 ShiftLockButton.Parent = ShiftLockScreenGui
 ShiftLockButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ShiftLockButton.BackgroundTransparency = 1.000
+-- Posição exata que você pediu aplicada corretamente:
 ShiftLockButton.Position = UDim2.new(0.150000006, 900, 0.150000006, 250)
+-- Tamanho definido em pixels fixos:
 ShiftLockButton.Size = UDim2.new(0, 50, 0, 50)
-ShiftLockButton.SizeConstraint = Enum.SizeConstraint.RelativeXX
+-- Desativado o Constraint para o tamanho em pixels funcionar perfeitamente:
+ShiftLockButton.SizeConstraint = Enum.SizeConstraint.RelativeXY
 ShiftLockButton.Image = States.Off
 
 ShiftlockCursor.Name = "Shiftlock Cursor"
@@ -53,11 +55,6 @@ local function DesativarShiftlock()
     if Active then
         Active:Disconnect()
         Active = nil
-    end
-    
-    -- Se o toggle da Redz Lib estiver desligado e desativamos o shiftlock, esconde o botão
-    if not ToggleState then
-        ShiftLockScreenGui.Enabled = false
     end
 end
 
@@ -89,17 +86,9 @@ ShiftLockButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Funções Globais atualizadas
+-- Função global direta e sem travar o botão na tela caso o toggle mande desligar
 getgenv().ToggleShiftlockButton = function(state)
-    ToggleState = state
-    if state == true then
-        ShiftLockScreenGui.Enabled = true
-    else
-        -- Se desligar o toggle mas o shiftlock estiver ativo, mantém o botão na tela
-        if not Active then
-            ShiftLockScreenGui.Enabled = false
-        end
-    end
+    ShiftLockScreenGui.Enabled = state
 end
 
 getgenv().IsShiftlockActive = function()
