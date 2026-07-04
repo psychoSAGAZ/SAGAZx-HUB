@@ -27,8 +27,8 @@ ShiftLockScreenGui.Enabled = false
 ShiftLockButton.Parent = ShiftLockScreenGui
 ShiftLockButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ShiftLockButton.BackgroundTransparency = 1.000
-ShiftLockButton.Position = UDim2.new(0.7, 0, 0.75, 0)
-ShiftLockButton.Size = UDim2.new(0.0636147112, 0, 0.0661305636, 0)
+ShiftLockButton.Position = UDim2.new(0.150000006, 756, 0.150000006, 181)
+ShiftLockButton.Size = UDim2.new(0, 20, 0, 20)
 ShiftLockButton.SizeConstraint = Enum.SizeConstraint.RelativeXX
 ShiftLockButton.Image = States.Off
 
