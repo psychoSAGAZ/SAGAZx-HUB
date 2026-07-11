@@ -46,6 +46,13 @@ if gethui then ScreenGui.Parent = gethui()
 elseif syn and syn.protect_gui then syn.protect_gui(ScreenGui) ScreenGui.Parent = game:GetService("CoreGui")
 else ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
+-- Cria a função global "ponte" para a Redz Lib conseguir ligar/desligar a tela
+_G.ToggleAnimGui = function(state)
+    if ScreenGui then
+        ScreenGui.Enabled = state
+    end
+end
+
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 610, 0, 350)
@@ -623,5 +630,3 @@ SearchBar:GetPropertyChangedSignal("Text"):Connect(function()
         end
     end
 end)
-
-
