@@ -27,8 +27,6 @@ Window:AddMinimizeButton({
         CornerRadius = UDim.new(0, 8)
     },
 })
-
-
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Home-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -395,6 +393,15 @@ Tab2:AddToggle({
         end
     end
 })
+
+Tab2:AddButton({
+    Name = "Jerk",
+    Description = "",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
+    end
+})
+
 
 Tab2:AddButton({
     Name = "Sit",
@@ -870,6 +877,354 @@ Tab2:AddToggle({
 	end
 })
 RunService.RenderStepped:Connect(updateCamera)
+
+Tab2:AddSection({ Name = "Spawn Bombas", Icon = "rbxassetid://" })
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local WorkspaceService = game:GetService("Workspace")
+
+
+local BombAmount = 5 
+local ColetandoBombas = false -- Controla se o loop de coleta deve rodar ou parar
+
+
+local BlowBombsServer = nil
+pcall(function()
+    local SettingsModule = require(Player:WaitForChild("PlayerGui"):WaitForChild("Player8Handler"):WaitForChild("Game8Settings"))
+    BlowBombsServer = SettingsModule.BlowBombsServer
+end)
+
+local BombFolder = nil
+pcall(function()
+    BombFolder = WorkspaceService.WorkspaceCom["001_CriminalWeapons"].GiveTools
+end)
+
+
+Tab2:AddTextBox({
+    Name = "Quantidade De Bombas",
+    Default = "5",
+    PlaceholderText = "Digite um numero...",
+    ClearTextOnFocus = false,
+    Callback = function(value)
+        local num = tonumber(value)
+        if num and num > 0 then
+            BombAmount = num
+        else
+            BombAmount = 5 -- Valor padrao caso o texto digitado seja invÃ¡lido
+        end
+    end
+})
+
+
+local function getBombCount()
+    local cnt = 0
+    if Player:FindFirstChild("Backpack") then
+        for _, t in ipairs(Player.Backpack:GetChildren()) do
+            if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                cnt = cnt + 1
+            end
+        end
+    end
+    if Player.Character then
+        for _, t in ipairs(Player.Character:GetChildren()) do
+            if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                cnt = cnt + 1
+            end
+        end
+    end
+    return cnt
+end
+
+
+Tab2:AddButton({
+    Name = "Pega Bombas",
+    Callback = function()
+        if ColetandoBombas then 
+            print("Já existe uma coleta em andamento!")
+            return 
+        end
+        
+        ColetandoBombas = true
+        
+        task.spawn(function()
+            local Character = Player.Character
+            if not Character then
+                print("Character não encontrado!")
+                ColetandoBombas = false
+                return
+            end
+            
+            local RootPart = Character:WaitForChild("HumanoidRootPart", 5)
+            if not RootPart then
+                print("HumanoidRootPart não encontrado!")
+                ColetandoBombas = false
+                return
+            end
+            
+            local origin = RootPart.CFrame
+            local attempts = 0
+            local collected = getBombCount()
+
+            if CreateNotification and CreateNotification.Notification then
+                CreateNotification:Notification("Coleta", "Iniciando coleta automatizada...", 2)
+            else
+                print("Iniciando coleta automatizada...")
+            end
+
+            -- Loop de repetição principal
+            while ColetandoBombas and collected < BombAmount and attempts < 150 do
+                attempts = attempts + 1
+                
+                -- Busca a bomba dinamicamente a cada loop para evitar referências nulas (nil)
+                local AlvoBomba = nil
+                
+                -- 1ª Tentativa: Procura na pasta oficial que você informou
+                if BombFolder then
+                    AlvoBomba = BombFolder:FindFirstChild("Bomb") or BombFolder:FindFirstChildWhichIsA("BasePart")
+                end
+                
+                -- 2ª Tentativa: Se não achou na pasta, escaneia o workspace por ClickDetectors de bomba
+                if not AlvoBomba then
+                    for _, v in ipairs(workspace:GetDescendants()) do
+                        if v:IsA("ClickDetector") and v.Parent and v.Parent.Name:lower():find("bomb") then
+                            AlvoBomba = v.Parent
+                            break
+                        end
+                    end
+                end
+
+                -- Se encontrou a bomba e o ClickDetector, executa a aproximação e clique
+                if AlvoBomba and AlvoBomba:FindFirstChild("ClickDetector") and RootPart then
+                    pcall(function()
+                        -- Teleporta ligeiramente acima do item
+                        RootPart.CFrame = AlvoBomba.CFrame * CFrame.new(0, 1.8, 0)
+                        task.wait(0.02)
+                        fireclickdetector(AlvoBomba.ClickDetector, 2)
+                    end)
+                else
+                    -- Se não encontrou nenhuma bomba no mapa inteiro, avisa no console
+                    print("Procurando bomba no mapa... Nenhuma encontrada nesta tentativa (" .. tostring(attempts) .. ")")
+                end
+
+                task.wait(0.05) -- Delay seguro para o Roblox registrar o clique
+                collected = getBombCount()
+            end
+            
+            -- Retorna à posição original de forma segura
+            pcall(function() 
+                RootPart.CFrame = origin 
+            end)
+            
+            -- Verificação final de estoque
+            if ColetandoBombas then
+                if collected >= BombAmount then
+                    if CreateNotification and CreateNotification.Notification then
+                        CreateNotification:Notification("Sucesso", "Total de " .. tostring(collected) .. " bombas coletadas!", 3)
+                    end
+                else
+                    if CreateNotification and CreateNotification.Notification then
+                        CreateNotification:Notification("Aviso", "A coleta encerrou. Total obtido: " .. tostring(collected) .. "/" .. tostring(BombAmount), 4)
+                    end
+                end
+            end
+            
+            ColetandoBombas = false
+        end)
+    end
+})
+
+
+
+
+Tab2:AddButton({
+    Name = "Parar de Pega Bombas",
+    Callback = function()
+        if ColetandoBombas then
+            ColetandoBombas = false -- Altera a flag para fechar o loop do botÃ£o acima imediatamente
+            CreateNotification:Notification("Interrompido", "Cancelando coleta e retornando Ã  posiÃ§Ã£o...", 3)
+        else
+            CreateNotification:Notification("Info", "VocÃª nÃ£o estÃ¡ coletando bombas no momento.", 2)
+        end
+    end
+})
+
+
+Tab2:AddButton({
+    Name = "Spawn Bombas",
+    Callback = function()
+        task.spawn(function()
+            local Character = Player.Character or Player.CharacterAdded:Wait()
+            local RootPart = Character:WaitForChild("HumanoidRootPart")
+            
+            local ferramentas = {}
+            
+            if Player:FindFirstChild("Backpack") then
+                for _, t in ipairs(Player.Backpack:GetChildren()) do
+                    if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                        table.insert(ferramentas, t)
+                    end
+                end
+            end
+
+            for _, t in ipairs(Character:GetChildren()) do
+                if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                    table.insert(ferramentas, t)
+                end
+            end
+
+            if #ferramentas == 0 then
+                CreateNotification:Notification("Erro", "Nenhuma bomba encontrada no seu inventÃ¡rio!", 3)
+                return
+            end
+
+            for _, bomb in ipairs(ferramentas) do
+                task.spawn(function()
+                    pcall(function()
+                        local mouseLoc = bomb:FindFirstChild("MouseLoc")
+                        local mouseLocCone = bomb:FindFirstChild("MouseLocCone")
+
+                        if mouseLoc then
+                            mouseLoc.OnClientInvoke = function()
+                                return RootPart.Position + Vector3.new(0, 4, 0)
+                            end
+                        end
+
+                        if mouseLocCone then
+                            mouseLocCone.OnClientInvoke = function()
+                                return RootPart
+                            end
+                        end
+
+                        if bomb.Parent ~= Character then
+                            bomb.Parent = Character
+                        end
+                        bomb:Activate()
+                    end)
+                end)
+            end
+        end)
+    end
+})
+
+
+Tab2:AddButton({
+    Name = "Ativa Bombas",
+    Callback = function()
+        if BlowBombsServer and BlowBombsServer:IsA("RemoteEvent") then
+            pcall(function()
+                BlowBombsServer:FireServer("Bomb" .. Player.Name)
+                CreateNotification:Notification("DetonaÃ§Ã£o", "Sinal enviado para explodir as bombas!", 3)
+            end)
+        else
+            pcall(function()
+                ReplicatedStorage.RE["1Blo1wBomb1sServe1r"]:FireServer("Bomb" .. Player.Name)
+                CreateNotification:Notification("DetonaÃ§Ã£o", "Sinal alternativo enviado!", 3)
+            end)
+        end
+    end
+})
+
+
+local LoopSpamBomba = false
+
+Tab2:AddToggle({
+    Name = "Auto Spawn e Ativar Bombas",
+    Default = false,
+    Callback = function(state)
+        LoopSpamBomba = state
+        
+        if LoopSpamBomba then
+            task.spawn(function()
+                if CreateNotification and CreateNotification.Notification then
+                    CreateNotification:Notification("Auto Spam", "Loop de bombas ativado!", 2)
+                end
+                
+                -- Loop principal enquanto o Toggle estiver ligado
+                while LoopSpamBomba do
+                    local Character = Player.Character
+                    local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+                    
+                    if Character and RootPart then
+                        local ferramentas = {}
+                        
+                        -- 1. Coleta todas as bombas do inventário
+                        if Player:FindFirstChild("Backpack") then
+                            for _, t in ipairs(Player.Backpack:GetChildren()) do
+                                if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                                    table.insert(ferramentas, t)
+                                end
+                            end
+                        end
+                        for _, t in ipairs(Character:GetChildren()) do
+                            if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                                table.insert(ferramentas, t)
+                            end
+                        end
+
+                        -- 2. Se houver bombas, inicia o processo de descarregar
+                        if #ferramentas > 0 then
+                            -- Move todas as bombas para o personagem imediatamente
+                            for _, bomb in ipairs(ferramentas) do
+                                pcall(function()
+                                    local mouseLoc = bomb:FindFirstChild("MouseLoc")
+                                    local mouseLocCone = bomb:FindFirstChild("MouseLocCone")
+
+                                    if mouseLoc then
+                                        mouseLoc.OnClientInvoke = function()
+                                            return RootPart.Position + Vector3.new(0, 4, 0)
+                                        end
+                                    end
+                                    if mouseLocCone then
+                                        mouseLocCone.OnClientInvoke = function()
+                                            return RootPart
+                                        end
+                                    end
+
+                                    if bomb.Parent ~= Character then
+                                        bomb.Parent = Character
+                                    end
+                                end)
+                            end
+                            
+                            --  PAUSA CRÍTICA: Dá tempo (0.03s) para o Roblox reconhecer as bombas nas suas mãos
+                            task.wait(0.03)
+
+                            -- Ativa todas que foram equipadas
+                            for _, bomb in ipairs(ferramentas) do
+                                pcall(function()
+                                    bomb:Activate()
+                                end)
+                            end
+
+                            --  SEGUNDA PAUSA CRÍTICA: Dá tempo para as bombas irem para a cabeça antes do "Boom"
+                            task.wait(0.05)
+                            
+                            -- 3. Detonação remota
+                            if BlowBombsServer and BlowBombsServer:IsA("RemoteEvent") then
+                                pcall(function()
+                                    BlowBombsServer:FireServer("Bomb" .. Player.Name)
+                                end)
+                            else
+                                pcall(function()
+                                    ReplicatedStorage.RE["1Blo1wBomb1sServe1r"]:FireServer("Bomb" .. Player.Name)
+                                end)
+                            end
+                        end
+                    end
+                    
+                    -- Pequena espera de 0.1 segundos antes de repetir todo o ciclo novamente
+                    task.wait(0.1) 
+                end
+                
+                if CreateNotification and CreateNotification.Notification then
+                    CreateNotification:Notification("Auto Spam", "Loop de bombas desativado.", 2)
+                end
+            end)
+        end
+    end
+})
 
 
 ----------------------------------------------------------------------------------------------------------------
@@ -3497,323 +3852,120 @@ Tab5:AddButton({
 
 Tab5:AddSection({ " Animações" })
 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Anima%C3%A7%C3%B5es%20Brookhaven%20"))()
+
 Tab5:AddButton({
-    Name = "Animação do R6",
+    Name = "Animações",
     Description = "",
-    Callback = function()    
-    loadstring(game:HttpGet('https://gist.githubusercontent.com/Imperador950/f9e54330eb4a92331204aae37ec11aef/raw/db18d1c348beb8a79931346597137518966f2188/Byshelby'))()
+    Callback = function()
+        if _G.ToggleAnimGui then
+            _G.ToggleAnimGui(true) -- Abre a interface de forma certeira!
+        else
+            warn("O script de animacoes ainda nao terminou de carregar.")
+        end
     end
 })
 
-
-
-Tab5:AddSection({ " Outras Animações..." })
-
--- ========= LISTA DE ANIMAÇÕES  INATIVIDADE=========
-local Animations = {
-	["Comunidade adidas"] = 126354114956642,
-	["Adidas Esportiva "] = 18538150608,
-	["Glamour da Passarela"] = 101279640971758,
-	["Animação Negrito"] = 16744209868,
-	["Animação Sem Limites"] = 18755930927,
-	["Amazon Unboxed"] = 82219139681769,
-	["Popular Malvada"] = 101839542383818,
-	["Animação Wicked"] = 82682578794949,
-	["Aura Adidas"] = 73137983344853,
-    ["Mr. Toilet"] =4418326547 ,
-	["R15"] = 4211409027,
-	["Ud'zal"] = 3307605825,
-	["Borock"] = 3710007708,
-}
-
-local selectedAnimation = nil
-
--- ========= DROPDOWN =========
-Tab5:AddDropdown({
-	Name = "Selecionar Idle",
-	Options = (function()
-		local list = {}
-		for name,_ in pairs(Animations) do
-			table.insert(list, name)
-		end
-		return list
-	end)(),
-	Callback = function(option)
-		selectedAnimation = Animations[option]
-	end
-})
-
--- ========= BOTÃO EQUIPAR =========
 Tab5:AddButton({
-	Name = "Equipar Animação de Inatividade",
-	Callback = function()
-		if selectedAnimation then
-			game:GetService("ReplicatedStorage")
-				:WaitForChild("Remotes")
-				:WaitForChild("Wear")
-				:InvokeServer(selectedAnimation)
-		end
-	end
+    Name = "Mr. Toilet Idle ",
+    Description = "",
+    Callback = function()
+        -- INSIRA O ID DA ANIMAÇÃO NO LUGAR DO NUMERO ABAIXO:
+        local animId = 4418326547
+        
+        -- Executa o envio seguro para o servidor do jogo (Brookhaven)
+        pcall(function()
+            local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+            if remotes and remotes:FindFirstChild("Wear") then 
+                remotes.Wear:InvokeServer(tonumber(animId)) 
+                print("Animacao enviada com sucesso! ID:", animId)
+            else
+                warn("Remotes de customizacao nao encontrados no jogo.")
+            end
+        end)
+    end
 })
 
--- ========= LISTA DE ANIMAÇÕES CAMINHAR =========
-local Animations = {
-	["Comunidade adidas"] = 106810508343012,
-	["Adidas Esportiva "] = 18538146480,
-	["Glamour da Passarela"] = 103190462987721,
-	["Animação Negrito"] = 16744219182,
-	["Animação Sem Limites"] = 18755942776,
-	["Amazon Unboxed"] = 128339543796138,
-	["Popular Malvada"] = 133304526526319,
-	["Animação Wicked"] = 94133616443608,
-	["Aura Adidas"] = 75183215343859,
-}
-
-local selectedAnimation = nil
-
--- ========= DROPDOWN =========
-Tab5:AddDropdown({
-	Name = "Selecionar Walk",
-	Options = (function()
-		local list = {}
-		for name,_ in pairs(Animations) do
-			table.insert(list, name)
-		end
-		return list
-	end)(),
-	Callback = function(option)
-		selectedAnimation = Animations[option]
-	end
-})
-
--- ========= BOTÃO EQUIPAR =========
 Tab5:AddButton({
-	Name = "Equipar Animação de Caminhar",
-	Callback = function()
-		if selectedAnimation then
-			game:GetService("ReplicatedStorage")
-				:WaitForChild("Remotes")
-				:WaitForChild("Wear")
-				:InvokeServer(selectedAnimation)
-		end
-	end
+    Name = "Mr. Toilet Run ",
+    Description = "",
+    Callback = function()
+        -- INSIRA O ID DA ANIMAÇÃO NO LUGAR DO NUMERO ABAIXO:
+        local animId = 4418324223
+        
+        -- Executa o envio seguro para o servidor do jogo (Brookhaven)
+        pcall(function()
+            local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+            if remotes and remotes:FindFirstChild("Wear") then 
+                remotes.Wear:InvokeServer(tonumber(animId)) 
+                print("Animacao enviada com sucesso! ID:", animId)
+            else
+                warn("Remotes de customizacao nao encontrados no jogo.")
+            end
+        end)
+    end
 })
 
--- ========= LISTA DE ANIMAÇÕES CORRIDA =========
-local Animations = {
-	["Comunidade adidas"] = 124765145869332,
-	["Adidas Esportiva "] = 18538133604,
-	["Glamour da Passarela"] = 75036746190467,
-	["Animação Negrito"] = 16744214662,
-	["Animação Sem Limites"] = 18755933883,
-	["Amazon Unboxed"] = 114998633936467,
-	["Popular Malvada"] = 136276875045281,
-	["Animação Wicked"] = 79789194522561,
-	["Aura Adidas"] = 123973978164540,
-	["Mr. Toilet"] = 4418324223,
-}
-
-local selectedAnimation = nil
-
--- ========= DROPDOWN =========
-Tab5:AddDropdown({
-	Name = "Selecionar Run",
-	Options = (function()
-		local list = {}
-		for name,_ in pairs(Animations) do
-			table.insert(list, name)
-		end
-		return list
-	end)(),
-	Callback = function(option)
-		selectedAnimation = Animations[option]
-	end
-})
-
--- ========= BOTÃO EQUIPAR =========
 Tab5:AddButton({
-	Name = "Equipar Animação de Corrida",
-	Callback = function()
-		if selectedAnimation then
-			game:GetService("ReplicatedStorage")
-				:WaitForChild("Remotes")
-				:WaitForChild("Wear")
-				:InvokeServer(selectedAnimation)
-		end
-	end
+    Name = "Borock idle ",
+    Description = "",
+    Callback = function()
+        -- INSIRA O ID DA ANIMAÇÃO NO LUGAR DO NUMERO ABAIXO:
+        local animId = 3710007708
+        
+        -- Executa o envio seguro para o servidor do jogo (Brookhaven)
+        pcall(function()
+            local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+            if remotes and remotes:FindFirstChild("Wear") then 
+                remotes.Wear:InvokeServer(tonumber(animId)) 
+                print("Animacao enviada com sucesso! ID:", animId)
+            else
+                warn("Remotes de customizacao nao encontrados no jogo.")
+            end
+        end)
+    end
 })
 
--- ========= LISTA DE ANIMAÇÕES PULO =========
-local Animations = {
-	["Comunidade adidas"] = 115715495289805,
-	["Adidas Esportiva "] = 18538153691,
-	["Glamour da Passarela"] = 138641066989023,
-	["Animação Negrito"] = 16744212581,
-	["Animação Sem Limites"] = 18755925411,
-	["Amazon Unboxed"] = 110418911914024,
-	["Popular Malvada"] = 130373407996664,
-	["Animação Wicked"] = 111157411630082,
-	["Aura Adidas"] = 129527230938281,
-}
-
-local selectedAnimation = nil
-
--- ========= DROPDOWN =========
-Tab5:AddDropdown({
-	Name = "Selecionar Jump",
-	Options = (function()
-		local list = {}
-		for name,_ in pairs(Animations) do
-			table.insert(list, name)
-		end
-		return list
-	end)(),
-	Callback = function(option)
-		selectedAnimation = Animations[option]
-	end
-})
-
--- ========= BOTÃO EQUIPAR =========
 Tab5:AddButton({
-	Name = "Equipar Animação de Pulo",
-	Callback = function()
-		if selectedAnimation then
-			game:GetService("ReplicatedStorage")
-				:WaitForChild("Remotes")
-				:WaitForChild("Wear")
-				:InvokeServer(selectedAnimation)
-		end
-	end
+    Name = "R15 idle ",
+    Description = "",
+    Callback = function()
+        -- INSIRA O ID DA ANIMAÇÃO NO LUGAR DO NUMERO ABAIXO:
+        local animId = 4211409027
+        
+        -- Executa o envio seguro para o servidor do jogo (Brookhaven)
+        pcall(function()
+            local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+            if remotes and remotes:FindFirstChild("Wear") then 
+                remotes.Wear:InvokeServer(tonumber(animId)) 
+                print("Animacao enviada com sucesso! ID:", animId)
+            else
+                warn("Remotes de customizacao nao encontrados no jogo.")
+            end
+        end)
+    end
 })
 
--- ========= LISTA DE ANIMAÇÕES QUEDA =========
-local Animations = {
-	["Comunidade adidas"] = 93993406355955,
-	["Adidas Esportiva "] = 18538164337,
-	["Glamour da Passarela"] = 72706690305027,
-	["Animação Negrito"] = 16744207822,
-	["Animação Sem Limites"] = 18755922352,
-	["Amazon Unboxed"] = 125108870423182,
-	["Popular Malvada"] = 83937116921114,
-	["Animação Wicked"] = 124742764102674,
-	["Aura Adidas"] = 99457463463495,
-}
-
-local selectedAnimation = nil
-
--- ========= DROPDOWN =========
-Tab5:AddDropdown({
-	Name = "Selecionar Fall",
-	Options = (function()
-		local list = {}
-		for name,_ in pairs(Animations) do
-			table.insert(list, name)
-		end
-		return list
-	end)(),
-	Callback = function(option)
-		selectedAnimation = Animations[option]
-	end
-})
-
--- ========= BOTÃO EQUIPAR =========
 Tab5:AddButton({
-	Name = "Equipar Animação de Queda",
-	Callback = function()
-		if selectedAnimation then
-			game:GetService("ReplicatedStorage")
-				:WaitForChild("Remotes")
-				:WaitForChild("Wear")
-				:InvokeServer(selectedAnimation)
-		end
-	end
+    Name = "Ud'zal idle ",
+    Description = "",
+    Callback = function()
+        -- INSIRA O ID DA ANIMAÇÃO NO LUGAR DO NUMERO ABAIXO:
+        local animId = 3307605825
+        
+        -- Executa o envio seguro para o servidor do jogo (Brookhaven)
+        pcall(function()
+            local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+            if remotes and remotes:FindFirstChild("Wear") then 
+                remotes.Wear:InvokeServer(tonumber(animId)) 
+                print("Animacao enviada com sucesso! ID:", animId)
+            else
+                warn("Remotes de customizacao nao encontrados no jogo.")
+            end
+        end)
+    end
 })
 
--- ========= LISTA DE ANIMAÇÕES NADO =========
-local Animations = {
-	["Comunidade adidas"] = 106537993816942,
-	["Adidas Esportiva "] = 18538158932,
-	["Glamour da Passarela"] = 112231179705221,
-	["Animação Negrito"] = 16744217055,
-	["Animação Sem Limites"] = 18755938274,
-	["Amazon Unboxed"] = 137392271797713,
-	["Popular Malvada"] = 128475661806875,
-	["Animação Wicked"] = 135050138303161,
-	["Aura Adidas"] = 119007025452432,
-}
-
-local selectedAnimation = nil
-
--- ========= DROPDOWN =========
-Tab5:AddDropdown({
-	Name = "Selecionar Swim",
-	Options = (function()
-		local list = {}
-		for name,_ in pairs(Animations) do
-			table.insert(list, name)
-		end
-		return list
-	end)(),
-	Callback = function(option)
-		selectedAnimation = Animations[option]
-	end
-})
-
--- ========= BOTÃO EQUIPAR =========
-Tab5:AddButton({
-	Name = "Equipar Animação de Nado",
-	Callback = function()
-		if selectedAnimation then
-			game:GetService("ReplicatedStorage")
-				:WaitForChild("Remotes")
-				:WaitForChild("Wear")
-				:InvokeServer(selectedAnimation)
-		end
-	end
-})
-
--- ========= LISTA DE ANIMAÇÕES ESCALAR =========
-local Animations = {
-	["Comunidade adidas"] = 123695349157584,
-	["Adidas Esportiva "] = 18538170170,
-	["Glamour da Passarela"] = 104741822987331,
-	["Animação Negrito"] = 16744204409,
-	["Animação Sem Limites"] = 18755919175,
-	["Amazon Unboxed"] = 117011755848398,
-	["Popular Malvada"] = 135810009801094,
-	["Animação Wicked"] = 123509187015792,
-	["Aura Adidas"] = 140398319728398,
-}
-
-local selectedAnimation = nil
-
--- ========= DROPDOWN =========
-Tab5:AddDropdown({
-	Name = "Selecionar Climb",
-	Options = (function()
-		local list = {}
-		for name,_ in pairs(Animations) do
-			table.insert(list, name)
-		end
-		return list
-	end)(),
-	Callback = function(option)
-		selectedAnimation = Animations[option]
-	end
-})
-
--- ========= BOTÃO EQUIPAR =========
-Tab5:AddButton({
-	Name = "Equipar Animação de Escalar",
-	Callback = function()
-		if selectedAnimation then
-			game:GetService("ReplicatedStorage")
-				:WaitForChild("Remotes")
-				:WaitForChild("Wear")
-				:InvokeServer(selectedAnimation)
-		end
-	end
-})
 
 Tab5:AddSection({ " Nome e Bio" })
 
@@ -4213,6 +4365,231 @@ Tab6:AddButton({
         end
     end
 })
+
+Tab6:AddSection({ "Banir Jogadores da Sua Casa" })
+
+do -- 📦 ESCOPO ISOLADO (Evita conflitos com outros scripts da sua UI)
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+
+    -- Variáveis de controle totalmente privadas deste bloco
+    local listaDisponiveis = {}
+    local listaSalvos = {}
+
+    local selecionadoDropdown1 = nil
+    local selecionadoDropdown2 = nil
+    local banirListaAtivo = false
+    local banirTodosAtivo = false
+
+    -- Coleta os players iniciais
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            table.insert(listaDisponiveis, player.Name)
+        end
+    end
+
+    -- Declaração local dos elementos para não vazar para o script principal
+    local Dropdown1 = nil
+    local Dropdown2 = nil
+
+    local function atualizarInterfaces()
+        if Dropdown1 then Dropdown1:Set(listaDisponiveis) end
+        if Dropdown2 then Dropdown2:Set(listaSalvos) end
+    end
+
+    local function reiniciarListas()
+        listaDisponiveis = {}
+        listaSalvos = {}
+        selecionadoDropdown1 = nil
+        selecionadoDropdown2 = nil
+        
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                table.insert(listaDisponiveis, player.Name)
+            end
+        end
+        atualizarInterfaces()
+    end
+
+    -- 🎯 DROPDOWN 1: SELECIONAR JOGADORES
+    Dropdown1 = Tab6:AddDropdownPlayer({
+        Name = "Selecionar Jogador",
+        Options = listaDisponiveis,
+        Default = "...",
+        Callback = function(Value)
+            -- Verifica se o nome passado bate com o formato esperado e evita travas do placeholder
+            if Value and Value ~= "..." and Value ~= "Selecionar Jogador" then
+                selecionadoDropdown1 = Value
+                
+                for i, nome in ipairs(listaDisponiveis) do
+                    if nome == selecionadoDropdown1 then
+                        table.remove(listaDisponiveis, i)
+                        break
+                    end
+                end
+                
+                table.insert(listaSalvos, selecionadoDropdown1)
+                selecionadoDropdown1 = nil
+                atualizarInterfaces()
+            end
+        end
+    })
+
+    -- 🎯 DROPDOWN 2: LISTA DE JOGADORES SALVOS
+    Dropdown2 = Tab6:AddDropdownPlayer({
+        Name = "Jogadores na Lista",
+        Options = listaSalvos,
+        Default = "...",
+        Callback = function(Value)
+            if Value and Value ~= "..." and Value ~= "Jogadores na Lista" then
+                selecionadoDropdown2 = Value
+            end
+        end
+    })
+
+    -- 🛑 BOTÃO: REMOVER PLAYER SELECIONADO DA LISTA
+    Tab6:AddButton({
+        Name = "Remover player selecionado da lista",
+        Callback = function()
+            if selecionadoDropdown2 and selecionadoDropdown2 ~= "..." then
+                for i, nome in ipairs(listaSalvos) do
+                    if nome == selecionadoDropdown2 then
+                        table.remove(listaSalvos, i)
+                        break
+                    end
+                end
+                
+                table.insert(listaDisponiveis, selecionadoDropdown2)
+                selecionadoDropdown2 = nil
+                atualizarInterfaces()
+            end
+        end
+    })
+
+    -- 🧹 BOTÃO: REMOVER TODOS OS PLAYERS DA LISTA
+    Tab6:AddButton({
+        Name = "Remover todos os players da lista",
+        Callback = function()
+            reiniciarListas()
+        end
+    })
+
+    -- ⚡ TOGGLE: BANIR JOGADORES DA LISTA
+    Tab6:AddToggle({
+        Name = "Banir jogadores da lista",
+        Description = "Bane da Casa Apenas Quem Estiver Adicionado na Lista",
+        Default = false,
+        Callback = function(state)
+            banirListaAtivo = state
+
+            spawn(function()
+                while banirListaAtivo do
+                    for _, player in ipairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer then
+                            local naLista = false
+                            for _, nomeSalvo in ipairs(listaSalvos) do
+                                if player.Name == nomeSalvo then
+                                    naLista = true
+                                    break
+                                end
+                            end
+                            
+                            if naLista then
+                                local lots = workspace:FindFirstChild("001_Lots")
+                                if lots then
+                                    for _, casa in pairs(lots:GetChildren()) do
+                                        local permissao = casa:FindFirstChild("HousePickedByPlayer")
+                                            and casa.HousePickedByPlayer:FindFirstChild("HouseModel")
+                                            and casa.HousePickedByPlayer.HouseModel:FindFirstChild("Permissions:Disallow")
+
+                                        if permissao then
+                                            permissao:FireServer(player)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    task.wait(1)
+                end
+            end)
+        end
+    })
+
+    -- ⚡ TOGGLE: BANIR TODOS OS JOGADORES DA CASA (Menos os da lista)
+    Tab6:AddToggle({
+        Name = "Banir Todos os Jogadores da Casa",
+        Description = "Bane todos do servidor exceto quem estiver na lista",
+        Default = false,
+        Callback = function(state)
+            banirTodosAtivo = state
+
+            spawn(function()
+                while banirTodosAtivo do
+                    for _, player in ipairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer then
+                            local estaProtegido = false
+                            for _, nomeSalvo in ipairs(listaSalvos) do
+                                if player.Name == nomeSalvo then
+                                    estaProtegido = true
+                                    break
+                                end
+                            end
+                            
+                            if not estaProtegido then
+                                local lots = workspace:FindFirstChild("001_Lots")
+                                if lots then
+                                    for _, casa in pairs(lots:GetChildren()) do
+                                        local permissao = casa:FindFirstChild("HousePickedByPlayer")
+                                            and casa.HousePickedByPlayer:FindFirstChild("HouseModel")
+                                            and casa.HousePickedByPlayer.HouseModel:FindFirstChild("Permissions:Disallow")
+
+                                        if permissao then
+                                            permissao:FireServer(player)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    task.wait(1)
+                end
+            end)
+        end
+    })
+
+    -- 🛠️ EVENTOS DE CONEXÃO E LIMPEZA
+    Players.PlayerAdded:Connect(function(player)
+        task.wait(0.5)
+        local jaExiste = false
+        for _, nome in ipairs(listaSalvos) do
+            if nome == player.Name then jaExiste = true break end
+        end
+        for _, nome in ipairs(listaDisponiveis) do
+            if nome == player.Name then jaExiste = true break end
+        end
+        
+        if not jaExiste and player ~= LocalPlayer then
+            table.insert(listaDisponiveis, player.Name)
+            atualizarInterfaces()
+        end
+    end)
+
+    Players.PlayerRemoving:Connect(function(player)
+        for i, nome in ipairs(listaDisponiveis) do
+            if nome == player.Name then table.remove(listaDisponiveis, i) break end
+        end
+        for i, nome in ipairs(listaSalvos) do
+            if nome == player.Name then table.remove(listaSalvos, i) break end
+        end
+        
+        if selecionadoDropdown2 == player.Name then
+            selecionadoDropdown2 = nil
+        end
+        atualizarInterfaces()
+    end)
+end
+
 
 Tab6:AddSection({ "Casas" })
 
