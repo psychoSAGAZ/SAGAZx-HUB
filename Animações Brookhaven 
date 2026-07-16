@@ -134,7 +134,10 @@ local function ClearVisualSlot(subTypeName)
     local slot = ActiveSlots[subTypeName]
     if slot then
         slot.BackgroundColor3 = Color3.fromRGB(38, 38, 48)
-        slot.Image.Image = ""
+        local slotImg = slot:FindFirstChild("Image")
+        if slotImg then
+            slotImg.Image = ""
+        end
         slot.Label.Text = subTypeName .. "\n[Nenhum]"
         slot.Label.TextColor3 = Color3.fromRGB(150, 150, 160)
         slot.CloseBtn.Visible = false
@@ -171,9 +174,10 @@ for i, slotName in ipairs(subTypes) do
     
     local SlotImg = Instance.new("ImageLabel")
     SlotImg.Name = "Image"
-    SlotImg.Size = UDim2.new(0, 18, 0, 18)
-    SlotImg.Position = UDim2.new(0.5, -9, 0, 2)
+    SlotImg.Size = UDim2.new(0, 22, 0, 22)
+    SlotImg.Position = UDim2.new(0.5, -11, 0, 2)
     SlotImg.BackgroundTransparency = 1
+    SlotImg.ScaleType = Enum.ScaleType.Fit
     SlotImg.Parent = SlotFrame
     
     local SlotTxt = Instance.new("TextLabel")
@@ -215,7 +219,13 @@ local function SetVisualEquipped(subTypeName, assetId, packName, indicatorToActi
     local slot = ActiveSlots[subTypeName]
     if slot then
         slot.BackgroundColor3 = Color3.fromRGB(46, 117, 89)
-        slot.Image.Image = "rbxthumb://type=Asset&id=" .. tostring(assetId) .. "&w=150&h=150"
+        
+        -- Correção aqui: Acessando o ImageLabel "Image" dentro do slot para alterar o ID da imagem de forma compatível
+        local slotImg = slot:FindFirstChild("Image")
+        if slotImg then
+            slotImg.Image = "rbxthumb://type=Asset&id=" .. tostring(assetId) .. "&w=150&h=150"
+        end
+        
         slot.Label.Text = subTypeName .. "\n[" .. packName .. "]"
         slot.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
         slot.CloseBtn.Visible = true
@@ -531,9 +541,10 @@ task.spawn(function()
                         SubCorner.Parent = SubButton
                         
                         local SubImg = Instance.new("ImageLabel")
-                        SubImg.Size = UDim2.new(0, 16, 0, 16)
-                        SubImg.Position = UDim2.new(0.5, -8, 0, 2)
+                        SubImg.Size = UDim2.new(0, 22, 0, 22)
+                        SubImg.Position = UDim2.new(0.5, -11, 0, 2)
                         SubImg.BackgroundTransparency = 1
+                        SubImg.ScaleType = Enum.ScaleType.Fit
                         SubImg.Image = "rbxthumb://type=Asset&id=" .. tostring(subAssetId) .. "&w=150&h=150"
                         SubImg.Parent = SubButton
 
