@@ -20,6 +20,16 @@ end
 
 local animationData = FetchAnimations()
 
+-- Tabela de busca reversa para descobrir a qual pacote (Bundle ID) pertence cada animação individual
+local AnimToBundleMap = {}
+for _, pack in ipairs(animationData) do
+    if pack.id and pack.bundledItems then
+        for _, subAssetId in pairs(pack.bundledItems) do
+            AnimToBundleMap[tostring(subAssetId)] = tostring(pack.id)
+        end
+    end
+end
+
 local savedCategories = {}
 local function LoadCategoriesFromFile()
     if isfile and readfile and isfile(FILE_NAME) then
@@ -174,8 +184,8 @@ for i, slotName in ipairs(subTypes) do
     
     local SlotImg = Instance.new("ImageLabel")
     SlotImg.Name = "Image"
-    SlotImg.Size = UDim2.new(0, 22, 0, 22)
-    SlotImg.Position = UDim2.new(0.5, -11, 0, 2)
+    SlotImg.Size = UDim2.new(0, 24, 0, 24)
+    SlotImg.Position = UDim2.new(0.5, -12, 0, 2)
     SlotImg.BackgroundTransparency = 1
     SlotImg.ScaleType = Enum.ScaleType.Fit
     SlotImg.Parent = SlotFrame
@@ -220,10 +230,16 @@ local function SetVisualEquipped(subTypeName, assetId, packName, indicatorToActi
     if slot then
         slot.BackgroundColor3 = Color3.fromRGB(46, 117, 89)
         
-        -- Correção aqui: Acessando o ImageLabel "Image" dentro do slot para alterar o ID da imagem de forma compatível
         local slotImg = slot:FindFirstChild("Image")
         if slotImg then
-            slotImg.Image = "rbxthumb://type=Asset&id=" .. tostring(assetId) .. "&w=150&h=150"
+            -- MODIFICAÇÃO CHAVE: Se for uma animação individual, nós convertemos a imagem para a imagem do pacote correspondente
+            local bundleId = AnimToBundleMap[tostring(assetId)]
+            if bundleId then
+                slotImg.Image = "rbxthumb://type=BundleThumbnail&id=" .. bundleId .. "&w=150&h=150"
+            else
+                -- Caso contrário, tenta carregar o asset diretamente (ou mantém vazio se falhar)
+                slotImg.Image = "rbxthumb://type=Asset&id=" .. tostring(assetId) .. "&w=150&h=150"
+            end
         end
         
         slot.Label.Text = subTypeName .. "\n[" .. packName .. "]"
@@ -545,7 +561,8 @@ task.spawn(function()
                         SubImg.Position = UDim2.new(0.5, -11, 0, 2)
                         SubImg.BackgroundTransparency = 1
                         SubImg.ScaleType = Enum.ScaleType.Fit
-                        SubImg.Image = "rbxthumb://type=Asset&id=" .. tostring(subAssetId) .. "&w=150&h=150"
+                        -- Usando o ID do pacote (pack.id) para as animações individuais também, garantindo que apareça a miniatura correta
+                        SubImg.Image = "rbxthumb://type=BundleThumbnail&id=" .. tostring(pack.id) .. "&w=150&h=150"
                         SubImg.Parent = SubButton
 
                         local SubText = Instance.new("TextLabel")
