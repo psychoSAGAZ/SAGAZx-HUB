@@ -2995,6 +2995,8 @@ Tab5:AddButton({
     end
 })
 
+
+
 -- 🎯 DROPDOWN DE TARGET (Alterado para AddDropdownPlayer e Tab5)
 DropdownJogadoresAvatar = Tab5:AddDropdownPlayer({
     Name = "Selecionar Jogador",
@@ -3036,12 +3038,27 @@ Players.PlayerRemoving:Connect(function(plr)
 end)
 
 
+-- Dropdown para escolher o tipo de corpo para o reset
+Tab5:AddDropdown({
+    Name = "Tipo de Corpo",
+    Description = "Selecione o corpo base para carregar a skin",
+    Options = {"Corpo Normal", "Corpo Normal Esticado", "Corpo Alto Fino"},
+    Default = "Corpo Normal",
+    Flag = "body_type_dropdown",
+    Callback = function(Value)
+        -- Armazena globalmente a opção selecionada
+        _G.SelectedBodyType = Value
+        print("Corpo selecionado: " .. Value)
+    end
+})
+
+
 Tab5:AddButton({
     Name = "Copiar Avatar",
     Callback = function()
 
         if not SelectedPlayerAvatar then
-            warn("Nenhum jogador selecionado")
+            CreateNotification("Aviso", "Nenhum jogador selecionado", 4)
             return
         end
 
@@ -3054,13 +3071,13 @@ Tab5:AddButton({
 
         local TPlayer = Players:FindFirstChild(SelectedPlayerAvatar)
         if not TPlayer then
-            warn("Jogador não encontrado")
+            CreateNotification("Erro", "Jogador não encontrado", 4)
             return
         end
 
         local TChar = TPlayer.Character or TPlayer.CharacterAdded:Wait()
         if not TChar then
-            warn("Character do alvo não carregado")
+            CreateNotification("Erro", "Character do alvo não carregado", 4)
             return
         end
 
@@ -3068,34 +3085,70 @@ Tab5:AddButton({
         local THumanoid = TChar:FindFirstChildOfClass("Humanoid")
 
         if not LHumanoid or not THumanoid then
-            warn("Humanoid não encontrado")
+            CreateNotification("Erro", "Humanoid não encontrado", 4)
             return
         end
 
-        -- Função auxiliar para garantir que o remote seja aceito pelo servidor
+        -- Função auxiliar para vestir itens com delay
         local function SafeWear(assetId)
-            if not assetId or assetId == 0 then return end
-            -- Tenta enviar o item. Usamos pcall para o script não quebrar se o remote falhar
+            if not assetId or assetId == 0 or assetId == "0" then return end
             pcall(function()
                 Remotes.Wear:InvokeServer(tonumber(assetId))
             end)
-            task.wait(0.35) -- Delay ligeiramente maior para burlar o anti-spam do Brookhaven
+            task.wait(0.35) -- Delay de segurança anti rate limit do Brookhaven
         end
 
-        -- RESETAR LOCALPLAYER
-        local code = "BH-AE-a2ee417b2f0c419ab519711afa642402"
+        -- ==========================================
+        -- 1. CAPTURAR OS DADOS DO ALVO NO INÍCIO
+        -- ==========================================
+        local PDesc = THumanoid:GetAppliedDescription()
         
+        -- Guardar os IDs planejados originais em uma tabela
+        local targetIDs = {}
+        local function addTargetId(id)
+            if id and tonumber(id) and tonumber(id) ~= 0 then
+                targetIDs[tonumber(id)] = true
+            end
+        end
+
+        -- Coletar IDs originais (Roupas, Rosto e Acessórios)
+        addTargetId(PDesc.Shirt)
+        addTargetId(PDesc.Pants)
+        addTargetId(PDesc.Face)
+        
+        local targetAccessories = PDesc:GetAccessories(true)
+        for _, acc in ipairs(targetAccessories) do
+            addTargetId(acc.AssetId)
+        end
+
+        -- ==========================================
+        -- 2. RESETAR O LOCALPLAYER COM O CORPO SELECIONADO
+        -- ==========================================
+        
+        -- Tabela de corpos e seus respectivos códigos correspondentes
+        local bodyCodes = {
+            ["Corpo Normal"]          = "BH-AE-0f8f8960d421497695b6c7f81888d9a6",
+            ["Corpo Normal Esticado"] = "BH-AE-6d902b983af44f819336326f3c5f0a2c",
+            ["Corpo Alto Fino"]       = "BH-AE-7dd15b77d3834f81ac83bc309f919d1a"
+        }
+
+        -- Recupera a escolha do dropdown. Se estiver vazia, usa "Corpo Normal" por padrão.
+        local chosenBody = _G.SelectedBodyType or "Corpo Normal"
+        local code = bodyCodes[chosenBody] or "BH-AE-98069945232645a5a4c827bb7eb2f2bb"
+
         task.spawn(function()
             pcall(function()
                 Remotes.AvatarEditorOutfitCodes:InvokeServer("Load", code)
             end)
         end)
 
-        task.wait(4) -- Tempo para o reset limpar tudo
+        task.wait(4) -- Tempo para a limpeza do reset terminar
 
-        -- COPIAR DO ALVO
-        local PDesc = THumanoid:GetAppliedDescription()
-
+        -- ==========================================
+        -- 3. PRIMEIRA TENTATIVA DE EQUIPAR (ROUPAS & ACESSÓRIOS)
+        -- ==========================================
+        
+        -- Corpo/Package
         local argsBody = {
             [1] = {
                 [1] = PDesc.Torso,
@@ -3106,30 +3159,20 @@ Tab5:AddButton({
                 [6] = PDesc.Head
             }
         }
-
         pcall(function()
             Remotes.ChangeCharacterBody:InvokeServer(unpack(argsBody))
         end)
         task.wait(0.5)
 
-        -- Vestir Roupas Clássicas
-        if tonumber(PDesc.Shirt) and PDesc.Shirt ~= 0 then
-            SafeWear(PDesc.Shirt)
-        end
+        -- Roupas e Rosto clássicos
+        if targetIDs[tonumber(PDesc.Shirt)] then SafeWear(PDesc.Shirt) end
+        if targetIDs[tonumber(PDesc.Pants)] then SafeWear(PDesc.Pants) end
+        if targetIDs[tonumber(PDesc.Face)] then SafeWear(PDesc.Face) end
 
-        if tonumber(PDesc.Pants) and PDesc.Pants ~= 0 then
-            SafeWear(PDesc.Pants)
-        end
-
-        if tonumber(PDesc.Face) and PDesc.Face ~= 0 then
-            SafeWear(PDesc.Face)
-        end
-
-        -- COPIAR TODOS OS ACESSÓRIOS (Com delay seguro anti-bloqueio)
-        local accessories = PDesc:GetAccessories(true)
-        for _, v in ipairs(accessories) do
-            if v.AssetId and tonumber(v.AssetId) and tonumber(v.AssetId) ~= 0 then
-                SafeWear(v.AssetId)
+        -- Acessórios
+        for _, acc in ipairs(targetAccessories) do
+            if acc.AssetId then
+                SafeWear(acc.AssetId)
             end
         end
 
@@ -3142,111 +3185,382 @@ Tab5:AddButton({
             task.wait(0.3)
         end
 
-        -- COPIAR ANIMAÇÕES
-        local CurrentDesc = LHumanoid:GetAppliedDescription()
-
-        local Animations = {
-            {PDesc.IdleAnimation, CurrentDesc.IdleAnimation},
-            {PDesc.WalkAnimation, CurrentDesc.WalkAnimation},
-            {PDesc.RunAnimation, CurrentDesc.RunAnimation},
-            {PDesc.JumpAnimation, CurrentDesc.JumpAnimation},
-            {PDesc.FallAnimation, CurrentDesc.FallAnimation},
-            {PDesc.ClimbAnimation, CurrentDesc.ClimbAnimation},
-            {PDesc.SwimAnimation, CurrentDesc.SwimAnimation}
-        }
-
-        for _, animData in ipairs(Animations) do
-            local targetAnim = animData[1]
-            local currentAnim = animData[2]
-
-            if tonumber(targetAnim) and targetAnim ~= 0 then
-                if tostring(targetAnim) ~= tostring(currentAnim) then
-                    SafeWear(targetAnim)
+        -- ==========================================
+        -- FUNÇÃO DE REVISÃO REUTILIZÁVEL (DOUBLE-CHECK)
+        -- ==========================================
+        local function RunRevision(revisionNumber)
+            local checkTChar = TPlayer.Character
+            local checkTHumanoid = checkTChar and checkTChar:FindFirstChildOfClass("Humanoid")
+            
+            if not checkTHumanoid then return false end
+            
+            local NewPDesc = checkTHumanoid:GetAppliedDescription()
+            
+            -- Gerar lista atual de IDs do Alvo para conferência
+            local currentTargetIDs = {}
+            local function addCurrentId(id)
+                if id and tonumber(id) and tonumber(id) ~= 0 then
+                    currentTargetIDs[tonumber(id)] = true
                 end
             end
+
+            addCurrentId(NewPDesc.Shirt)
+            addCurrentId(NewPDesc.Pants)
+            addCurrentId(NewPDesc.Face)
+            for _, acc in ipairs(NewPDesc:GetAccessories(true)) do
+                addCurrentId(acc.AssetId)
+            end
+
+            -- Analisar diferença entre a lista inicial e a lista de agora
+            local totalOriginalItems = 0
+            local matchingItems = 0
+
+            for id, _ in pairs(targetIDs) do
+                totalOriginalItems = totalOriginalItems + 1
+                if currentTargetIDs[id] then
+                    matchingItems = matchingItems + 1
+                end
+            end
+
+            local matchRatio = totalOriginalItems > 0 and (matchingItems / totalOriginalItems) or 1
+
+            -- Se o alvo mudou mais de 40% da skin, cancelamos a revisão
+            if matchRatio < 0.6 then
+                warn("Revisão " .. revisionNumber .. " abortada: O jogador mudou de skin.")
+                return false
+            end
+
+            -- Se a skin for compatível, reequipamos apenas o que faltou em você
+            local LDesc = LHumanoid:GetAppliedDescription()
+            local myEquipped = {}
+            local function addMyId(id)
+                if id and tonumber(id) and tonumber(id) ~= 0 then
+                    myEquipped[tonumber(id)] = true
+                end
+            end
+
+            addMyId(LDesc.Shirt)
+            addMyId(LDesc.Pants)
+            addMyId(LDesc.Face)
+            for _, acc in ipairs(LDesc:GetAccessories(true)) do
+                addMyId(acc.AssetId)
+            end
+
+            local missingItemsFound = false
+            for id, _ in pairs(targetIDs) do
+                if not myEquipped[id] then
+                    missingItemsFound = true
+                    print("Revisão " .. revisionNumber .. ": Tentando reequipar item faltando (ID: " .. tostring(id) .. ")...")
+                    SafeWear(id)
+                end
+            end
+
+            return true
         end
 
-        -- Nome, Bio e Cores do chat
-        local Bag = TPlayer:FindFirstChild("PlayersBag")
-        if Bag then
-            if Bag:FindFirstChild("RPName") and Bag.RPName.Value ~= "" then
-                Remotes.RPNameText:FireServer("RolePlayName", Bag.RPName.Value)
-                task.wait(0.2)
-            end
-            if Bag:FindFirstChild("RPBio") and Bag.RPBio.Value ~= "" then
-                Remotes.RPNameText:FireServer("RolePlayBio", Bag.RPBio.Value)
-                task.wait(0.2)
-            end
-            if Bag:FindFirstChild("RPNameColor") then
-                Remotes.RPNameColor:FireServer("PickingRPNameColor", Bag.RPNameColor.Value)
-                task.wait(0.2)
-            end
-            if Bag:FindFirstChild("RPBioColor") then
-                Remotes.RPNameColor:FireServer("PickingRPBioColor", Bag.RPBioColor.Value)
-                task.wait(0.2)
+        -- ==========================================
+        -- EXECUÇÃO DAS REVISÕES 2 E 3
+        -- ==========================================
+        task.wait(1.5) -- Pausa antes da Segunda Revisão
+        RunRevision(2)
+
+        task.wait(1.5) -- Pausa antes da Terceira Revisão
+        RunRevision(3)
+
+        -- ==========================================
+        -- 4. COPIAR E APLICAR AS ANIMAÇÕES (NO FINAL)
+        -- ==========================================
+        local Animations = {
+            PDesc.IdleAnimation, PDesc.WalkAnimation, PDesc.RunAnimation,
+            PDesc.JumpAnimation, PDesc.FallAnimation, PDesc.ClimbAnimation, PDesc.SwimAnimation
+        }
+        for _, anim in ipairs(Animations) do
+            if tonumber(anim) and anim ~= 0 then
+                SafeWear(anim)
             end
         end
 
-        print("Avatar copiado com sucesso de:", SelectedPlayerAvatar)
+        -- ==========================================
+        -- 5. NOTIFICAÇÃO DE FINALIZAÇÃO
+        -- ==========================================
+        CreateNotification(
+            "Sucesso",
+            "Avatar de " .. SelectedPlayerAvatar .. " Copiado Com Sucesso!",
+            4
+        )
 
     end
 })
-   
+
+Tab5:AddButton({
+    Name = "Copiar Avatar Roblox",
+    Callback = function()
+
+        if not SelectedPlayerAvatar then
+            CreateNotification("Aviso", "Nenhum jogador selecionado", 4)
+            return
+        end
+
+        local Players = game:GetService("Players")
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+        local LP = Players.LocalPlayer
+        local LChar = LP.Character or LP.CharacterAdded:Wait()
+
+        local TPlayer = Players:FindFirstChild(SelectedPlayerAvatar)
+        if not TPlayer then
+            CreateNotification("Erro", "Jogador não encontrado", 4)
+            return
+        end
+
+        local LHumanoid = LChar:FindFirstChildOfClass("Humanoid")
+        if not LHumanoid then
+            CreateNotification("Erro", "Seu Humanoid não foi encontrado", 4)
+            return
+        end
+
+        -- Função auxiliar para vestir itens com delay seguro
+        local function SafeWear(assetId)
+            if not assetId or assetId == 0 or assetId == "0" then return end
+            pcall(function()
+                Remotes.Wear:InvokeServer(tonumber(assetId))
+            end)
+            task.wait(0.35)
+        end
+
+        -- ==========================================
+        -- 1. PUXAR O AVATAR DO PERFIL DA ROBLOX
+        -- ==========================================
+        local success, PDesc = pcall(function()
+            return Players:GetHumanoidDescriptionFromUserId(TPlayer.UserId)
+        end)
+
+        if not success or not PDesc then
+            CreateNotification("Erro", "Não foi possível carregar o avatar original do Roblox", 4)
+            return
+        end
+
+        -- Guardar os IDs originais em uma tabela
+        local targetIDs = {}
+        local function addTargetId(id)
+            if id and tonumber(id) and tonumber(id) ~= 0 then
+                targetIDs[tonumber(id)] = true
+            end
+        end
+
+        addTargetId(PDesc.Shirt)
+        addTargetId(PDesc.Pants)
+        addTargetId(PDesc.Face)
+        
+        local targetAccessories = PDesc:GetAccessories(true)
+        for _, acc in ipairs(targetAccessories) do
+            addTargetId(acc.AssetId)
+        end
+
+        -- ==========================================
+        -- 2. RESETAR O LOCALPLAYER COM O CORPO DO DROPDOWN
+        -- ==========================================
+        local bodyCodes = {
+            ["Corpo Normal"]          = "BH-AE-0f8f8960d421497695b6c7f81888d9a6",
+            ["Corpo Normal Esticado"] = "BH-AE-6d902b983af44f819336326f3c5f0a2c",
+            ["Corpo Alto Fino"]       = "BH-AE-7dd15b77d3834f81ac83bc309f919d1a"
+        }
+
+        local chosenBody = _G.SelectedBodyType or "Corpo Normal"
+        local code = bodyCodes[chosenBody] or "BH-AE-98069945232645a5a4c827bb7eb2f2bb"
+
+        task.spawn(function()
+            pcall(function()
+                Remotes.AvatarEditorOutfitCodes:InvokeServer("Load", code)
+            end)
+        end)
+
+        task.wait(4) -- Tempo para a limpeza do reset terminar
+
+        -- ==========================================
+        -- 3. PRIMEIRA TENTATIVA DE EQUIPAR (ROBLOX ORIGINAL)
+        -- ==========================================
+        
+        -- Corpo/Package
+        local argsBody = {
+            [1] = {
+                [1] = PDesc.Torso,
+                [2] = PDesc.RightArm,
+                [3] = PDesc.LeftArm,
+                [4] = PDesc.RightLeg,
+                [5] = PDesc.LeftLeg,
+                [6] = PDesc.Head
+            }
+        }
+        pcall(function()
+            Remotes.ChangeCharacterBody:InvokeServer(unpack(argsBody))
+        end)
+        task.wait(0.5)
+
+        -- Roupas e Rosto clássicos do Roblox
+        if targetIDs[tonumber(PDesc.Shirt)] then SafeWear(PDesc.Shirt) end
+        if targetIDs[tonumber(PDesc.Pants)] then SafeWear(PDesc.Pants) end
+        if targetIDs[tonumber(PDesc.Face)] then SafeWear(PDesc.Face) end
+
+        -- Acessórios do Roblox
+        for _, acc in ipairs(targetAccessories) do
+            if acc.AssetId then
+                SafeWear(acc.AssetId)
+            end
+        end
+
+        -- Cor da Pele Original do Perfil
+        pcall(function()
+            -- No Brookhaven, a cor da pele é enviada como string de uma cor BrickColor ou similar.
+            -- Convertemos o HeadColor (Color3) original do Roblox para o remote mudar
+            local skinBrickColor = BrickColor.new(PDesc.HeadColor)
+            Remotes.ChangeBodyColor:FireServer(tostring(skinBrickColor))
+        end)
+        task.wait(0.3)
+
+        -- ==========================================
+        -- FUNÇÃO DE REVISÃO REUTILIZÁVEL (DOUBLE-CHECK)
+        -- ==========================================
+        local function RunRevision(revisionNumber)
+            -- Como o avatar vem direto da API da Roblox, não precisamos verificar se o alvo "mudou de skin no Brookhaven".
+            -- A lista de destino `targetIDs` é sempre a original e imutável do perfil dele.
+            
+            local LDesc = LHumanoid:GetAppliedDescription()
+            local myEquipped = {}
+            local function addMyId(id)
+                if id and tonumber(id) and tonumber(id) ~= 0 then
+                    myEquipped[tonumber(id)] = true
+                end
+            end
+
+            addMyId(LDesc.Shirt)
+            addMyId(LDesc.Pants)
+            addMyId(LDesc.Face)
+            for _, acc in ipairs(LDesc:GetAccessories(true)) do
+                addMyId(acc.AssetId)
+            end
+
+            local missingItemsFound = false
+            for id, _ in pairs(targetIDs) do
+                if not myEquipped[id] then
+                    missingItemsFound = true
+                    print("Revisão original " .. revisionNumber .. ": Tentando reequipar item faltando (ID: " .. tostring(id) .. ")...")
+                    SafeWear(id)
+                end
+            end
+
+            return true
+        end
+
+        -- ==========================================
+        -- EXECUÇÃO DAS REVISÕES 2 E 3
+        -- ==========================================
+        task.wait(1.5) -- Pausa antes da Segunda Revisão
+        RunRevision(2)
+
+        task.wait(1.5) -- Pausa antes da Terceira Revisão
+        RunRevision(3)
+
+        -- ==========================================
+        -- 4. COPIAR E APLICAR AS ANIMAÇÕES (NO FINAL)
+        -- ==========================================
+        local Animations = {
+            PDesc.IdleAnimation, PDesc.WalkAnimation, PDesc.RunAnimation,
+            PDesc.JumpAnimation, PDesc.FallAnimation, PDesc.ClimbAnimation, PDesc.SwimAnimation
+        }
+        for _, anim in ipairs(Animations) do
+            if tonumber(anim) and anim ~= 0 then
+                SafeWear(anim)
+            end
+        end
+
+        -- ==========================================
+        -- 5. NOTIFICAÇÃO DE FINALIZAÇÃO
+        -- ==========================================
+        CreateNotification(
+            "Sucesso",
+            "Avatar  Roblox de " .. SelectedPlayerAvatar .. " copiado!",
+            4
+        )
+
+    end
+})
+
+
 
 
 Tab5:AddSection({ "Salva skins" })
 
 
--- =========================
--- SKIN MANAGER COMPLETO
--- =========================
+-- ============================================================================
+-- SKIN MANAGER COMPLETO COM SISTEMA DE REVISÃO E GERADOR DE CÓDIGOS (TAB5)
+-- ============================================================================
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
-
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 local FILE_NAME = "SAGAZxAvataLoad.json"
+local CODES_FILE = "SAGAZxOutfitCodes.json"
+
 local Skins = {}
+local Outfits = {} -- Estrutura: { [NomeSkin] = { Code = "BH-AE-...", CreatedAt = timestamp } }
 
-if not isfile(FILE_NAME) then
-    writefile(FILE_NAME, "{}")
-end
-
-local function LoadFile()
-    local success, result = pcall(function()
-        return HttpService:JSONDecode(readfile(FILE_NAME))
-    end)
-
-    if success and type(result) == "table" then
-        Skins = result
+-- ==========================================
+-- SISTEMA DE LEITURA E SALVAMENTO DE ARQUIVOS
+-- ==========================================
+local function LoadFiles()
+    -- Carregar Skins Normais
+    if isfile(FILE_NAME) then
+        local success, result = pcall(function()
+            return HttpService:JSONDecode(readfile(FILE_NAME))
+        end)
+        if success and type(result) == "table" then
+            Skins = result
+        else
+            Skins = {}
+        end
     else
-        Skins = {}
         writefile(FILE_NAME, "{}")
+    end
+
+    -- Carregar Códigos Exportados
+    if isfile(CODES_FILE) then
+        local success, result = pcall(function()
+            return HttpService:JSONDecode(readfile(CODES_FILE))
+        end)
+        if success and type(result) == "table" then
+            Outfits = result
+        else
+            Outfits = {}
+        end
+    else
+        writefile(CODES_FILE, "{}")
     end
 end
 
-local function SaveFile()
+local function SaveSkinsFile()
     writefile(FILE_NAME, HttpService:JSONEncode(Skins))
 end
 
-LoadFile()
+local function SaveCodesFile()
+    writefile(CODES_FILE, HttpService:JSONEncode(Outfits))
+end
 
--- =========================
--- PEGAR AVATAR ATUAL
--- =========================
+LoadFiles()
 
+-- ==========================================
+-- CAPTURAR AVATAR LOCAL OU DO ALVO
+-- ==========================================
 local function GetCurrentAvatarData()
-
     local LP = Players.LocalPlayer
     local Char = LP.Character or LP.CharacterAdded:Wait()
     local Humanoid = Char:FindFirstChildOfClass("Humanoid")
-
     if not Humanoid then return nil end
 
     local Desc = Humanoid:GetAppliedDescription()
-
     local SkinData = {
         Body = {
             Torso = Desc.Torso,
@@ -3256,15 +3570,12 @@ local function GetCurrentAvatarData()
             LeftLeg = Desc.LeftLeg,
             Head = Desc.Head
         },
-
         Clothing = {
             Shirt = Desc.Shirt,
             Pants = Desc.Pants,
             Face = Desc.Face
         },
-
         Accessories = {},
-
         Animations = {
             Idle = Desc.IdleAnimation,
             Walk = Desc.WalkAnimation,
@@ -3286,22 +3597,16 @@ local function GetCurrentAvatarData()
     if BodyColor then
         SkinData.BodyColor = tostring(BodyColor.HeadColor)
     end
-
     return SkinData
 end
--- =========================
--- PEGA AVATA DO PLAYER SELECIONADO 
--- =========================
+
 local function GetAvatarDataFromPlayer(targetPlayer)
-
     if not targetPlayer then return nil end
-
     local Char = targetPlayer.Character or targetPlayer.CharacterAdded:Wait()
     local Humanoid = Char:FindFirstChildOfClass("Humanoid")
     if not Humanoid then return nil end
 
     local Desc = Humanoid:GetAppliedDescription()
-
     local SkinData = {
         Body = {
             Torso = Desc.Torso,
@@ -3311,15 +3616,12 @@ local function GetAvatarDataFromPlayer(targetPlayer)
             LeftLeg = Desc.LeftLeg,
             Head = Desc.Head
         },
-
         Clothing = {
             Shirt = Desc.Shirt,
             Pants = Desc.Pants,
             Face = Desc.Face
         },
-
         Accessories = {},
-
         Animations = {
             Idle = Desc.IdleAnimation,
             Walk = Desc.WalkAnimation,
@@ -3341,47 +3643,63 @@ local function GetAvatarDataFromPlayer(targetPlayer)
     if BodyColor then
         SkinData.BodyColor = tostring(BodyColor.HeadColor)
     end
-
     return SkinData
 end
 
-
-
--- =========================
--- APLICAR SKIN
--- =========================
-
+-- ==========================================
+-- APLICAR SKIN COM 3 REVISÕES (INCLUINDO ANIMAÇÕES)
+-- ==========================================
 local function AplicarSkin(data)
-
     if not data then return end
 
     local LP = Players.LocalPlayer
     local LChar = LP.Character or LP.CharacterAdded:Wait()
     local LHumanoid = LChar:FindFirstChildOfClass("Humanoid")
+    if not LHumanoid then return end
 
-    if not LHumanoid then
-        warn("Humanoid não encontrado")
-        return
+    local targetIDs = {}
+    local function addTargetId(id)
+        if id and tonumber(id) and tonumber(id) ~= 0 then
+            targetIDs[tonumber(id)] = true
+        end
     end
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Remotes = ReplicatedStorage.Remotes
+    if data.Clothing then
+        addTargetId(data.Clothing.Shirt)
+        addTargetId(data.Clothing.Pants)
+        addTargetId(data.Clothing.Face)
+    end
+    if data.Accessories then
+        for _, id in ipairs(data.Accessories) do
+            addTargetId(id)
+        end
+    end
 
-local code = "BH-AE-a2ee417b2f0c419ab519711afa642402"
+    local function SafeWear(assetId)
+        if not assetId or assetId == 0 or assetId == "0" then return end
+        pcall(function()
+            Remotes.Wear:InvokeServer(tonumber(assetId))
+        end)
+        task.wait(0.35)
+    end
 
--- não trava UI
-task.spawn(function()
-    Remotes.AvatarEditorOutfitCodes:InvokeServer("Load", code)
-end)
+    -- Usa o tipo de corpo selecionado no Dropdown da UI
+    local bodyCodes = {
+        ["Corpo Normal"]          = "BH-AE-0f8f8960d421497695b6c7f81888d9a6",
+        ["Corpo Normal Esticado"] = "BH-AE-6d902b983af44f819336326f3c5f0a2c",
+        ["Corpo Alto Fino"]       = "BH-AE-7dd15b77d3834f81ac83bc309f919d1a"
+    }
+    local chosenBody = _G.SelectedBodyTypeSkinManager or "Corpo Normal"
+    local code = bodyCodes[chosenBody] or "BH-AE-0f8f8960d421497695b6c7f81888d9a6"
 
-task.wait(4)
-
-    --------------------------------------------------
-    -- APLICAR CORPO
-    --------------------------------------------------
+    task.spawn(function()
+        pcall(function()
+            Remotes.AvatarEditorOutfitCodes:InvokeServer("Load", code)
+        end)
+    end)
+    task.wait(4)
 
     if data.Body then
-
         local argsBody = {
             [1] = {
                 data.Body.Torso,
@@ -3392,101 +3710,110 @@ task.wait(4)
                 data.Body.Head
             }
         }
-
-        Remotes.ChangeCharacterBody:InvokeServer(unpack(argsBody))
+        pcall(function()
+            Remotes.ChangeCharacterBody:InvokeServer(unpack(argsBody))
+        end)
         task.wait(0.5)
     end
 
-
-    --------------------------------------------------
-    -- ROUPAS
-    --------------------------------------------------
-
     if data.Clothing then
-
-        if tonumber(data.Clothing.Shirt) then
-            Remotes.Wear:InvokeServer(tonumber(data.Clothing.Shirt))
-            task.wait(0.3)
-        end
-
-        if tonumber(data.Clothing.Pants) then
-            Remotes.Wear:InvokeServer(tonumber(data.Clothing.Pants))
-            task.wait(0.3)
-        end
-
-        if tonumber(data.Clothing.Face) then
-            Remotes.Wear:InvokeServer(tonumber(data.Clothing.Face))
-            task.wait(0.3)
-        end
+        if targetIDs[tonumber(data.Clothing.Shirt)] then SafeWear(data.Clothing.Shirt) end
+        if targetIDs[tonumber(data.Clothing.Pants)] then SafeWear(data.Clothing.Pants) end
+        if targetIDs[tonumber(data.Clothing.Face)] then SafeWear(data.Clothing.Face) end
     end
-
-
-    --------------------------------------------------
-    -- ACESSÓRIOS
-    --------------------------------------------------
 
     if data.Accessories then
         for _, id in ipairs(data.Accessories) do
-            if tonumber(id) then
-                Remotes.Wear:InvokeServer(tonumber(id))
-                task.wait(0.3)
-            end
+            SafeWear(id)
         end
     end
 
-
-    --------------------------------------------------
-    -- COR
-    --------------------------------------------------
-
     if data.BodyColor then
-        Remotes.ChangeBodyColor:FireServer(tostring(data.BodyColor))
+        pcall(function()
+            Remotes.ChangeBodyColor:FireServer(tostring(data.BodyColor))
+        end)
         task.wait(0.3)
     end
 
+    local function RunSkinManagerRevision(revisionNumber)
+        local LDesc = LHumanoid:GetAppliedDescription()
+        local myEquipped = {}
+        local function addMyId(id)
+            if id and tonumber(id) and tonumber(id) ~= 0 then
+                myEquipped[tonumber(id)] = true
+            end
+        end
 
-    --------------------------------------------------
-    -- ANIMAÇÕES (MESMO SISTEMA COPIER)
-    --------------------------------------------------
+        addMyId(LDesc.Shirt)
+        addMyId(LDesc.Pants)
+        addMyId(LDesc.Face)
+        for _, acc in ipairs(LDesc:GetAccessories(true)) do
+            addMyId(acc.AssetId)
+        end
 
-    if data.Animations then
-
-        local CurrentDesc = LHumanoid:GetAppliedDescription()
-
-        local Animations = {
-            {data.Animations.Idle, CurrentDesc.IdleAnimation},
-            {data.Animations.Walk, CurrentDesc.WalkAnimation},
-            {data.Animations.Run, CurrentDesc.RunAnimation},
-            {data.Animations.Jump, CurrentDesc.JumpAnimation},
-            {data.Animations.Fall, CurrentDesc.FallAnimation},
-            {data.Animations.Climb, CurrentDesc.ClimbAnimation},
-            {data.Animations.Swim, CurrentDesc.SwimAnimation}
-        }
-
-        for _, animData in ipairs(Animations) do
-            local targetAnim = animData[1]
-            local currentAnim = animData[2]
-
-            if tonumber(targetAnim)
-            and targetAnim ~= 0
-            and tostring(targetAnim) ~= tostring(currentAnim) then
-
-                Remotes.Wear:InvokeServer(tonumber(targetAnim))
-                task.wait(0.35)
+        for id, _ in pairs(targetIDs) do
+            if not myEquipped[id] then
+                print("Correção Skin Manager (Etapa " .. revisionNumber .. "): Reequipando Item ID: " .. id)
+                SafeWear(id)
             end
         end
     end
 
-    print("Skin aplicada (Sistema Copier)")
+    task.wait(1.5)
+    RunSkinManagerRevision(2)
+    task.wait(1.5)
+    RunSkinManagerRevision(3)
+
+    if data.Animations then
+        local animKeys = {"Idle", "Walk", "Run", "Jump", "Fall", "Climb", "Swim"}
+
+        local function RunAnimationRevision(revisionStep)
+            local LDesc = LHumanoid:GetAppliedDescription()
+            local currentAnims = {
+                Idle = LDesc.IdleAnimation,
+                Walk = LDesc.WalkAnimation,
+                Run = LDesc.RunAnimation,
+                Jump = LDesc.JumpAnimation,
+                Fall = LDesc.FallAnimation,
+                Climb = LDesc.ClimbAnimation,
+                Swim = LDesc.SwimAnimation
+            }
+
+            for _, key in ipairs(animKeys) do
+                local savedAnim = tonumber(data.Animations[key])
+                local currentAnim = tonumber(currentAnims[key])
+
+                if savedAnim and savedAnim ~= 0 then
+                    if savedAnim ~= currentAnim then
+                        print("Correção Animação (Revisão " .. revisionStep .. "): Reequipando " .. key .. " (ID: " .. savedAnim .. ")")
+                        SafeWear(savedAnim)
+                    end
+                end
+            end
+        end
+
+        for _, key in ipairs(animKeys) do
+            local animId = data.Animations[key]
+            if tonumber(animId) and tonumber(animId) ~= 0 then
+                SafeWear(animId)
+            end
+        end
+
+        task.wait(1.5)
+        RunAnimationRevision(2)
+        task.wait(1.5)
+        RunAnimationRevision(3)
+    end
+
+    CreateNotification("Sucesso", "Skin Aplicada Com Sucesso!", 4)
 end
 
--- =========================
--- AUXILIARES
--- =========================
-
+-- ==========================================
+-- AUXILIARES DA INTERFACE
+-- ==========================================
 local function GetSkinList()
     local list = {}
-    for name,_ in pairs(Skins) do
+    for name, _ in pairs(Skins) do
         table.insert(list, name)
     end
     table.sort(list)
@@ -3498,23 +3825,52 @@ local SelectedSkin = nil
 local Dropdown
 
 local function RefreshDropdown()
-
     if not Dropdown then return end
-
     local novaLista = GetSkinList()
-
     if Dropdown.Set then
         Dropdown:Set(novaLista)
     elseif Dropdown.Refresh then
         Dropdown:Refresh(novaLista, true)
     end
-
     SelectedSkin = nil
 end
 
--- =========================
--- UI
--- =========================
+-- Retorna a lista de códigos com dias restantes de forma limpa (Sem expor o código)
+local SelectedOutfitKey = nil
+local DropdownCodes
+
+local function GetFormattedCodesList()
+    LoadFiles()
+    local list = {}
+    local now = os.time()
+    for name, info in pairs(Outfits) do
+        local elapsed = now - (info.CreatedAt or now)
+        local secondsLeft = 2592000 - elapsed
+        local daysLeft = math.floor(secondsLeft / 86400)
+        
+        if daysLeft < 0 then daysLeft = 0 end
+        
+        local label = string.format("%s (%d dias restantes)", name, daysLeft)
+        table.insert(list, label)
+    end
+    table.sort(list)
+    return list
+end
+
+local function RefreshCodesDropdown()
+    if not DropdownCodes then return end
+    local newList = GetFormattedCodesList()
+    if DropdownCodes.Set then
+        DropdownCodes:Set(newList)
+    elseif DropdownCodes.Refresh then
+        DropdownCodes:Refresh(newList, true)
+    end
+    SelectedOutfitKey = nil
+end
+
+-- ==========================================
+-- DESIGN DA INTERFACE (TAB5)
+-- ==========================================
 
 Tab5:AddTextBox({
     Name = "Nome da Skin",
@@ -3532,62 +3888,69 @@ Dropdown = Tab5:AddDropdown({
     end
 })
 
--- =========================
--- SALVAR SKIN DO PLAYER SELECIONADO (USANDO TEXTBOX)
--- =========================
+
+
+-- Dropdown Principal de Tipo de Corpo
+Tab5:AddDropdown({
+    Name = "Tipo de Corpo (Skin Manager)",
+    Description = "Selecione o corpo base para carregar a skin",
+    Options = {"Corpo Normal", "Corpo Normal Esticado", "Corpo Alto Fino"},
+    Default = "Corpo Normal",
+    Flag = "body_type_dropdown_sm",
+    Callback = function(Value)
+        _G.SelectedBodyTypeSkinManager = Value
+        print("Skin Manager Corpo base alterado para: " .. Value)
+    end
+})
+
+-- ==========================================
+-- BOTÕES DE PERSISTÊNCIA & OPERAÇÃO
+-- ==========================================
+
+
+
+
+
+-- Salvar Skin do Player Selecionado
 Tab5:AddButton({
     Name = "Salvar Skin do Player Selecionado",
     Callback = function()
-
-        -- verifica player selecionado
         if not SelectedPlayerAvatar then
-            warn("Nenhum player selecionado.")
+            CreateNotification("Aviso", "Nenhum player selecionado.", 4)
             return
         end
 
         local targetPlayer = Players:FindFirstChild(SelectedPlayerAvatar)
         if not targetPlayer then
-            warn("Player não encontrado.")
+            CreateNotification("Erro", "Player não encontrado.", 4)
             return
         end
 
-        -- pega nome digitado
-        local nomeLimpo = tostring(SkinName):gsub("^%s*(.-)%s*$", "%1")
-
-        if nomeLimpo == "" then
-            warn("Digite um nome na TextBox.")
-            return
-        end
-
-        -- captura skin do player
         local PlayerData = GetAvatarDataFromPlayer(targetPlayer)
         if not PlayerData then
-            warn("Não foi possível capturar a skin.")
+            CreateNotification("Erro", "Erro ao extrair skin.", 4)
             return
         end
 
-        -- salva com nome da textbox
+        local nomeLimpo = tostring(SkinName):gsub("^%s*(.-)%s*$", "%1")
+        if nomeLimpo == "" then
+            nomeLimpo = SelectedPlayerAvatar
+        end
+
         Skins[nomeLimpo] = PlayerData
-
-        SaveFile()
+        SaveSkinsFile()
         RefreshDropdown()
-
-        print("Skin salva como:", nomeLimpo)
-
+        CreateNotification("Sucesso", "Skin salva como: " .. nomeLimpo, 4)
     end
 })
--- =========================
--- SALVAR SKIN ATUAL
--- =========================
 
+-- Salvar Nova Skin
 Tab5:AddButton({
     Name = "Salvar Skin",
     Callback = function()
-
         local nomeLimpo = tostring(SkinName):gsub("^%s*(.-)%s*$", "%1")
-
         if nomeLimpo == "" then
-            warn("Digite um nome vÃ¡lido.")
+            CreateNotification("Aviso", "Digite um nome na TextBox.", 4)
             return
         end
 
@@ -3595,53 +3958,155 @@ Tab5:AddButton({
         if not CurrentData then return end
 
         Skins[nomeLimpo] = CurrentData
-        SaveFile()
+        SaveSkinsFile()
         RefreshDropdown()
-
-        print("Skin salva:", nomeLimpo)
+        CreateNotification("Sucesso", "Skin salva: " .. nomeLimpo, 4)
     end
 })
 
--- =========================
--- CARREGAR
--- =========================
-
+-- Carregar Skin
 Tab5:AddButton({
-    Name = "Carregar Skin",
+    Name = "Carregar Skin Selecionada",
     Callback = function()
-
         if SelectedSkin and Skins[SelectedSkin] then
             AplicarSkin(Skins[SelectedSkin])
         else
-            warn("Nenhuma skin selecionada.")
+            CreateNotification("Aviso", "Selecione uma skin na lista.", 4)
         end
-
     end
 })
 
--- =========================
--- DELETAR
--- =========================
-
+-- Salvar Skin Atual na Opção Selecionada no Dropdown
 Tab5:AddButton({
-    Name = "Deletar Skin",
+    Name = "Salvar Skin Atual na Opção Selecionada",
     Callback = function()
-
-        if SelectedSkin and Skins[SelectedSkin] then
-
-            Skins[SelectedSkin] = nil
-            SaveFile()
-            SelectedSkin = nil
-            RefreshDropdown()
-
-            print("Skin deletada.")
-
+        if not SelectedSkin then
+            CreateNotification("Aviso", "Selecione uma skin na Dropdown primeiro!", 4)
+            return
         end
 
+        local CurrentData = GetCurrentAvatarData()
+        if not CurrentData then return end
+
+        Skins[SelectedSkin] = CurrentData
+        SaveSkinsFile()
+        CreateNotification("Sucesso", "Skin " .. SelectedSkin .. " Atualizada!", 4)
     end
-}) 
+})
 
+-- Deletar Skin
+Tab5:AddButton({
+    Name = "Deletar Skin Selecionada",
+    Callback = function()
+        if SelectedSkin and Skins[SelectedSkin] then
+            Skins[SelectedSkin] = nil
+            SaveSkinsFile()
+            SelectedSkin = nil
+            RefreshDropdown()
+            CreateNotification("Sucesso", "Skin deletada.", 4)
+        else
+            CreateNotification("Aviso", "Selecione uma skin para deletar.", 4)
+        end
+    end
+})
 
+-- Gerar Código da Skin Selecionada
+Tab5:AddButton({
+    Name = "Gerar Código da Skin Selecionada",
+    Description = "Gere o Código Para o Carregamento Instantâneo",
+    Callback = function()
+        if not SelectedSkin or not Skins[SelectedSkin] then
+            CreateNotification("Aviso", "Selecione uma skin na dropdown de skins!", 4)
+            return
+        end
+
+        local skinName = SelectedSkin
+        local skinData = Skins[skinName]
+
+        CreateNotification("Processando", "Aplicando skin '" .. skinName .. "' para gerar o código...", 5)
+
+        -- Aplica a skin selecionada usando o corpo e revisões
+        AplicarSkin(skinData)
+
+        -- Solicita a exportação do código do servidor
+        local success, result1, result2 = pcall(function()
+            return Remotes.AvatarEditorOutfitCodes:InvokeServer("Export")
+        end)
+
+        local generatedCode = nil
+        if success then
+            if tostring(result1):find("BH%-AE") then
+                generatedCode = result1
+            elseif tostring(result2):find("BH%-AE") then
+                generatedCode = result2
+            end
+        end
+
+        if generatedCode then
+            Outfits[skinName] = {
+                Code = generatedCode,
+                CreatedAt = os.time()
+            }
+            SaveCodesFile()
+            RefreshCodesDropdown()
+            CreateNotification("Sucesso", "Código gerado para " .. skinName, 4)
+        else
+            CreateNotification("Erro", "Erro ao gerar código do servidor.", 4)
+        end
+    end
+})
+
+Tab5:AddSection({ "Carrega Skins Salvas Instantaneamente" })
+
+DropdownCodes = Tab5:AddDropdown({
+    Name = "Codigos de Skins",
+    Options = GetFormattedCodesList(),
+    Callback = function(option)
+        if option then
+            local name = option:match("^(.-)%s*%(")
+            if name then
+                SelectedOutfitKey = name:gsub("%s+$", "")
+            else
+                SelectedOutfitKey = option
+            end
+        end
+    end
+})
+
+-- Carregar Código Selecionado
+Tab5:AddButton({
+    Name = "Carregar Skin Selecionado",
+    Callback = function()
+        if not SelectedOutfitKey or not Outfits[SelectedOutfitKey] then
+            CreateNotification("Aviso", "Selecione Uma Skin  na Dropdown Primeiro!", 4)
+            return
+        end
+        
+        local info = Outfits[SelectedOutfitKey]
+        task.spawn(function()
+            pcall(function()
+                Remotes.AvatarEditorOutfitCodes:InvokeServer("Load", info.Code)
+            end)
+        end)
+        CreateNotification("Sucesso", "Skin Carregada Com Sucesso!", 4)
+    end
+})
+
+-- Excluir Código Selecionado
+Tab5:AddButton({
+    Name = "Excluir Skin Selecionada",
+    Callback = function()
+        if not SelectedOutfitKey or not Outfits[SelectedOutfitKey] then
+            CreateNotification("Aviso", "Selecione um código para excluir!", 4)
+            return
+        end
+        
+        Outfits[SelectedOutfitKey] = nil
+        SaveCodesFile()
+        RefreshCodesDropdown()
+        CreateNotification("Sucesso", "Código de Skin Excluído Com Sucesso!", 4)
+    end
+})
 
 Tab5:AddSection({ "FIRE FE COLOR" })
 
@@ -4131,115 +4596,6 @@ Tab5:AddToggle({
                     task.wait(1)
                 end
             end)
-        end
-    end
-})
-
-Tab5:AddSection({Name = "Nome e Bio Animado"})
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Remote = ReplicatedStorage:WaitForChild("RE"):WaitForChild("1RPNam1eTex1t")
-
-local selectedBio = ""
-local selectedName = ""
-
--- TEXTBOX BIO
-Tab5:AddTextBox({
-    Name = "Bio Text",
-    Description = "Digite a Bio",
-    PlaceholderText = "Escreva sua bio...",
-    Callback = function(Value)
-        selectedBio = Value
-    end
-})
-
--- TEXTBOX NAME
-Tab5:AddTextBox({
-    Name = "Name Text",
-    Description = "Digite o Nome",
-    PlaceholderText = "Escreva o nome...",
-    Callback = function(Value)
-        selectedName = Value
-    end
-})
-
--- Controle dos loops
-local bioTypingLoop = false
-local bioBackLoop = false
-local nameTypingLoop = false
-local nameBackLoop = false
-
--- FUNÇÃO ANIMAÇÃO (controlada por toggle)
-local function AnimateLoop(remoteName, getText, reverseFlag, stateRef)
-    task.spawn(function()
-        while stateRef() do
-            local text = getText()
-            if text ~= "" then
-                local buffer = ""
-                for i = 1, #text do
-                    if not stateRef() then return end
-                    buffer = string.sub(text, 1, i)
-                    Remote:FireServer(remoteName, buffer)
-                    task.wait(0.1)
-                end
-
-                if reverseFlag then
-                    for i = #text, 1, -1 do
-                        if not stateRef() then return end
-                        buffer = string.sub(text, 1, i)
-                        Remote:FireServer(remoteName, buffer)
-                        task.wait(0.1)
-                    end
-                end
-            else
-                task.wait(0.2)
-            end
-        end
-    end)
-end
-
--- TOGGLES BIO
-Tab5:AddToggle({
-    Name = "Bio [Escrevendo Loop]",
-    Default = false,
-    Callback = function(state)
-        bioTypingLoop = state
-        if state then
-            AnimateLoop("RolePlayBio", function() return selectedBio end, false, function() return bioTypingLoop end)
-        end
-    end
-})
-
-Tab5:AddToggle({
-    Name = "Bio [Vai e Volta Loop]",
-    Default = false,
-    Callback = function(state)
-        bioBackLoop = state
-        if state then
-            AnimateLoop("RolePlayBio", function() return selectedBio end, true, function() return bioBackLoop end)
-        end
-    end
-})
-
--- TOGGLES NAME
-Tab5:AddToggle({
-    Name = "Name [Escrevendo Loop]",
-    Default = false,
-    Callback = function(state)
-        nameTypingLoop = state
-        if state then
-            AnimateLoop("RolePlayName", function() return selectedName end, false, function() return nameTypingLoop end)
-        end
-    end
-})
-
-Tab5:AddToggle({
-    Name = "Name [Vai e Volta Loop]",
-    Default = false,
-    Callback = function(state)
-        nameBackLoop = state
-        if state then
-            AnimateLoop("RolePlayName", function() return selectedName end, true, function() return nameBackLoop end)
         end
     end
 })
@@ -6984,3 +7340,5 @@ TabScript:AddToggle({
         end
     end
 })
+
+
