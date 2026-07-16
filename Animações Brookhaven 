@@ -1,5 +1,5 @@
 --[=[
-    Gerenciador Pro de Animacoes - Versao Integrada com Redz Lib (Invisible on Load)
+    Gerenciador Pro de Animacoes - Versao Corrigida com Escaneamento Automatico de Avatar
 --]=]
 
 local HttpService = game:GetService("HttpService")
@@ -232,12 +232,12 @@ local function SetVisualEquipped(subTypeName, assetId, packName, indicatorToActi
         
         local slotImg = slot:FindFirstChild("Image")
         if slotImg then
-            -- MODIFICAÇÃO CHAVE: Se for uma animação individual, nós convertemos a imagem para a imagem do pacote correspondente
+            -- MODIFICAÇÃO CHAVE: Converte o ID de animação individual para a foto do Bundle (Pacote) para resolver o bug da claquete
             local bundleId = AnimToBundleMap[tostring(assetId)]
             if bundleId then
                 slotImg.Image = "rbxthumb://type=BundleThumbnail&id=" .. bundleId .. "&w=150&h=150"
             else
-                -- Caso contrário, tenta carregar o asset diretamente (ou mantém vazio se falhar)
+                -- Caso contrário, se for um ID avulso, tenta carregar o asset diretamente
                 slotImg.Image = "rbxthumb://type=Asset&id=" .. tostring(assetId) .. "&w=150&h=150"
             end
         end
@@ -601,6 +601,9 @@ task.spawn(function()
     listGenerationComplete = true
 end)
 
+-- =============================================================================
+-- DETECTOR DE ANIMAÇÕES DO PERSONAGEM (LOGICA DE LEITURA DO AVATAR)
+-- =============================================================================
 local function DiscoverAndApplyActiveAnimations()
     local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     local animateScript = char:WaitForChild("Animate", 5)
@@ -614,30 +617,42 @@ local function DiscoverAndApplyActiveAnimations()
     for folderName, typeName in pairs(mapping) do
         local folder = animateScript:FindFirstChild(folderName)
         if folder then
-            local foundAnimObj = folder:FindFirstChildOfClass("Animation")
-            if foundAnimObj and foundAnimObj.AnimationId ~= "" then
-                local currentIdStr = string.match(foundAnimObj.AnimationId, "%d+")
-                if currentIdStr then
-                    local foundPackName = "Atual"
-                    local foundIndicator = nil
+            -- Mapeia cada elemento de animação encontrado na pasta correspondente
+            local animObjects = folder:GetChildren()
+            for _, animObj in ipairs(animObjects) do
+                if animObj:IsA("Animation") and animObj.AnimationId ~= "" then
+                    local currentIdStr = string.match(animObj.AnimationId, "%d+")
+                    if currentIdStr then
+                        local foundPackName = "Atual"
+                        local foundIndicator = nil
 
-                    for _, pack in ipairs(animationData) do
-                        if pack.bundledItems and pack.bundledItems[typeName] and tostring(pack.bundledItems[typeName]) == currentIdStr then
-                            foundPackName = pack.name
-                            break
+                        -- Busca o pacote correto com base no mapa construído de animações
+                        for _, pack in ipairs(animationData) do
+                            if pack.bundledItems and pack.bundledItems[typeName] and tostring(pack.bundledItems[typeName]) == currentIdStr then
+                                foundPackName = pack.name
+                                break
+                            end
                         end
-                    end
-                    
-                    if GlobalSubButtons[currentIdStr] then
-                        foundIndicator = GlobalSubButtons[currentIdStr].indicator
-                    end
+                        
+                        if GlobalSubButtons[currentIdStr] then
+                            foundIndicator = GlobalSubButtons[currentIdStr].indicator
+                        end
 
-                    SetVisualEquipped(typeName, currentIdStr, foundPackName, foundIndicator)
+                        -- Atualiza o visual no slot superior com a miniatura do pacote correspondente
+                        SetVisualEquipped(typeName, currentIdStr, foundPackName, foundIndicator)
+                        break
+                    end
                 end
             end
         end
     end
 end
+
+-- Roda no início e se o personagem reaparecer
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    DiscoverAndApplyActiveAnimations()
+end)
 
 task.spawn(function()
     DiscoverAndApplyActiveAnimations()
