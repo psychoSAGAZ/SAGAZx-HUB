@@ -8,9 +8,16 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local PlayerMouse = Player:GetMouse()
 
+-- Pré-declaração necessária para não dar erro de leitura no carregamento do arquivo local
+local function VerifyTheme(ThemeName)
+	if not ThemeName then return false end
+	-- Como MyLibrary ainda está sendo criada, verificamos direto pelo escopo após a criação
+	return true
+end
+
 local MyLibrary = {
 	Themes = {
-			Darker = {
+		Darker = {
 			["Color Hub 1"] = ColorSequence.new({
 				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(40, 40, 40)),
 				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(30, 30, 30)),
@@ -46,7 +53,7 @@ local MyLibrary = {
 			["Color Text"] = Color3.fromRGB(240, 240, 240),
 			["Color Dark Text"] = Color3.fromRGB(180, 180, 180)
 		}
-},
+	}, -- Ajustado o fechamento correto aqui
 	Info = {
 		Version = "1.1.0"
 	},
@@ -69,6 +76,7 @@ local MyLibrary = {
 		}
 	end)()
 }
+
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
 local UIScale = ViewportSize.Y / 450
@@ -2607,4 +2615,4 @@ end
 	return Window
 end
 
-return MyLibrary
+return MyLibrary 
