@@ -2572,4 +2572,7 @@ end
 
 
 
+-- 3. APLICA O TEMA VISUAL IMEDIATAMENTE APÓS CRIAR A INTERFACE
+MyLibrary:SetTheme("Purple") 
+
 return MyLibrary
