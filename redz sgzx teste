@@ -2570,9 +2570,37 @@ end
 	return Window
 end
 
+-- ====================================================================
+-- 🚀 CÓDIGO DE INICIALIZAÇÃO / EXECUÇÃO DO HUB
+-- ====================================================================
 
+-- 1. Cria a janela principal
+local Window = MyLibrary:MakeWindow({
+    Title = "SAGAZx HUB",
+    SubTitle = "Visual Changer",
+    SaveFolder = "SAGAZx_HUB_Config.json"
+})
+
+-- 2. ABA PRINCIPAL (HOME)
+local TabHome = Window:MakeTab({
+    Title = "Inicio",
+    Icon = "accessibility"
+})
+
+TabHome:AddParagraph({"SAGAZx HUB", "Esta interface foi carregada com sucesso."})
+
+-- Seletor manual para testar outros temas visuais na mesma aba
+TabHome:AddDropdown({
+    Name = "Mudar Tema Visual",
+    Desc = "Escolha um estilo visual para aplicar à interface",
+    Options = {"Darker", "Dark", "Purple"},
+    Default = "Darker",
+    Callback = function(SelectedTheme)
+        MyLibrary:SetTheme(SelectedTheme)
+    end
+})
 
 -- 3. APLICA O TEMA VISUAL IMEDIATAMENTE APÓS CRIAR A INTERFACE
-MyLibrary:SetTheme("Purple") 
+MyLibrary:SetTheme("Darker") 
 
 return MyLibrary
