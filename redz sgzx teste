@@ -544,42 +544,56 @@ function MyLibrary:GetIcon(index)
 	return firstMatch or index
 end
 
-function MyLibrary:SetTheme(NewTheme)
-	local SelectedThemeData
-	
-	if type(NewTheme) == "table" then
-		SelectedThemeData = NewTheme
-	elseif type(NewTheme) == "string" and MyLibrary.Themes[NewTheme] then
-		SelectedThemeData = MyLibrary.Themes[NewTheme]
-		MyLibrary.Save.Theme = NewTheme
-		SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-	else
-		return
+-- COLOQUE ESTE NOVO BLOCO NO LUGAR:
+
+-- Função para listar todos os temas disponíveis na biblioteca (retorna uma tabela com os nomes)
+function MyLibrary:GetThemesList()
+	local list = {}
+	for themeName, _ in pairs(MyLibrary.Themes) do
+		table.insert(list, themeName)
 	end
+	return list
+end
+
+-- Novo sistema de SetTheme com atualização e renderização em tempo real
+function MyLibrary:SetTheme(NewTheme)
+	if not VerifyTheme(NewTheme) then return end
 	
-	Theme = SelectedThemeData
+	MyLibrary.Save.Theme = NewTheme
+	SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+	
+	-- Atualiza a variável global interna de tema
+	Theme = MyLibrary.Themes[NewTheme]
+	
+	-- Dispara o evento de mudança
 	Connection:FireConnection("ThemeChanged", NewTheme)
 	
+	-- Varre todas as instâncias registradas e atualiza instantaneamente em tempo real
 	for _, Val in ipairs(MyLibrary.Instances) do
-		pcall(function()
-			if Val.Instance then
-				if Val.Type == "Gradient" and Theme["Color Hub 1"] then
+		if Val.Instance and Val.Instance.Parent then
+			pcall(function()
+				if Val.Type == "Gradient" then
 					Val.Instance.Color = Theme["Color Hub 1"]
-				elseif Val.Type == "Frame" and Theme["Color Hub 2"] then
+				elseif Val.Type == "Frame" then
 					Val.Instance.BackgroundColor3 = Theme["Color Hub 2"]
-				elseif Val.Type == "Stroke" and Theme["Color Stroke"] then
-					Val.Instance[GetColor(Val.Instance)] = Theme["Color Stroke"]
-				elseif Val.Type == "Theme" and Theme["Color Theme"] then
-					Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
-				elseif Val.Type == "Text" and Theme["Color Text"] then
-					Val.Instance[GetColor(Val.Instance)] = Theme["Color Text"]
-				elseif Val.Type == "DarkText" and Theme["Color Dark Text"] then
-					Val.Instance[GetColor(Val.Instance)] = Theme["Color Dark Text"]
-				elseif Val.Type == "ScrollBar" and Theme["Color Theme"] then
-					Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
+				elseif Val.Type == "Stroke" then
+					local prop = GetColor(Val.Instance)
+					if prop ~= "" then Val.Instance[prop] = Theme["Color Stroke"] end
+				elseif Val.Type == "Theme" then
+					local prop = GetColor(Val.Instance)
+					if prop ~= "" then Val.Instance[prop] = Theme["Color Theme"] end
+				elseif Val.Type == "Text" then
+					local prop = GetColor(Val.Instance)
+					if prop ~= "" then Val.Instance[prop] = Theme["Color Text"] end
+				elseif Val.Type == "DarkText" then
+					local prop = GetColor(Val.Instance)
+					if prop ~= "" then Val.Instance[prop] = Theme["Color Dark Text"] end
+				elseif Val.Type == "ScrollBar" then
+					local prop = GetColor(Val.Instance)
+					if prop ~= "" then Val.Instance[prop] = Theme["Color Theme"] end
 				end
-			end
-		end)
+			end)
+		end
 	end
 end
 
