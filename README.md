@@ -10,7 +10,6 @@ end)
 -- Redz Lib
 -------------------------------------------
 
-local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/REDZ-lib-TESTE/refs/heads/main/README.md"))()
 
 local Window = redzlib:MakeWindow({
     Title = "SAGAZx HUB | Brookhaven",
