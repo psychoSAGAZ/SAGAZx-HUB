@@ -545,38 +545,41 @@ function MyLibrary:GetIcon(index)
 end
 
 function MyLibrary:SetTheme(NewTheme)
-	if not VerifyTheme(NewTheme) then return end
+	local SelectedThemeData
 	
-	MyLibrary.Save.Theme = NewTheme
-	SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-	Theme = MyLibrary.Themes[NewTheme]
+	if type(NewTheme) == "table" then
+		SelectedThemeData = NewTheme
+	elseif type(NewTheme) == "string" and MyLibrary.Themes[NewTheme] then
+		SelectedThemeData = MyLibrary.Themes[NewTheme]
+		MyLibrary.Save.Theme = NewTheme
+		SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+	else
+		return
+	end
 	
+	Theme = SelectedThemeData
 	Connection:FireConnection("ThemeChanged", NewTheme)
 	
-	-- Varre e atualiza todos os objetos criados pela lib em tempo real
 	for _, Val in ipairs(MyLibrary.Instances) do
-		if Val.Instance and Val.Instance.Parent then
-			pcall(function()
-				if Val.Type == "Gradient" then
+		pcall(function()
+			if Val.Instance then
+				if Val.Type == "Gradient" and Theme["Color Hub 1"] then
 					Val.Instance.Color = Theme["Color Hub 1"]
-				elseif Val.Type == "Frame" then
+				elseif Val.Type == "Frame" and Theme["Color Hub 2"] then
 					Val.Instance.BackgroundColor3 = Theme["Color Hub 2"]
-				elseif Val.Type == "Stroke" then
+				elseif Val.Type == "Stroke" and Theme["Color Stroke"] then
 					Val.Instance[GetColor(Val.Instance)] = Theme["Color Stroke"]
-				elseif Val.Type == "Theme" then
+				elseif Val.Type == "Theme" and Theme["Color Theme"] then
 					Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
-				elseif Val.Type == "Text" then
+				elseif Val.Type == "Text" and Theme["Color Text"] then
 					Val.Instance[GetColor(Val.Instance)] = Theme["Color Text"]
-				elseif Val.Type == "DarkText" then
+				elseif Val.Type == "DarkText" and Theme["Color Dark Text"] then
 					Val.Instance[GetColor(Val.Instance)] = Theme["Color Dark Text"]
-				elseif Val.Type == "ScrollBar" then
+				elseif Val.Type == "ScrollBar" and Theme["Color Theme"] then
 					Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
-				elseif Val.Type == "Main" then
-					-- Garante que o fundo principal também atualize se necessário
-					Val.Instance.BackgroundColor3 = Theme["Color Hub 2"]
 				end
-			end)
-		end
+			end
+		end)
 	end
 end
 
