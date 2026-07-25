@@ -1013,18 +1013,22 @@ end
 			})
 		}), "ScrollBar")
 		
-		table.insert(ContainerList, Container)
+				table.insert(ContainerList, Container)
 		
-		if not FirstTab then Container.Parent = Containers end
+		-- Força todas as abas a carregarem no painel imediatamente ao invés de ficarem em 'nil'
+		Container.Parent = Containers
+		if FirstTab then 
+			Container.Visible = false 
+		end
 		
 		local function Tabs()
-			if Container.Parent then return end
+			if Container.Visible and Container.Parent == Containers then return end
 			for _,Frame in pairs(ContainerList) do
-				if Frame:IsA("ScrollingFrame") and Frame ~= Container then
-					Frame.Parent = nil
+				if Frame:IsA("ScrollingFrame") then
+					Frame.Visible = false
 				end
 			end
-			Container.Parent = Containers
+			Container.Visible = true
 			Container.Size = UDim2.new(1, 0, 1, 150)
 			table.foreach(MyLibrary.Tabs, function(_,Tab)
 				if Tab.Cont ~= Container then
@@ -1044,13 +1048,15 @@ end
 		table.insert(MyLibrary.Tabs, {TabInfo = {Name = TName, Icon = TIcon}, func = Tab, Cont = Container})
 		Tab.Cont = Container
 		
-		function  Tab:Disable()
-			Container.Parent = nil
+		function Tab:Disable()
+			Container.Visible = false -- Apenas esconde a aba visualmente mantendo os objetos criados
 			CreateTween({LabelTitle, "TextTransparency", 0.3, 0.35})
 			CreateTween({LabelIcon, "ImageTransparency", 0.3, 0.35})
 			CreateTween({Selected, "Size", UDim2.new(0, 4, 0, 4), 0.35})
 			CreateTween({Selected, "BackgroundTransparency", 1, 0.35})
 		end
+		
+
 		function Tab:Enable()
 			Tabs()
 		end
@@ -1631,6 +1637,7 @@ end
 				Active = true
 			})Make("Corner", DropFrame)Make("Stroke", DropFrame)Make("Gradient", DropFrame, {Rotation = 60})
 			
+			-- 🔍 SEARCHBOX FIXADA (Alinhamento 100% igual ao DropdownSearch)
 			local SearchBox = Make("Button", DropFrame, {
 				Name = "SearchBox",
 				Size = UDim2.new(1, -16, 0, 22),
@@ -1651,6 +1658,7 @@ end
 				TextXAlignment = "Left"
 			}), "Text")
 			
+			-- ScrollFrame reajustado para usar as mesmas dimensões (-34 e offset 32)
 			local ScrollFrame = InsertTheme(Create("ScrollingFrame", DropFrame, {
 				ScrollBarImageColor3 = Theme["Color Theme"],
 				Size = UDim2.new(1, 0, 1, -34),
@@ -1688,6 +1696,7 @@ end
 				return UDim2.fromOffset(152, ScrollSize + 32)
 			end
 			
+			-- 📐 IGUALADO O CLAMP E A ALTURA (Multiplicador mudado de 26 para 25 e limite para 10 itens visíveis)
 			local function CalculateSize(isSearching)
 				if isSearching then return end 
 				
@@ -1778,6 +1787,7 @@ end
 						LastCB = 0
 					}
 					
+					-- Altura reajustada para 21px para ficar compacto igual ao outro drop
 					local Button = Make("Button", ScrollFrame, {
 						Name = "Option",
 						Size = UDim2.new(1, 0, 0, 21),
@@ -1793,6 +1803,7 @@ end
 						AnchorPoint = Vector2.new(0, 0.5)
 					}), "Theme")Make("Corner", IsSelected, UDim.new(0.5, 0))
 					
+					-- Ícone de jogador enquadrado perfeitamente na nova altura do botão
 					local PlayerIcon = Create("ImageLabel", Button, {
 						Size = UDim2.fromOffset(16, 16),
 						Position = UDim2.new(0, 8, 0.5),
@@ -1816,6 +1827,7 @@ end
 						end
 					end)
 					
+					-- Texto alinhado mantendo o recuo por conta da foto de perfil (Offset X de 28px)
 					local OptioneName = InsertTheme(Create("TextLabel", Button, {
 						Size = UDim2.new(1, -28, 1),
 						Position = UDim2.new(0, 28),
@@ -1964,6 +1976,7 @@ end
 				Active = true
 			})Make("Corner", DropFrame)Make("Stroke", DropFrame)Make("Gradient", DropFrame, {Rotation = 60})
 			
+			-- 🔍 Barra de Pesquisa Fixa (com a mesma cor/estilo das opções)
 			local SearchBox = Make("Button", DropFrame, {
 				Name = "SearchBox",
 				Size = UDim2.new(1, -16, 0, 22),
@@ -1984,6 +1997,7 @@ end
 				TextXAlignment = "Left"
 			}), "Text")
 			
+			-- ScrollFrame posicionado logo abaixo da caixa de pesquisa fixa (+32px offset)
 			local ScrollFrame = InsertTheme(Create("ScrollingFrame", DropFrame, {
 				ScrollBarImageColor3 = Theme["Color Theme"],
 				Size = UDim2.new(1, 0, 1, -34),
@@ -2021,6 +2035,7 @@ end
 				return UDim2.fromOffset(152, ScrollSize + 32)
 			end
 			
+			-- Calcula tamanho de forma estática ao abrir/atualizar para impedir que a janela encolha na digitação
 			local function CalculateSize(isSearching)
 				if isSearching then return end
 				local Count = 0
@@ -2045,7 +2060,7 @@ end
 					CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
 					NoClickFrame.Visible = false
 				else
-					SearchTextBox.Text = "" 
+					SearchTextBox.Text = "" -- Reseta pesquisa
 					NoClickFrame.Visible = true
 					Arrow.Image = "rbxassetid://10709790948"
 					CreateTween({Arrow, "ImageColor3", Theme["Color Theme"], 0.2})
@@ -2206,6 +2221,7 @@ end
 					UpdateSelected()
 				end
 				
+				-- 🔍 Filtro inteligente em tempo real
 				SearchTextBox:GetPropertyChangedSignal("Text"):Connect(function()
 					local query = string.lower(SearchTextBox.Text)
 					for _, item in pairs(Options) do
@@ -2215,7 +2231,7 @@ end
 							item.nodes[1].Visible = false
 						end
 					end
-					CalculateSize(true) 
+					CalculateSize(true) -- Trava a janela principal para não subir junto na digitação
 				end)
 				
 				table.foreach(DOptions, AddOption)
@@ -2569,38 +2585,5 @@ end
 	MinimizeButton.Activated:Connect(Window.MinimizeBtn)
 	return Window
 end
-
--- ====================================================================
--- 🚀 CÓDIGO DE INICIALIZAÇÃO / EXECUÇÃO DO HUB
--- ====================================================================
-
--- 1. Cria a janela principal
-local Window = MyLibrary:MakeWindow({
-    Title = "SAGAZx HUB",
-    SubTitle = "Visual Changer",
-    SaveFolder = "SAGAZx_HUB_Config.json"
-})
-
--- 2. ABA PRINCIPAL (HOME)
-local TabHome = Window:MakeTab({
-    Title = "Inicio",
-    Icon = "accessibility"
-})
-
-TabHome:AddParagraph({"SAGAZx HUB", "Esta interface foi carregada com sucesso."})
-
--- Seletor manual para testar outros temas visuais na mesma aba
-TabHome:AddDropdown({
-    Name = "Mudar Tema Visual",
-    Desc = "Escolha um estilo visual para aplicar à interface",
-    Options = {"Darker", "Dark", "Purple"},
-    Default = "Darker",
-    Callback = function(SelectedTheme)
-        MyLibrary:SetTheme(SelectedTheme)
-    end
-})
-
--- 3. APLICA O TEMA VISUAL IMEDIATAMENTE APÓS CRIAR A INTERFACE
-MyLibrary:SetTheme("Darker") 
 
 return MyLibrary
