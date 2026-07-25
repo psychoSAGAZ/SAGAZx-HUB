@@ -8,16 +8,9 @@ local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local PlayerMouse = Player:GetMouse()
 
--- Pré-declaração necessária para não dar erro de leitura no carregamento do arquivo local
-local function VerifyTheme(ThemeName)
-	if not ThemeName then return false end
-	-- Como MyLibrary ainda está sendo criada, verificamos direto pelo escopo após a criação
-	return true
-end
-
 local MyLibrary = {
 	Themes = {
-		Darker = {
+			Darker = {
 			["Color Hub 1"] = ColorSequence.new({
 				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(40, 40, 40)),
 				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(30, 30, 30)),
@@ -53,7 +46,7 @@ local MyLibrary = {
 			["Color Text"] = Color3.fromRGB(240, 240, 240),
 			["Color Dark Text"] = Color3.fromRGB(180, 180, 180)
 		}
-	}, -- Ajustado o fechamento correto aqui
+},
 	Info = {
 		Version = "1.1.0"
 	},
@@ -76,7 +69,6 @@ local MyLibrary = {
 		}
 	end)()
 }
-
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
 local UIScale = ViewportSize.Y / 450
@@ -552,59 +544,32 @@ function MyLibrary:GetIcon(index)
 	return firstMatch or index
 end
 
--- COLOQUE ESTE NOVO BLOCO NO LUGAR:
-
--- Função para listar todos os temas disponíveis na biblioteca (retorna uma tabela com os nomes)
-function MyLibrary:GetThemesList()
-	local list = {}
-	for themeName, _ in pairs(MyLibrary.Themes) do
-		table.insert(list, themeName)
-	end
-	return list
-end
-
--- Novo sistema de SetTheme com atualização e renderização em tempo real
 function MyLibrary:SetTheme(NewTheme)
 	if not VerifyTheme(NewTheme) then return end
 	
 	MyLibrary.Save.Theme = NewTheme
 	SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-	
-	-- Atualiza a variável global interna de tema
 	Theme = MyLibrary.Themes[NewTheme]
 	
-	-- Dispara o evento de mudança
 	Connection:FireConnection("ThemeChanged", NewTheme)
-	
-	-- Varre todas as instâncias registradas e atualiza instantaneamente em tempo real
-	for _, Val in ipairs(MyLibrary.Instances) do
-		if Val.Instance and Val.Instance.Parent then
-			pcall(function()
-				if Val.Type == "Gradient" then
-					Val.Instance.Color = Theme["Color Hub 1"]
-				elseif Val.Type == "Frame" then
-					Val.Instance.BackgroundColor3 = Theme["Color Hub 2"]
-				elseif Val.Type == "Stroke" then
-					local prop = GetColor(Val.Instance)
-					if prop ~= "" then Val.Instance[prop] = Theme["Color Stroke"] end
-				elseif Val.Type == "Theme" then
-					local prop = GetColor(Val.Instance)
-					if prop ~= "" then Val.Instance[prop] = Theme["Color Theme"] end
-				elseif Val.Type == "Text" then
-					local prop = GetColor(Val.Instance)
-					if prop ~= "" then Val.Instance[prop] = Theme["Color Text"] end
-				elseif Val.Type == "DarkText" then
-					local prop = GetColor(Val.Instance)
-					if prop ~= "" then Val.Instance[prop] = Theme["Color Dark Text"] end
-				elseif Val.Type == "ScrollBar" then
-					local prop = GetColor(Val.Instance)
-					if prop ~= "" then Val.Instance[prop] = Theme["Color Theme"] end
-				end
-			end)
+	table.foreach(MyLibrary.Instances, function(_,Val)
+		if Val.Type == "Gradient" then
+			Val.Instance.Color = Theme["Color Hub 1"]
+		elseif Val.Type == "Frame" then
+			Val.Instance.BackgroundColor3 = Theme["Color Hub 2"]
+		elseif Val.Type == "Stroke" then
+			Val.Instance[GetColor(Val.Instance)] = Theme["Color Stroke"]
+		elseif Val.Type == "Theme" then
+			Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
+		elseif Val.Type == "Text" then
+			Val.Instance[GetColor(Val.Instance)] = Theme["Color Text"]
+		elseif Val.Type == "DarkText" then
+			Val.Instance[GetColor(Val.Instance)] = Theme["Color Dark Text"]
+		elseif Val.Type == "ScrollBar" then
+			Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
 		end
-	end
+	end)
 end
-
 
 function MyLibrary:SetScale(NewScale)
 	NewScale = ViewportSize.Y / math.clamp(NewScale, 300, 2000)
@@ -1666,7 +1631,6 @@ end
 				Active = true
 			})Make("Corner", DropFrame)Make("Stroke", DropFrame)Make("Gradient", DropFrame, {Rotation = 60})
 			
-			-- 🔍 SEARCHBOX FIXADA (Alinhamento 100% igual ao DropdownSearch)
 			local SearchBox = Make("Button", DropFrame, {
 				Name = "SearchBox",
 				Size = UDim2.new(1, -16, 0, 22),
@@ -1687,7 +1651,6 @@ end
 				TextXAlignment = "Left"
 			}), "Text")
 			
-			-- ScrollFrame reajustado para usar as mesmas dimensões (-34 e offset 32)
 			local ScrollFrame = InsertTheme(Create("ScrollingFrame", DropFrame, {
 				ScrollBarImageColor3 = Theme["Color Theme"],
 				Size = UDim2.new(1, 0, 1, -34),
@@ -1725,7 +1688,6 @@ end
 				return UDim2.fromOffset(152, ScrollSize + 32)
 			end
 			
-			-- 📐 IGUALADO O CLAMP E A ALTURA (Multiplicador mudado de 26 para 25 e limite para 10 itens visíveis)
 			local function CalculateSize(isSearching)
 				if isSearching then return end 
 				
@@ -1816,7 +1778,6 @@ end
 						LastCB = 0
 					}
 					
-					-- Altura reajustada para 21px para ficar compacto igual ao outro drop
 					local Button = Make("Button", ScrollFrame, {
 						Name = "Option",
 						Size = UDim2.new(1, 0, 0, 21),
@@ -1832,7 +1793,6 @@ end
 						AnchorPoint = Vector2.new(0, 0.5)
 					}), "Theme")Make("Corner", IsSelected, UDim.new(0.5, 0))
 					
-					-- Ícone de jogador enquadrado perfeitamente na nova altura do botão
 					local PlayerIcon = Create("ImageLabel", Button, {
 						Size = UDim2.fromOffset(16, 16),
 						Position = UDim2.new(0, 8, 0.5),
@@ -1856,7 +1816,6 @@ end
 						end
 					end)
 					
-					-- Texto alinhado mantendo o recuo por conta da foto de perfil (Offset X de 28px)
 					local OptioneName = InsertTheme(Create("TextLabel", Button, {
 						Size = UDim2.new(1, -28, 1),
 						Position = UDim2.new(0, 28),
@@ -2005,7 +1964,6 @@ end
 				Active = true
 			})Make("Corner", DropFrame)Make("Stroke", DropFrame)Make("Gradient", DropFrame, {Rotation = 60})
 			
-			-- 🔍 Barra de Pesquisa Fixa (com a mesma cor/estilo das opções)
 			local SearchBox = Make("Button", DropFrame, {
 				Name = "SearchBox",
 				Size = UDim2.new(1, -16, 0, 22),
@@ -2026,7 +1984,6 @@ end
 				TextXAlignment = "Left"
 			}), "Text")
 			
-			-- ScrollFrame posicionado logo abaixo da caixa de pesquisa fixa (+32px offset)
 			local ScrollFrame = InsertTheme(Create("ScrollingFrame", DropFrame, {
 				ScrollBarImageColor3 = Theme["Color Theme"],
 				Size = UDim2.new(1, 0, 1, -34),
@@ -2064,7 +2021,6 @@ end
 				return UDim2.fromOffset(152, ScrollSize + 32)
 			end
 			
-			-- Calcula tamanho de forma estática ao abrir/atualizar para impedir que a janela encolha na digitação
 			local function CalculateSize(isSearching)
 				if isSearching then return end
 				local Count = 0
@@ -2089,7 +2045,7 @@ end
 					CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
 					NoClickFrame.Visible = false
 				else
-					SearchTextBox.Text = "" -- Reseta pesquisa
+					SearchTextBox.Text = "" 
 					NoClickFrame.Visible = true
 					Arrow.Image = "rbxassetid://10709790948"
 					CreateTween({Arrow, "ImageColor3", Theme["Color Theme"], 0.2})
@@ -2250,7 +2206,6 @@ end
 					UpdateSelected()
 				end
 				
-				-- 🔍 Filtro inteligente em tempo real
 				SearchTextBox:GetPropertyChangedSignal("Text"):Connect(function()
 					local query = string.lower(SearchTextBox.Text)
 					for _, item in pairs(Options) do
@@ -2260,7 +2215,7 @@ end
 							item.nodes[1].Visible = false
 						end
 					end
-					CalculateSize(true) -- Trava a janela principal para não subir junto na digitação
+					CalculateSize(true) 
 				end)
 				
 				table.foreach(DOptions, AddOption)
@@ -2615,4 +2570,6 @@ end
 	return Window
 end
 
-return MyLibrary 
+
+
+return MyLibrary
