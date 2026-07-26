@@ -3395,32 +3395,66 @@ end
 	MinimizeButton.Activated:Connect(Window.MinimizeBtn)
 	
 	-- ====================================================================
-	-- ⚡ DETECÇÃO AUTOMÁTICA DE NOVOS COMPONENTES (DURAÇÃO: 60 SEGUNDOS)
+	-- 🎨 SISTEMA AUTOMÁTICO DE PINTURA DINÂMICA (60 SEGUNDOS)
 	-- ====================================================================
 	task.spawn(function()
 		local tempoLimite = 60
 		local tempoDecorrido = 0
 		
-		-- Conecta um ouvinte para cada nova aba que for criada no Containers
-		local conexao = Containers.ChildAdded:Connect(function(novaAba)
-			if novaAba:IsA("ScrollingFrame") then
-				-- Se novos componentes (Toggles, Dropdowns, etc) surgirem na aba:
-				novaAba.ChildAdded:Connect(function(novoElemento)
-					-- Dá um micro-delay para a lib terminar de criar os filhos internos do componente
-					task.wait(0.02)
-					-- Força a atualização do tema da biblioteca para capturar o novo elemento
-					MyLibrary:SetTheme(MyLibrary.Save.Theme)
-				end)
+		-- Função que varre o elemento e pinta de acordo com o padrão da lib
+		local function AplicarTemaDireto(objeto)
+			local temaAtual = MyLibrary.Themes[MyLibrary.Save.Theme]
+			if not temaAtual then return end
+			
+			-- Mapeamento baseado nos nomes/propriedades internos da Redz Lib
+			if objeto:IsA("UIStroke") then
+				objeto.Color = temaAtual["Color Stroke"]
+			elseif objeto:IsA("UIGradient") then
+				objeto.Color = temaAtual["Color Hub 1"]
+			elseif objeto:IsA("TextLabel") or objeto:IsA("TextBox") then
+				-- Diferencia texto comum do texto escuro (descrições)
+				if objeto.Name == "SubTitle" or objeto.TextColor3 == Color3.fromRGB(150, 150, 150) or objeto.TextColor3 == Color3.fromRGB(180, 180, 180) or objeto.TextColor3 == Color3.fromRGB(190, 190, 190) then
+					objeto.TextColor3 = temaAtual["Color Dark Text"]
+				else
+					objeto.TextColor3 = temaAtual["Color Text"]
+				end
+			elseif objeto:IsA("ScrollingFrame") then
+				objeto.ScrollBarImageColor3 = temaAtual["Color Theme"]
+			elseif objeto:IsA("Frame") or objeto:IsA("TextButton") or objeto:IsA("ImageButton") then
+				-- Se for a bolinha do Toggle ou a barra ativa do Slider, usa a cor do tema principal
+				if objeto.Name == "Toggle" or objeto.Name == "Indicator" then
+					objeto.BackgroundColor3 = temaAtual["Color Theme"]
+				elseif objeto.Name == "Option" or objeto.Name == "SelectedFrame" or objeto.Name == "ToggleHolder" then
+					objeto.BackgroundColor3 = temaAtual["Color Stroke"]
+				elseif objeto.Name == "Hub" or objeto.BackgroundTransparency == 0 then
+					objeto.BackgroundColor3 = temaAtual["Color Hub 2"]
+				end
 			end
+		end
+
+		-- Função recursiva para pintar todo o circuito interno do novo componente
+		local function PintarArvore(instancia)
+			AplicarTemaDireto(instancia)
+			for _, filho in ipairs(instancia:GetChildren()) do
+				PintarArvore(filho)
+			end
+		end
+
+		-- Detecta novos componentes adicionados em qualquer contêiner de abas
+		local conexao
+		conexao = Containers.DescendantAdded:Connect(function(descendente)
+			-- Aguarda a propriedade e filhos carregarem completamente na interface
+			task.wait(0.05)
+			PintarArvore(descendente)
 		end)
 		
-		-- Mantém o detector ativo por exatamente 60 segundos
+		-- Mantém o loop de detecção ativo pelo tempo solicitado
 		while tempoDecorrido < tempoLimite do
 			task.wait(1)
 			tempoDecorrido = tempoDecorrido + 1
 		end
 		
-		-- Passados os 60 segundos, desliga o detector para economizar memória do jogo
+		-- Desconecta o evento após os 60 segundos para liberar memória
 		if conexao then
 			conexao:Disconnect()
 		end
@@ -3431,3 +3465,4 @@ end
 end
 
 return MyLibrary
+
