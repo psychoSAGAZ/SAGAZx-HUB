@@ -77,13 +77,40 @@ local Settings = MyLibrary.Settings
 local Flags = MyLibrary.Flags
 
 local SetProps, SetChildren, InsertTheme, Create do
+
 	InsertTheme = function(Instance, Type)
 		table.insert(MyLibrary.Instances, {
 			Instance = Instance,
 			Type = Type
 		})
+		-- Aplica a cor do tema atual imediatamente no momento do nascimento do componente
+		if Theme then
+			task.spawn(function()
+				if Type == "Gradient" then
+					Instance.Color = Theme["Color Hub 1"]
+				elseif Type == "Frame" then
+					Instance.BackgroundColor3 = Theme["Color Hub 2"]
+				elseif Type == "Stroke" then
+					local prop = (Instance:IsA("Frame") and "BackgroundColor3") or (Instance:IsA("UIStroke") and "Color") or (Instance:IsA("TextLabel") and "TextColor3") or (Instance:IsA("ImageLabel") and "ImageColor3") or ""
+					if prop ~= "" then Instance[prop] = Theme["Color Stroke"] end
+				elseif Type == "Theme" then
+					local prop = (Instance:IsA("Frame") and "BackgroundColor3") or (Instance:IsA("UIStroke") and "Color") or (Instance:IsA("TextLabel") and "TextColor3") or (Instance:IsA("ImageLabel") and "ImageColor3") or ""
+					if prop ~= "" then Instance[prop] = Theme["Color Theme"] end
+				elseif Type == "Text" then
+					local prop = (Instance:IsA("Frame") and "BackgroundColor3") or (Instance:IsA("UIStroke") and "Color") or (Instance:IsA("TextLabel") and "TextColor3") or (Instance:IsA("ImageLabel") and "ImageColor3") or ""
+					if prop ~= "" then Instance[prop] = Theme["Color Text"] end
+				elseif Type == "DarkText" then
+					local prop = (Instance:IsA("Frame") and "BackgroundColor3") or (Instance:IsA("UIStroke") and "Color") or (Instance:IsA("TextLabel") and "TextColor3") or (Instance:IsA("ImageLabel") and "ImageColor3") or ""
+					if prop ~= "" then Instance[prop] = Theme["Color Dark Text"] end
+				elseif Type == "ScrollBar" then
+					local prop = (Instance:IsA("ScrollingFrame") and "ScrollBarImageColor3") or ""
+					if prop ~= "" then Instance[prop] = Theme["Color Theme"] end
+				end
+			end)
+		end
 		return Instance
 	end
+	
 	
 	SetChildren = function(Instance, Children)
 		if Children then
@@ -1013,22 +1040,18 @@ end
 			})
 		}), "ScrollBar")
 		
-				table.insert(ContainerList, Container)
+		table.insert(ContainerList, Container)
 		
-		-- Força todas as abas a carregarem no painel imediatamente ao invés de ficarem em 'nil'
-		Container.Parent = Containers
-		if FirstTab then 
-			Container.Visible = false 
-		end
+		if not FirstTab then Container.Parent = Containers end
 		
 		local function Tabs()
-			if Container.Visible and Container.Parent == Containers then return end
+			if Container.Parent then return end
 			for _,Frame in pairs(ContainerList) do
-				if Frame:IsA("ScrollingFrame") then
-					Frame.Visible = false
+				if Frame:IsA("ScrollingFrame") and Frame ~= Container then
+					Frame.Parent = nil
 				end
 			end
-			Container.Visible = true
+			Container.Parent = Containers
 			Container.Size = UDim2.new(1, 0, 1, 150)
 			table.foreach(MyLibrary.Tabs, function(_,Tab)
 				if Tab.Cont ~= Container then
@@ -1048,15 +1071,13 @@ end
 		table.insert(MyLibrary.Tabs, {TabInfo = {Name = TName, Icon = TIcon}, func = Tab, Cont = Container})
 		Tab.Cont = Container
 		
-		function Tab:Disable()
-			Container.Visible = false -- Apenas esconde a aba visualmente mantendo os objetos criados
+		function  Tab:Disable()
+			Container.Parent = nil
 			CreateTween({LabelTitle, "TextTransparency", 0.3, 0.35})
 			CreateTween({LabelIcon, "ImageTransparency", 0.3, 0.35})
 			CreateTween({Selected, "Size", UDim2.new(0, 4, 0, 4), 0.35})
 			CreateTween({Selected, "BackgroundTransparency", 1, 0.35})
 		end
-		
-
 		function Tab:Enable()
 			Tabs()
 		end
