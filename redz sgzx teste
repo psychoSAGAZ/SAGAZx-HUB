@@ -893,70 +893,64 @@ local Settings = MyLibrary.Settings
 local Flags = MyLibrary.Flags
 
 local SetProps, SetChildren, InsertTheme, Create do
-    -- 1. Guarda o momento exato em que esta parte do script foi executada
-    local TempoInicial = os.clock() 
+	InsertTheme = function(Instance, Type)
+		table.insert(MyLibrary.Instances, {
+			Instance = Instance,
+			Type = Type
+		})
+		return Instance
+	end
 	
-    InsertTheme = function(Instance, Type)
-        -- 2. Verifica se a diferença entre o tempo atual e o inicial é menor que 30 segundos
-        if (os.clock() - TempoInicial) <= 30 then
-            table.insert(MyLibrary.Instances, {
-                Instance = Instance,
-                Type = Type
-            })
-        end
-        return Instance
-    end
+	SetChildren = function(Instance, Children)
+		if Children then
+			table.foreach(Children, function(_,Child)
+				Child.Parent = Instance
+			end)
+		end
+		return Instance
+	end
 	
-    SetChildren = function(Instance, Children)
-        if Children then
-            table.foreach(Children, function(_,Child)
-                Child.Parent = Instance
-            end)
-        end
-        return Instance
-    end
+	SetProps = function(Instance, Props)
+		if Props then
+			table.foreach(Props, function(prop, value)
+				Instance[prop] = value
+			end)
+		end
+		return Instance
+	end
 	
-    SetProps = function(Instance, Props)
-        if Props then
-            table.foreach(Props, function(prop, value)
-                Instance[prop] = value
-            end)
-        end
-        return Instance
-    end
-	
-    Create = function(...)
-        local args = {...}
-        if type(args) ~= "table" then return end
-        local new = Instance.new(args[1])
-        local Children = {}
+	Create = function(...)
+		local args = {...}
+		if type(args) ~= "table" then return end
+		local new = Instance.new(args[1])
+		local Children = {}
 		
-        if type(args[2]) == "table" then
-            SetProps(new, args[2])
-            SetChildren(new, args[3])
-            Children = args[3] or {}
-        elseif typeof(args[2]) == "Instance" then
-            new.Parent = args[2]
-            SetProps(new, args[3])
-            SetChildren(new, args[4])
-            Children = args[4] or {}
-        end
-        return new
-    end
+		if type(args[2]) == "table" then
+			SetProps(new, args[2])
+			SetChildren(new, args[3])
+			Children = args[3] or {}
+		elseif typeof(args[2]) == "Instance" then
+			new.Parent = args[2]
+			SetProps(new, args[3])
+			SetChildren(new, args[4])
+			Children = args[4] or {}
+		end
+		return new
+	end
 	
-    local function Save(file)
-        if readfile and isfile and isfile(file) then
-            local decode = HttpService:JSONDecode(readfile(file))
+	local function Save(file)
+		if readfile and isfile and isfile(file) then
+			local decode = HttpService:JSONDecode(readfile(file))
 			
-            if type(decode) == "table" then
-                if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
-                if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
-                if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
-            end
-        end
-    end
+			if type(decode) == "table" then
+				if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
+				if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
+				if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
+			end
+		end
+	end
 	
-    pcall(Save, "SAGAZx HUB lib.json")
+	pcall(Save, "SAGAZx HUB lib.json")
 end
 
 local Funcs = {} do
@@ -3233,7 +3227,7 @@ end
 			function Slider:Destroy() Button:Destroy() end
 			return Slider
 		end
-		function Tab:AddTextBox(Configs)
+				function Tab:AddTextBox(Configs)
 			local TName = Configs[1] or Configs.Name or Configs.Title or "Text Box"
 			local TDesc = Configs.Desc or Configs.Description or ""
 			local TDefault = Configs[2] or Configs.Default or ""
@@ -3245,16 +3239,21 @@ end
 				TDefault = false
 			end
 			
-			local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
+			-- Criando a base do botão
+			local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -180))
 			
-			local SelectedFrame = InsertTheme(Create("Frame", Button, {
+			-- Criando o frame de seleção separadamente do InsertTheme para evitar quebra de hierarquia
+			local SelectedFrame = Create("Frame", Button, {
 				Size = UDim2.new(0, 150, 0, 18),
 				Position = UDim2.new(1, -10, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				BackgroundColor3 = Theme["Color Stroke"]
-			}), "Stroke")Make("Corner", SelectedFrame, UDim.new(0, 4))
+			})
+			InsertTheme(SelectedFrame, "Stroke")
+			Make("Corner", SelectedFrame, UDim.new(0, 4))
 			
-			local TextBoxInput = InsertTheme(Create("TextBox", SelectedFrame, {
+			-- Criando a TextBox de entrada
+			local TextBoxInput = Create("TextBox", SelectedFrame, {
 				Size = UDim2.new(0.85, 0, 0.85, 0),
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.new(0.5, 0, 0.5, 0),
@@ -3264,8 +3263,9 @@ end
 				TextColor3 = Theme["Color Text"],
 				ClearTextOnFocus = TClearText,
 				PlaceholderText = TPlaceholderText,
-				Text = ""
-			}), "Text")
+				Text = TDefault or ""
+			})
+			InsertTheme(TextBoxInput, "Text")
 			
 			local Pencil = Create("ImageLabel", SelectedFrame, {
 				Size = UDim2.new(0, 12, 0, 12),
@@ -3285,7 +3285,8 @@ end
 				end
 			end
 			
-			TextBoxInput.FocusLost:Connect(Input)Input()
+			TextBoxInput.FocusLost:Connect(Input)
+			if TDefault then Input() end
 			
 			TextBoxInput.FocusLost:Connect(function()
 				CreateTween({Pencil, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
@@ -3299,6 +3300,7 @@ end
 			function TextBox:Destroy() Button:Destroy() end
 			return TextBox
 		end
+		
 		function Tab:AddDiscordInvite(Configs)
 			local Title = Configs[1] or Configs.Name or Configs.Title or "Discord"
 			local Desc = Configs.Desc or Configs.Description or ""
