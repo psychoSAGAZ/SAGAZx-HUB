@@ -1245,60 +1245,62 @@ AddEle("Gradient", function(parent, props, ...)
 end)
 
 local function ButtonFrame(Instance, Title, Description, HolderSize)
-	local TitleL = InsertTheme(Create("TextLabel", {
+	-- Criamos o botão principal primeiro
+	local Frame = Make("Button", Instance, {
+		Size = UDim2.new(1, 0, 0, 25),
+		AutomaticSize = "Y",
+		Name = "Option"
+	})
+	Make("Corner", Frame, UDim.new(0, 6))
+	
+	-- Criamos o Holder diretamente dentro do Frame
+	local LabelHolder = Create("Frame", Frame, {
+		AutomaticSize = "Y",
+		BackgroundTransparency = 1,
+		Size = HolderSize or UDim2.new(1, -20),
+		Position = UDim2.new(0, 10, 0),
+		AnchorPoint = Vector2.new(0, 0)
+	})
+	
+	-- Criamos as configurações de lista internas do Holder
+	Create("UIListLayout", LabelHolder, {
+		SortOrder = "LayoutOrder",
+		VerticalAlignment = "Center",
+		Padding = UDim.new(0, 2)
+	})
+	Create("UIPadding", LabelHolder, {
+		PaddingBottom = UDim.new(0, 5),
+		PaddingTop = UDim.new(0, 5)
+	})
+
+	-- Agora criamos as Labels DIRETAMENTE apontadas para o LabelHolder como pai
+	local TitleL = Create("TextLabel", LabelHolder, {
 		Font = Enum.Font.FredokaOne, 
 		TextColor3 = Theme["Color Text"],
 		Size = UDim2.new(1, -20),
 		AutomaticSize = "Y",
-		Position = UDim2.new(0, 0, 0.5),
-		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundTransparency = 1,
 		TextTruncate = "AtEnd",
 		TextSize = 10,
 		TextXAlignment = "Left",
 		Text = "",
 		RichText = true
-	}), "Text")
+	})
+	InsertTheme(TitleL, "Text")
 	
-	local DescL = InsertTheme(Create("TextLabel", {
+	local DescL = Create("TextLabel", LabelHolder, {
 		Font = Enum.Font.Gotham,
 		TextColor3 = Theme["Color Dark Text"],
 		Size = UDim2.new(1, -20),
 		AutomaticSize = "Y",
-		Position = UDim2.new(0, 12, 0, 15),
 		BackgroundTransparency = 1,
 		TextWrapped = true,
 		TextSize = 8,
 		TextXAlignment = "Left",
 		Text = "",
 		RichText = true
-	}), "DarkText")
-
-	local Frame = Make("Button", Instance, {
-		Size = UDim2.new(1, 0, 0, 25),
-		AutomaticSize = "Y",
-		Name = "Option"
-	})Make("Corner", Frame, UDim.new(0, 6))
-	
-	LabelHolder = Create("Frame", Frame, {
-		AutomaticSize = "Y",
-		BackgroundTransparency = 1,
-		Size = HolderSize,
-		Position = UDim2.new(0, 10, 0),
-		AnchorPoint = Vector2.new(0, 0)
-	}, {
-		Create("UIListLayout", {
-			SortOrder = "LayoutOrder",
-			VerticalAlignment = "Center",
-			Padding = UDim.new(0, 2)
-		}),
-		Create("UIPadding", {
-			PaddingBottom = UDim.new(0, 5),
-			PaddingTop = UDim.new(0, 5)
-		}),
-		TitleL,
-		DescL,
 	})
+	InsertTheme(DescL, "DarkText")
 	
 	local Label = {}
 	function Label:SetTitle(NewTitle)
@@ -1325,20 +1327,6 @@ local function ButtonFrame(Instance, Title, Description, HolderSize)
 	return Frame, Label
 end
 
-local function GetColor(Instance)
-	if Instance:IsA("Frame") then
-		return "BackgroundColor3"
-	elseif Instance:IsA("ImageLabel") then
-		return "ImageColor3"
-	elseif Instance:IsA("TextLabel") then
-		return "TextColor3"
-	elseif Instance:IsA("ScrollingFrame") then
-		return "ScrollBarImageColor3"
-	elseif Instance:IsA("UIStroke") then
-		return "Color"
-	end
-	return ""
-end
 
 function MyLibrary:GetIcon(index)
 	if type(index) ~= "string" or index:find("rbxassetid://") or #index == 0 then
@@ -3227,7 +3215,7 @@ end
 			function Slider:Destroy() Button:Destroy() end
 			return Slider
 		end
-				function Tab:AddTextBox(Configs)
+		function Tab:AddTextBox(Configs)
 			local TName = Configs[1] or Configs.Name or Configs.Title or "Text Box"
 			local TDesc = Configs.Desc or Configs.Description or ""
 			local TDefault = Configs[2] or Configs.Default or ""
@@ -3239,21 +3227,16 @@ end
 				TDefault = false
 			end
 			
-			-- Criando a base do botão
-			local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -180))
+			local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
 			
-			-- Criando o frame de seleção separadamente do InsertTheme para evitar quebra de hierarquia
-			local SelectedFrame = Create("Frame", Button, {
+			local SelectedFrame = InsertTheme(Create("Frame", Button, {
 				Size = UDim2.new(0, 150, 0, 18),
 				Position = UDim2.new(1, -10, 0.5),
 				AnchorPoint = Vector2.new(1, 0.5),
 				BackgroundColor3 = Theme["Color Stroke"]
-			})
-			InsertTheme(SelectedFrame, "Stroke")
-			Make("Corner", SelectedFrame, UDim.new(0, 4))
+			}), "Stroke")Make("Corner", SelectedFrame, UDim.new(0, 4))
 			
-			-- Criando a TextBox de entrada
-			local TextBoxInput = Create("TextBox", SelectedFrame, {
+			local TextBoxInput = InsertTheme(Create("TextBox", SelectedFrame, {
 				Size = UDim2.new(0.85, 0, 0.85, 0),
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				Position = UDim2.new(0.5, 0, 0.5, 0),
@@ -3263,9 +3246,8 @@ end
 				TextColor3 = Theme["Color Text"],
 				ClearTextOnFocus = TClearText,
 				PlaceholderText = TPlaceholderText,
-				Text = TDefault or ""
-			})
-			InsertTheme(TextBoxInput, "Text")
+				Text = ""
+			}), "Text")
 			
 			local Pencil = Create("ImageLabel", SelectedFrame, {
 				Size = UDim2.new(0, 12, 0, 12),
@@ -3285,8 +3267,7 @@ end
 				end
 			end
 			
-			TextBoxInput.FocusLost:Connect(Input)
-			if TDefault then Input() end
+			TextBoxInput.FocusLost:Connect(Input)Input()
 			
 			TextBoxInput.FocusLost:Connect(function()
 				CreateTween({Pencil, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
@@ -3300,7 +3281,6 @@ end
 			function TextBox:Destroy() Button:Destroy() end
 			return TextBox
 		end
-		
 		function Tab:AddDiscordInvite(Configs)
 			local Title = Configs[1] or Configs.Name or Configs.Title or "Discord"
 			local Desc = Configs.Desc or Configs.Description or ""
