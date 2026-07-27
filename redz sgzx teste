@@ -893,64 +893,70 @@ local Settings = MyLibrary.Settings
 local Flags = MyLibrary.Flags
 
 local SetProps, SetChildren, InsertTheme, Create do
-	InsertTheme = function(Instance, Type)
-		table.insert(MyLibrary.Instances, {
-			Instance = Instance,
-			Type = Type
-		})
-		return Instance
-	end
+    -- 1. Guarda o momento exato em que esta parte do script foi executada
+    local TempoInicial = os.clock() 
 	
-	SetChildren = function(Instance, Children)
-		if Children then
-			table.foreach(Children, function(_,Child)
-				Child.Parent = Instance
-			end)
-		end
-		return Instance
-	end
+    InsertTheme = function(Instance, Type)
+        -- 2. Verifica se a diferença entre o tempo atual e o inicial é menor que 30 segundos
+        if (os.clock() - TempoInicial) <= 30 then
+            table.insert(MyLibrary.Instances, {
+                Instance = Instance,
+                Type = Type
+            })
+        end
+        return Instance
+    end
 	
-	SetProps = function(Instance, Props)
-		if Props then
-			table.foreach(Props, function(prop, value)
-				Instance[prop] = value
-			end)
-		end
-		return Instance
-	end
+    SetChildren = function(Instance, Children)
+        if Children then
+            table.foreach(Children, function(_,Child)
+                Child.Parent = Instance
+            end)
+        end
+        return Instance
+    end
 	
-	Create = function(...)
-		local args = {...}
-		if type(args) ~= "table" then return end
-		local new = Instance.new(args[1])
-		local Children = {}
+    SetProps = function(Instance, Props)
+        if Props then
+            table.foreach(Props, function(prop, value)
+                Instance[prop] = value
+            end)
+        end
+        return Instance
+    end
+	
+    Create = function(...)
+        local args = {...}
+        if type(args) ~= "table" then return end
+        local new = Instance.new(args[1])
+        local Children = {}
 		
-		if type(args[2]) == "table" then
-			SetProps(new, args[2])
-			SetChildren(new, args[3])
-			Children = args[3] or {}
-		elseif typeof(args[2]) == "Instance" then
-			new.Parent = args[2]
-			SetProps(new, args[3])
-			SetChildren(new, args[4])
-			Children = args[4] or {}
-		end
-		return new
-	end
+        if type(args[2]) == "table" then
+            SetProps(new, args[2])
+            SetChildren(new, args[3])
+            Children = args[3] or {}
+        elseif typeof(args[2]) == "Instance" then
+            new.Parent = args[2]
+            SetProps(new, args[3])
+            SetChildren(new, args[4])
+            Children = args[4] or {}
+        end
+        return new
+    end
 	
-	local function Save(file)
-		if readfile and isfile and isfile(file) then
-			local decode = HttpService:JSONDecode(readfile(file))
+    local function Save(file)
+        if readfile and isfile and isfile(file) then
+            local decode = HttpService:JSONDecode(readfile(file))
 			
-			if type(decode) == "table" then
-				if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
-				if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
-				if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
-			end
-		end
-	end
+            if type(decode) == "table" then
+                if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
+                if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
+                if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
+            end
+        end
+    end
 	
-	pcall(Save, "SAGAZx HUB lib.json")
+    pcall(Save, "SAGAZx HUB lib.json")
 end
 
 local Funcs = {} do
@@ -1408,42 +1414,11 @@ function MyLibrary:MakeWindow(Configs)
 			local s, _Flags = pcall(readfile, File)
 			
 			if s and type(_Flags) == "string" then
-				local s,r = pcall(function() return HttpService:JSONEncode(_Flags) end)
+				local s,r = pcall(function() return HttpService:JSONDecode(_Flags) end)
 				Flags = s and r or {}
 			end
 		end
 	end;LoadFile()
-	
-	-- =======================================================
-	-- NOVO: Loop de salvamento automático por 30 segundos
-	-- =======================================================
-	task.spawn(function()
-		local tempoPassado = 0
-		local intervaloSalvar = 2 -- Salva a cada 2 segundos
-		local tempoTotal = 30     -- Roda por 30 segundos
-		
-		while tempoPassado < tempoTotal do
-			task.wait(intervaloSalvar)
-			tempoPassado = tempoPassado + intervaloSalvar
-			
-			-- Executa a função de salvamento do JSON da biblioteca
-			if writefile then
-				pcall(function()
-					-- Salva as configurações gerais (Tamanho, Tema, etc)
-					local json = HttpService:JSONEncode(MyLibrary.Save)
-					writefile("SAGAZx HUB lib.json", json)
-					
-					-- Se houver um arquivo de Flags configurado, salva ele também
-					if Settings.ScriptFile then
-						local flagsJson = HttpService:JSONEncode(Flags)
-						writefile(Settings.ScriptFile, flagsJson)
-					end
-				end)
-			end
-		end
-	
-	end)
-	-- =======================================================
 	
 	local UISizeX, UISizeY = unpack(MyLibrary.Save.UISize)
 	local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
