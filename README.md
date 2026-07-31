@@ -9,6 +9,7 @@ end)
 -------------------------------------------
 -- Redz Lib
 -------------------------------------------
+
 local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/REDZ-lib-TESTE/refs/heads/main/README.md"))()
 
 local Window = redzlib:MakeWindow({
@@ -26,6 +27,7 @@ Window:AddMinimizeButton({
         CornerRadius = UDim.new(0, 8)
     },
 })
+
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Home-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -73,7 +75,7 @@ local nickname = player.Name
 
 -- Novo bloco igual ao do Executor
 Tab1:AddParagraph({"Nickname", nickname})
-Tab1:AddParagraph({"Versão", "2.0.1"})
+Tab1:AddParagraph({"Versão", "3.0.1"})
 
 Tab1:AddSection({Name = "Outros"}) 
 Tab1:AddButton({
@@ -95,6 +97,42 @@ Tab1:AddButton({
 -----------------------------------------Aba Cliente-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
 
+-- ==========================================
+-- SERVIÇOS E VARIÁVEIS GLOBAIS (OTIMIZADOS)
+-- ==========================================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local cam = workspace.CurrentCamera
+
+-- Variaveis de Controle Geral
+local InfiniteJumpEnabled = false
+local noclipEnabled = false
+local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    character = char
+end)
+
+-- Loop do Noclip (Unificado)
+RunService.Stepped:Connect(function()
+    if noclipEnabled and character then
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- ==========================================
+-- ABA 2 - CLIENTE
+-- ==========================================
 local Tab2 = Window:MakeTab({ "| Cliente", "user" })
 
 Tab2:AddSlider({
@@ -104,81 +142,58 @@ Tab2:AddSlider({
     MaxValue = 1000,
     Default = 16,
     Callback = function(Value)
-        local player = game.Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
         local humanoid = character:FindFirstChildOfClass("Humanoid")
-        
-        if humanoid then
-            humanoid.WalkSpeed = Value
-        end
+        if humanoid then humanoid.WalkSpeed = Value end
     end
- })
+})
  
- Tab2:AddSlider({
+Tab2:AddSlider({
     Name = "PULO",
     Increase = 1,
     MinValue = 50,
     MaxValue = 500,
     Default = 50,
     Callback = function(Value)
-        local player = game.Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
         local humanoid = character:FindFirstChildOfClass("Humanoid")
-        
-        if humanoid then
-            humanoid.JumpPower = Value
-        end
+        if humanoid then humanoid.JumpPower = Value end
     end
- })
+})
  
- Tab2:AddSlider({
+Tab2:AddSlider({
     Name = "GRAVIDADE",
     Increase = 1,
     MinValue = 0,
     MaxValue = 10000,
     Default = 196.2,
     Callback = function(Value)
-        game.Workspace.Gravity = Value
+        Workspace.Gravity = Value
     end
- })
- 
- local InfiniteJumpEnabled = false
- 
- game:GetService("UserInputService").JumpRequest:Connect(function()
-    if InfiniteJumpEnabled then
-       local character = game.Players.LocalPlayer.Character
-       if character and character:FindFirstChild("Humanoid") then
-          character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-       end
-    end
- end)
+})
 
- Tab2:AddButton({
-    Name = "REDEFINIR VELOCIDADE/GRAVIDADE/ PULO",
-    Callback = function()
-        -- Resetar Speed
-        local player = game.Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
+-- Loop Infinite Jump
+UserInputService.JumpRequest:Connect(function()
+    if InfiniteJumpEnabled and character then
         local humanoid = character:FindFirstChildOfClass("Humanoid")
         if humanoid then
-            humanoid.WalkSpeed = 16 -- Valor padrÃ£o do Speed
-            humanoid.JumpPower = 50 -- Valor padrÃ£o do JumpPower
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
-        
-        -- Resetar Gravity
-        game.Workspace.Gravity = 196.2 -- Valor padrÃ£o da gravidade
-        
-        -- Desativar Infinite Jump
+    end
+end)
+
+Tab2:AddButton({
+    Name = "REDEFINIR VELOCIDADE/GRAVIDADE/ PULO",
+    Callback = function()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = 16
+            humanoid.JumpPower = 50
+        end
+        Workspace.Gravity = 196.2
         InfiniteJumpEnabled = false
     end
 })
 
 Tab2:AddSection({ Name = "Outros" })
-
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-
-local LocalPlayer = Players.LocalPlayer
 
 local SpinConnection
 local SpinSpeed = 0.5
@@ -189,9 +204,7 @@ Tab2:AddTextBox({
     ClearText = false,
     Callback = function(Value)
         local Number = tonumber(Value)
-        if Number then
-            SpinSpeed = Number
-        end
+        if Number then SpinSpeed = Number end
     end
 })
 
@@ -200,46 +213,27 @@ Tab2:AddToggle({
     Description = "Gira o Personagem Infinitamente",
     Default = false,
     Callback = function(Value)
+        if SpinConnection then SpinConnection:Disconnect() end
         if Value then
-            if SpinConnection then
-                SpinConnection:Disconnect()
-            end
-
             SpinConnection = RunService.RenderStepped:Connect(function(dt)
-                local Character = LocalPlayer.Character
-                local Root = Character and Character:FindFirstChild("HumanoidRootPart")
-
+                local Root = character and character:FindFirstChild("HumanoidRootPart")
                 if Root then
                     Root.CFrame = Root.CFrame * CFrame.Angles(0, math.rad(360 * SpinSpeed * dt), 0)
                 end
             end)
         else
-            if SpinConnection then
-                SpinConnection:Disconnect()
-                SpinConnection = nil
-            end
+            SpinConnection = nil
         end
     end
 })
 
- Tab2:AddToggle({
+Tab2:AddToggle({
     Name = "PULO INFINITO",
     Default = false,
     Callback = function(Value)
        InfiniteJumpEnabled = Value
     end
- })
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local noclipEnabled = false
-
--- Atualiza o personagem caso respawn
-player.CharacterAdded:Connect(function(char)
-    character = char
-end)
+})
 
 Tab2:AddToggle({
     Name = "NOCLIP",
@@ -247,24 +241,8 @@ Tab2:AddToggle({
     Default = false,
     Callback = function(v)
         noclipEnabled = v
-        if noclipEnabled then
-            print("Noclip Ativado!")
-        else
-            print("Noclip Desativado!")
-        end
     end
 })
-
--- Loop do noclip
-RunService.Stepped:Connect(function()
-    if noclipEnabled and character then
-        for _, part in pairs(character:GetDescendants()) do
-            if part:IsA("BasePart") and part.CanCollide == true then
-                part.CanCollide = false
-            end
-        end
-    end
-end)
 
 Tab2:AddToggle({
     Name = "FullBright",
@@ -272,27 +250,19 @@ Tab2:AddToggle({
     Default = false,
     Callback = function(Value)
         if Value then
-            -- Ativa o brilho máximo
-            game:GetService("Lighting").Ambient = Color3.fromRGB(255, 255, 255)
-            game:GetService("Lighting").OutdoorAmbient = Color3.fromRGB(255, 255, 255)
-            game:GetService("Lighting").Brightness = 2
+            Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+            Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+            Lighting.Brightness = 2
         else
-            -- Volta ao normal (ajuste conforme o jogo se precisar)
-            game:GetService("Lighting").Ambient = Color3.fromRGB(127, 127, 127)
-            game:GetService("Lighting").OutdoorAmbient = Color3.fromRGB(127, 127, 127)
-            game:GetService("Lighting").Brightness = 1
+            Lighting.Ambient = Color3.fromRGB(127, 127, 127)
+            Lighting.OutdoorAmbient = Color3.fromRGB(127, 127, 127)
+            Lighting.Brightness = 1
         end
     end
 })
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-
-local LocalPlayer = Players.LocalPlayer
-
 local Swimming = false
-local OldGravity = workspace.Gravity
+local OldGravity = Workspace.Gravity
 local SwimBeat
 local GravReset
 
@@ -301,19 +271,17 @@ Tab2:AddToggle({
     Description = "Nadar Sem Água",
     Default = false,
     Callback = function(Value)
-        local Character = LocalPlayer.Character
-        if not Character then return end
-
-        local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
-        local Root = Character:FindFirstChild("HumanoidRootPart")
+        if not character then return end
+        local Humanoid = character:FindFirstChildWhichIsA("Humanoid")
+        local Root = character:FindFirstChild("HumanoidRootPart")
         if not Humanoid or not Root then return end
 
         if Value then
-            OldGravity = workspace.Gravity
-            workspace.Gravity = 0
+            OldGravity = Workspace.Gravity
+            Workspace.Gravity = 0
 
             GravReset = Humanoid.Died:Connect(function()
-                workspace.Gravity = OldGravity
+                Workspace.Gravity = OldGravity
                 Swimming = false
             end)
 
@@ -333,24 +301,15 @@ Tab2:AddToggle({
                 else
                     Root.Velocity = Vector3.zero
                 end
-
                 Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
             end)
-
             Swimming = true
         else
-            workspace.Gravity = OldGravity
+            Workspace.Gravity = OldGravity
             Swimming = false
 
-            if GravReset then
-                GravReset:Disconnect()
-                GravReset = nil
-            end
-
-            if SwimBeat then
-                SwimBeat:Disconnect()
-                SwimBeat = nil
-            end
+            if GravReset then GravReset:Disconnect() GravReset = nil end
+            if SwimBeat then SwimBeat:Disconnect() SwimBeat = nil end
 
             for _, State in ipairs(Enum.HumanoidStateType:GetEnumItems()) do
                 if State ~= Enum.HumanoidStateType.None then
@@ -361,19 +320,15 @@ Tab2:AddToggle({
     end
 })
 
-local RunService = game:GetService("RunService")
 local LayConnection
-
 Tab2:AddToggle({
     Name = "Deitar",
     Description = "Deita no Chão",
     Default = false,
     Callback = function(Value)
-        local Character = game.Players.LocalPlayer.Character
-        if not Character then return end
-
-        local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
-        local Root = Character:FindFirstChild("HumanoidRootPart")
+        if not character then return end
+        local Humanoid = character:FindFirstChildWhichIsA("Humanoid")
+        local Root = character:FindFirstChild("HumanoidRootPart")
         if not Humanoid or not Root then return end
 
         if Value then
@@ -382,11 +337,7 @@ Tab2:AddToggle({
                 Root.CFrame = CFrame.new(Root.Position) * CFrame.Angles(math.rad(90), Root.Orientation.Y * math.pi / 180, 0)
             end)
         else
-            if LayConnection then
-                LayConnection:Disconnect()
-                LayConnection = nil
-            end
-
+            if LayConnection then LayConnection:Disconnect() LayConnection = nil end
             Humanoid.PlatformStand = false
             Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
         end
@@ -395,23 +346,18 @@ Tab2:AddToggle({
 
 Tab2:AddButton({
     Name = "Jerk",
-    Description = "",
     Callback = function()
         loadstring(game:HttpGet("https://pastefy.app/YZoglOyJ/raw"))()
     end
 })
 
-
 Tab2:AddButton({
     Name = "Sit",
     Description = "Faz o Personagem Sentar",
     Callback = function()
-        local Character = game.Players.LocalPlayer.Character
-        if Character then
-            local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
-            if Humanoid then
-                Humanoid.Sit = true
-            end
+        if character then
+            local Humanoid = character:FindFirstChildWhichIsA("Humanoid")
+            if Humanoid then Humanoid.Sit = true end
         end
     end
 })
@@ -420,96 +366,63 @@ Tab2:AddButton({
     Name = "Tp Tool",
     Description = "Teleporta Você Para Onde Você Clicar",
     Callback = function()
-        local Player = game.Players.LocalPlayer
-
-        -- Evita criar duas ferramentas
-        if Player.Backpack:FindFirstChild("Tp Tool") then
-            return
-        end
-
-        local Mouse = Player:GetMouse()
-
+        if LocalPlayer.Backpack:FindFirstChild("Tp Tool") then return end
+        local Mouse = LocalPlayer:GetMouse()
         local Tool = Instance.new("Tool")
         Tool.Name = "Tp Tool"
         Tool.RequiresHandle = false
-
-        -- Coloque o ID da imagem aqui
         Tool.TextureId = "rbxassetid://1234567890"
 
         Tool.Activated:Connect(function()
-            local Character = Player.Character
-            local Root = Character and Character:FindFirstChild("HumanoidRootPart")
-
+            local Root = character and character:FindFirstChild("HumanoidRootPart")
             if Root then
                 Root.CFrame = CFrame.new(Mouse.Hit.Position + Vector3.new(0, 2.5, 0))
             end
         end)
-
-        Tool.Parent = Player.Backpack
+        Tool.Parent = LocalPlayer.Backpack
     end
 })
 
-
-
+-- ==========================================
+-- SEÇÃO ESPIÃO (COLOCADA NA COREGUI)
+-- ==========================================
 Tab2:AddSection({ Name = "Espião" })
-
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local cam = workspace.CurrentCamera
 
 local viewing = false
 local playerList = {}
 local currentIndex = 1
 local screenGui
-local lastPlayerName = nil --  salva último player
+local lastPlayerName = nil
 
---  Atualiza lista de players
 local function UpdatePlayerList()
     playerList = {}
     for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer then
-            table.insert(playerList, plr)
-        end
+        if plr ~= LocalPlayer then table.insert(playerList, plr) end
     end
-
-    table.sort(playerList, function(a,b)
-        return a.Name < b.Name
-    end)
+    table.sort(playerList, function(a,b) return a.Name < b.Name end)
 end
 
---  Player atual
-local function GetCurrentPlayer()
-    return playerList[currentIndex]
-end
+local function GetCurrentPlayer() return playerList[currentIndex] end
 
---  Spectar
 local function Spectate(plr)
     if not plr then return end
-
     local char = plr.Character or plr.CharacterAdded:Wait()
     local hum = char:FindFirstChild("Humanoid")
-
-    if hum then
-        cam.CameraSubject = hum
-    end
+    if hum then cam.CameraSubject = hum end
 end
 
---  Reset camera
 local function ResetCamera()
     local char = LocalPlayer.Character
-    if char and char:FindFirstChild("Humanoid") then
-        cam.CameraSubject = char.Humanoid
-    end
+    if char and char:FindFirstChild("Humanoid") then cam.CameraSubject = char.Humanoid end
 end
 
---  CRIAR SUA GUI
 local function CreateUI()
     if screenGui then screenGui:Destroy() end
 
     screenGui = Instance.new("ScreenGui")
-    screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    screenGui.Name = "EspiaoCoreGui"
+    screenGui.Parent = CoreGui
 
-    -- BOTÃO <
     local back = Instance.new("TextButton", screenGui)
     back.Size = UDim2.new(0, 60, 0, 60)
     back.Position = UDim2.new(0, 412, 0, 425)
@@ -518,31 +431,27 @@ local function CreateUI()
     back.BackgroundColor3 = Color3.fromRGB(108,108,108)
     Instance.new("UICorner", back)
 
-    -- FRAME CENTRAL
     local frame = Instance.new("Frame", screenGui)
     frame.Size = UDim2.new(0, 200, 0, 60)
     frame.Position = UDim2.new(1, -688, 0, 425)
     frame.BackgroundColor3 = Color3.fromRGB(108,108,108)
     Instance.new("UICorner", frame)
 
-    -- IMAGEM
     local img = Instance.new("ImageLabel", frame)
     img.Size = UDim2.new(0,40,0,40)
     img.Position = UDim2.new(0,10,0,10)
     img.BackgroundTransparency = 1
 
-    -- TEXTO
     local titulo = Instance.new("TextLabel", frame)
     titulo.Size = UDim2.new(1,-60,0,20)
     titulo.Position = UDim2.new(0,60,0,8)
-    titulo.Text = "Espionando:"
+    titulo.Text = "Espionando:"
     titulo.TextColor3 = Color3.new(1,1,1)
     titulo.BackgroundTransparency = 1
     titulo.Font = Enum.Font.GothamBold
     titulo.TextSize = 15
     titulo.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- USERNAME
     local username = Instance.new("TextLabel", frame)
     username.Size = UDim2.new(1,-60,0,18)
     username.Position = UDim2.new(0,60,0,30)
@@ -552,123 +461,58 @@ local function CreateUI()
     username.TextSize = 12
     username.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- BOTÃO >
-    local next = Instance.new("TextButton", screenGui)
-    next.Size = UDim2.new(0, 60, 0, 60)
-    next.Position = UDim2.new(0, 685, 0, 425)
-    next.Text = ">"
-    next.TextSize = 50
-    next.BackgroundColor3 = Color3.fromRGB(108,108,108)
-    Instance.new("UICorner", next)
+    local nextBtn = Instance.new("TextButton", screenGui)
+    nextBtn.Size = UDim2.new(0, 60, 0, 60)
+    nextBtn.Position = UDim2.new(0, 685, 0, 425)
+    nextBtn.Text = ">"
+    nextBtn.TextSize = 50
+    nextBtn.BackgroundColor3 = Color3.fromRGB(108,108,108)
+    Instance.new("UICorner", nextBtn)
 
-    --  Atualiza UI
     local function UpdateUI()
         local plr = GetCurrentPlayer()
         if not plr then return end
-
-        lastPlayerName = plr.Name --  salva automaticamente
-
+        lastPlayerName = plr.Name
         username.Text = "@" .. plr.Name
-
-        img.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="
-            .. plr.UserId .. "&width=150&height=150&format=png"
-
+        img.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. plr.UserId .. "&width=150&height=150&format=png"
         Spectate(plr)
     end
 
-    -- 
     back.MouseButton1Click:Connect(function()
         if #playerList == 0 then return end
-        currentIndex -= 1
-        if currentIndex < 1 then
-            currentIndex = #playerList
-        end
+        currentIndex = currentIndex - 1
+        if currentIndex < 1 then currentIndex = #playerList end
         UpdateUI()
     end)
 
-    -- 
-    next.MouseButton1Click:Connect(function()
+    nextBtn.MouseButton1Click:Connect(function()
         if #playerList == 0 then return end
-        currentIndex += 1
-        if currentIndex > #playerList then
-            currentIndex = 1
-        end
+        currentIndex = currentIndex + 1
+        if currentIndex > #playerList then currentIndex = 1 end
         UpdateUI()
     end)
 
     UpdateUI()
 end
 
---  TOGGLE REDZ
-Tab2:AddToggle({
-    Name = "Espiona Todos Os Players",
-    Default = false,
-    Callback = function(Value)
-        viewing = Value
 
-        if viewing then
-            UpdatePlayerList()
 
-            if #playerList == 0 then
-                warn("Sem players")
-                return
-            end
-
-            --  tenta voltar pro último player
-            currentIndex = 1
-            if lastPlayerName then
-                for i, plr in ipairs(playerList) do
-                    if plr.Name == lastPlayerName then
-                        currentIndex = i
-                        break
-                    end
-                end
-            end
-
-            CreateUI()
-            Spectate(GetCurrentPlayer())
-
-        else
-            if screenGui then
-                screenGui:Destroy()
-                screenGui = nil
-            end
-            ResetCamera()
-        end
-    end
-})
-
---  Atualização automática
 Players.PlayerAdded:Connect(UpdatePlayerList)
 Players.PlayerRemoving:Connect(UpdatePlayerList)
 
--- Serviços
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
--- Variáveis
+-- ==========================================
+-- GERENCIADOR DE ESP & CORES UNIFICADO
+-- ==========================================
 local selectedColor = "RGB"
 local espEnabled = false
 local billboardGuis = {}
 local connections = {}
 
--- Dropdown de cores
-Tab2:AddDropdown({
-    Name = "COR DO ESP",
-    Default = "RGB",
-    Options = {"RGB", "Branco", "Preto", "Vermelho", "Verde", "Azul", "Amarelo", "Rosa", "Roxo"},
-    Callback = function(value)
-        selectedColor = value
-        -- Atualiza cores imediatamente
-        for _, gui in pairs(billboardGuis) do
-            if gui and gui:FindFirstChild("TextLabel") then
-                gui.TextLabel.TextColor3 = (selectedColor == "RGB" and gui.TextLabel.TextColor3) or getESPColor()
-            end
-        end
-    end
-})
+-- Variáveis para os Cones
+local ActiveEsps = {}
+local EspConesEnabled = false
+local TargetFolder = Workspace:WaitForChild("WorkspaceCom", 10):WaitForChild("001_TrafficCones", 10)
 
--- Função para obter a cor
 local function getESPColor()
     if selectedColor == "RGB" then
         local h = (tick() % 5) / 5
@@ -685,35 +529,70 @@ local function getESPColor()
     return Color3.new(1,1,1)
 end
 
--- Função para criar ou atualizar ESP
+Tab2:AddDropdown({
+    Name = "COR DO ESP",
+    Default = "RGB",
+    Options = {"RGB", "Branco", "Preto", "Vermelho", "Verde", "Azul", "Amarelo", "Rosa", "Roxo"},
+    Callback = function(value)
+        selectedColor = value
+        local color = getESPColor()
+        for _, gui in pairs(billboardGuis) do
+            if gui and gui:FindFirstChild("TextLabel") then gui.TextLabel.TextColor3 = color end
+        end
+        for _, data in pairs(ActiveEsps) do
+            if data.Label then data.Label.TextColor3 = color end
+            if data.Highlight then data.Highlight.OutlineColor = color end
+        end
+    end
+})
+
+Tab2:AddToggle({
+    Name = "Espiona Todos Os Players",
+    Default = false,
+    Callback = function(Value)
+        viewing = Value
+        if viewing then
+            UpdatePlayerList()
+            if #playerList == 0 then return end
+            currentIndex = 1
+            if lastPlayerName then
+                for i, plr in ipairs(playerList) do
+                    if plr.Name == lastPlayerName then currentIndex = i break end
+                end
+            end
+            CreateUI()
+            Spectate(GetCurrentPlayer())
+        else
+            if screenGui then screenGui:Destroy() screenGui = nil end
+            ResetCamera()
+        end
+    end
+})
+
+-- Funções ESP Players
 local function updateESP(player)
-    if player == Players.LocalPlayer or not espEnabled then return end
-    local character = player.Character
-    if not character then return end
-    local head = character:FindFirstChild("Head")
+    if player == LocalPlayer or not espEnabled then return end
+    local char = player.Character
+    local head = char and char:FindFirstChild("Head")
     if not head then return end
 
     local gui = billboardGuis[player]
     if gui and gui:FindFirstChild("TextLabel") then
-        -- Atualiza apenas a cor
         gui.TextLabel.TextColor3 = getESPColor()
         return
     elseif gui then
         gui:Destroy()
     end
 
-    -- Cria novo BillboardGui
-    local billboard = Instance.new("BillboardGui")
+    local billboard = Instance.new("BillboardGui", head)
     billboard.Name = "ESP_Billboard"
-    billboard.Parent = head
     billboard.Adornee = head
     billboard.Size = UDim2.new(0, 200, 0, 50)
     billboard.StudsOffset = Vector3.new(0,3,0)
     billboard.AlwaysOnTop = true
 
-    local textLabel = Instance.new("TextLabel")
+    local textLabel = Instance.new("TextLabel", billboard)
     textLabel.Name = "TextLabel"
-    textLabel.Parent = billboard
     textLabel.Size = UDim2.new(1,0,1,0)
     textLabel.BackgroundTransparency = 1
     textLabel.TextStrokeTransparency = 0.5
@@ -725,7 +604,6 @@ local function updateESP(player)
     billboardGuis[player] = billboard
 end
 
--- Função para remover ESP
 local function removeESP(player)
     if billboardGuis[player] then
         billboardGuis[player]:Destroy()
@@ -733,149 +611,136 @@ local function removeESP(player)
     end
 end
 
--- Toggle ESP
 Tab2:AddToggle({
-    Name = "ESP",
+    Name = "ESP PLAYERS",
     Description = "MOSTRA NOME E DIAS DOS PLAYERS",
     Default = false,
     Callback = function(value)
         espEnabled = value
-
         if espEnabled then
-            -- Atualiza todos os jogadores
-            for _, player in pairs(Players:GetPlayers()) do
-                updateESP(player)
-            end
-
-            -- Atualiza cores RGB
-            table.insert(connections, RunService.Heartbeat:Connect(function()
-                if selectedColor == "RGB" then
-                    for _, player in pairs(Players:GetPlayers()) do
-                        local gui = billboardGuis[player]
-                        if gui and gui:FindFirstChild("TextLabel") then
-                            gui.TextLabel.TextColor3 = getESPColor()
-                        end
-                    end
-                end
+            for _, player in pairs(Players:GetPlayers()) do updateESP(player) end
+            table.insert(connections, Players.PlayerAdded:Connect(function(p)
+                updateESP(p)
+                table.insert(connections, p.CharacterAdded:Connect(function() updateESP(p) end))
             end))
-
-            -- Conexão PlayerAdded
-            table.insert(connections, Players.PlayerAdded:Connect(function(player)
-                updateESP(player)
-                table.insert(connections, player.CharacterAdded:Connect(function()
-                    updateESP(player)
-                end))
-            end))
-
-            -- Conexão PlayerRemoving
-            table.insert(connections, Players.PlayerRemoving:Connect(function(player)
-                removeESP(player)
-            end))
+            table.insert(connections, Players.PlayerRemoving:Connect(removeESP))
         else
-            -- Desliga ESP
-            for _, player in pairs(Players:GetPlayers()) do
-                removeESP(player)
-            end
-            for _, conn in pairs(connections) do
-                conn:Disconnect()
-            end
+            for _, player in pairs(Players:GetPlayers()) do removeESP(player) end
+            for _, conn in pairs(connections) do conn:Disconnect() end
             connections = {}
             billboardGuis = {}
         end
     end
 })
 
+-- ==========================================
+-- ESP TRAFFIC CONES (LIMPO E LONGO ALCANCE)
+-- ==========================================
+local function CreateConeEsp(model)
+    if not model:IsA("Model") or ActiveEsps[model] then return end
+    local adornPart = model:FindFirstChildWhichIsA("BasePart")
+    if not adornPart then return end
 
+    local espData = {}
+    local currentColor = getESPColor()
 
+    -- Remove o prefixo "Prop_" ou "Prop" deixando apenas o nome real do player
+    local cleanName = string.gsub(model.Name, "^Prop_?", "")
 
-Tab2:AddSection({ Name = "CAMERA LOCK", Icon = "rbxassetid://" })
+    -- Visto de muito longe e através de paredes (AlwaysOnTop)
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ZsgdHighlight"
+    highlight.FillColor = currentColor
+    highlight.FillTransparency = 0.5
+    highlight.OutlineColor = currentColor
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Adornee = model
+    highlight.Parent = model
+    espData.Highlight = highlight
 
-local RunService = game:GetService("RunService")
-local Camera = workspace.CurrentCamera
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+    local billboard = Instance.new("BillboardGui", model)
+    billboard.Name = "ZsgdBillboard"
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Adornee = adornPart
+    espData.Billboard = billboard
 
-local CamDistance = 10
-local CamHeight = 5
-local CamTilt = 0
-local CamLower = 0
-local CamLocked = false
-local SmoothSpeed = 0.15
+    local label = Instance.new("TextLabel", billboard)
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = cleanName
+    label.TextColor3 = currentColor
+    label.TextStrokeTransparency = 0
+    label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    espData.Label = label
 
-local CamPosition = nil
-local CamLookAt = nil
-
-local function updateCamera()
-	if CamLocked and CamPosition and CamLookAt then
-		local offset = Vector3.new(0, CamHeight - CamLower, CamDistance)
-		local targetCFrame = CFrame.new(CamPosition + offset, CamLookAt) * CFrame.Angles(math.rad(CamTilt), 0, 0)
-		Camera.CameraType = Enum.CameraType.Scriptable
-		Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, SmoothSpeed)
-	end
+    ActiveEsps[model] = espData
 end
 
-Tab2:AddSlider({
-	Name = "CAMERA DISTANCE",
-	Min = 1,
-	Max = 50,
-	Default = CamDistance,
-	Callback = function(value)
-		CamDistance = value
-	end
-})
+local function RemoveConeEsp(model)
+    local data = ActiveEsps[model]
+    if data then
+        if data.Highlight then data.Highlight:Destroy() end
+        if data.Billboard then data.Billboard:Destroy() end
+        ActiveEsps[model] = nil
+    end
+end
 
-Tab2:AddSlider({
-	Name = "CAMERA HEIGHT",
-	Min = -50,
-	Max = 50,
-	Default = CamHeight,
-	Callback = function(value)
-		CamHeight = value
-	end
-})
+local function CleanAllConeEsps()
+    for model, _ in pairs(ActiveEsps) do RemoveConeEsp(model) end
+end
 
-Tab2:AddSlider({
-	Name = "CAMERA TILT",
-	Min = -90,
-	Max = 90,
-	Default = CamTilt,
-	Callback = function(value)
-		CamTilt = value
-	end
-})
+-- Loop Geral de Atualização de Cores (RGB) e Verificação de Cones
+RunService.Heartbeat:Connect(function()
+    local color = getESPColor()
+    
+    -- Atualiza Cores de Players
+    if espEnabled and selectedColor == "RGB" then
+        for _, player in pairs(Players:GetPlayers()) do
+            local gui = billboardGuis[player]
+            if gui and gui:FindFirstChild("TextLabel") then gui.TextLabel.TextColor3 = color end
+        end
+    end
 
-Tab2:AddSlider({
-	Name = "CAMERA LOWER",
-	Min = -50,
-	Max = 50,
-	Default = CamLower,
-	Callback = function(value)
-		CamLower = value
-	end
-})
+    -- Gerenciamento do ESP de Cones
+    if not EspConesEnabled or not TargetFolder then 
+        CleanAllConeEsps()
+        return 
+    end
+
+    for _, child in ipairs(TargetFolder:GetChildren()) do
+        if string.sub(child.Name, 1, 4) == "Prop" then
+            CreateConeEsp(child)
+        end
+    end
+
+    for model, data in pairs(ActiveEsps) do
+        if not model or not model.Parent then
+            ActiveEsps[model] = nil
+        else
+            if selectedColor == "RGB" then
+                if data.Label then data.Label.TextColor3 = color end
+                if data.Highlight then data.Highlight.OutlineColor = color end
+            end
+        end
+    end
+end)
 
 Tab2:AddToggle({
-	Name = "LOCK CAMERA",
-	Default = false,
-	Callback = function(state)
-		if state then
-			local char = LocalPlayer.Character
-			if char and char:FindFirstChild("HumanoidRootPart") then
-				local hrp = char.HumanoidRootPart
-				local forward = hrp.CFrame.LookVector
-				CamPosition = hrp.Position - forward * CamDistance + Vector3.new(0, CamHeight - CamLower, 0)
-				CamLookAt = hrp.Position
-			end
-			CamLocked = true
-		else
-			CamLocked = false
-			Camera.CameraType = Enum.CameraType.Custom
-			CamPosition = nil
-			CamLookAt = nil
-		end
-	end
+    Name = "Esp Props",
+    Description = "Mostra os Props e Donos",
+    Default = false,
+    Callback = function(Value)
+        EspConesEnabled = Value
+        if not Value then CleanAllConeEsps() end
+    end
 })
-RunService.RenderStepped:Connect(updateCamera)
+
+
 
 Tab2:AddSection({ Name = "Spawn Bombas", Icon = "rbxassetid://" })
 
@@ -2640,6 +2505,342 @@ Tab3:AddButton({
     end
 })
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Variáveis de Configuração
+local auraDistance = 6
+local auraSpeed = 1
+local auraHeight = -3
+local auraEnabled = false -- Orbita Você
+local auraTargetEnabled = false -- Orbita Alvo
+local currentShape = "Circulo"
+local currentMovement = "Em fila sentido horario"
+
+local effectWaveEnabled = false
+local effectWaveV2Enabled = false
+local maxWaveHeight = 5 
+
+-- Novas Variáveis
+local effectPingPongEnabled = false -- Efeito Vai e Vem
+local orbitStaticEnabled = false -- Órbita Posição Atual
+local staticPosition = nil -- Guarda a posição capturada
+
+-- Elementos da Interface (Tab3)
+Tab3:AddSection({ Name = "Orbita Props", Icon = "rbxassetid://" })
+
+Tab3:AddButton({
+    Name = "Pega a Caixa de Props",
+    Callback = function()
+        local args = {
+            [1] = "PickingTools",
+            [2] = "PropMaker"
+        }
+        pcall(function()
+            game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+        end)
+    end
+})
+
+Tab3:AddDropdown({
+    Name = "Formas",
+    Default = "Circulo",
+    Multi = false,
+    Options = {"Circulo", "Quadrado", "Triangulo"},
+    Callback = function(shape) currentShape = shape end
+})
+
+Tab3:AddDropdown({
+    Name = "Movimentos",
+    Default = "Em fila sentido horario",
+    Multi = false,
+    Options = {
+        "Em fila sentido horario", 
+        "Em fila sentido anti horario", 
+        "Virado para fora sentido horario", 
+        "Virado para fora sentido anti horario", 
+        "Virado para dentro sentido horario", 
+        "Virado para dentro sentido anti horario",
+        "De cabeça para baixo sentido horario",
+        "De cabeça para baixo sentido anti horario",
+        "De cabeça para baixo virado para dentro horario",
+        "De cabeça para baixo virado para dentro anti horario",
+        "De cabeça para baixo virado para fora horario",
+        "De cabeça para baixo virado para fora anti horario",
+        "Deitado horário",
+        "Deitado anti horario",
+        "Deitado virado para dentro horario",
+        "Deitado virado para dentro anti horario",
+        "Deitado virado para fora horário",
+        "Deitado virado para fora anti horario"
+    },
+    Callback = function(movement) currentMovement = movement end
+})
+
+Tab3:AddSlider({
+    Name = "Distância",
+    Min = 1, -- Ajustado para o mínimo exigido pelo Vai e Vem
+    Max = 100,
+    Default = 6,
+    Increase = 0.5,
+    Callback = function(v) auraDistance = v end
+})
+
+Tab3:AddSlider({
+    Name = "Velocidade",
+    Min = 1,
+    Max = 20,
+    Default = 4,
+    Increase = 1,
+    Callback = function(v) auraSpeed = v end
+})
+
+Tab3:AddSlider({
+    Name = "Altura",
+    Min = -3, 
+    Max = 100,
+    Default = -3,
+    Increase = 0.5,
+    Callback = function(v) auraHeight = v end
+})
+
+Tab3:AddSlider({
+    Name = "Altura Efeitos",
+    Min = 1,
+    Max = 20,
+    Default = 5,
+    Increase = 0.5,
+    Callback = function(v) maxWaveHeight = v end
+})
+
+Tab3:AddToggle({
+    Name = "Efeito Sobe e Desce",
+    Default = false,
+    Callback = function(v) effectWaveEnabled = v end
+})
+
+Tab3:AddToggle({
+    Name = "Efeito Sobe e Desce V2",
+    Default = false,
+    Callback = function(v) effectWaveV2Enabled = v end
+})
+
+Tab3:AddToggle({
+    Name = "Efeito Vai e Vem",
+    Default = false,
+    Callback = function(v) effectPingPongEnabled = v end
+})
+
+Tab3:AddToggle({
+    Name = "Órbita Posição Atual",
+    Default = false,
+    Callback = function(v) 
+        orbitStaticEnabled = v 
+        if v then
+            -- Captura a posição APENAS UMA VEZ no momento do clique
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                staticPosition = hrp.Position
+            else
+                staticPosition = Vector3.new(0, 0, 0)
+            end
+        else
+            staticPosition = nil
+        end
+    end
+})
+
+Tab3:AddToggle({
+    Name = "Orbita Você",
+    Default = false,
+    Callback = function(v) auraEnabled = v end
+})
+
+Tab3:AddToggle({
+    Name = "Orbita Alvo",
+    Default = false,
+    Callback = function(v) auraTargetEnabled = v end
+})
+
+-- Funções Matemáticas para Formas Geométricas
+local function getSquareOffset(angle, distance)
+    local c = math.cos(angle)
+    local s = math.sin(angle)
+    local maxCoord = math.max(math.abs(c), math.abs(s))
+    if maxCoord == 0 then maxCoord = 1 end
+    return (c / maxCoord) * distance, (s / maxCoord) * distance
+end
+
+local function getTriangleOffset(angle, distance)
+    local outAngle = math.fmod(angle, math.pi * 2 / 3)
+    if outAngle < 0 then outAngle = outAngle + (math.pi * 2 / 3) end
+    local r = distance * math.cos(math.pi / 3) / math.cos(outAngle - math.pi / 3)
+    return math.cos(angle) * r, math.sin(angle) * r
+end
+
+-- Loop Principal
+task.spawn(function()
+    local angle = 0
+    local waveTime = 0
+    local pingPongTime = 0
+
+    RunService.RenderStepped:Connect(function(dt)
+        if not auraEnabled and not auraTargetEnabled and not orbitStaticEnabled then return end
+        
+        local myChar = LocalPlayer.Character
+        local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
+        
+        local targetPlayerObj = selectedPlayer and Players:FindFirstChild(selectedPlayer)
+        local targetChar = targetPlayerObj and targetPlayerObj.Character
+        local targetHrp = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+
+        local folder = workspace:FindFirstChild("WorkspaceCom")
+        local propsFolder = folder and folder:FindFirstChild("001_TrafficCones")
+        if not propsFolder then return end
+
+        -- Sentido da rotação
+        if currentMovement:find("anti horario") then
+            angle = angle - (dt * auraSpeed)
+        else
+            angle = angle + (dt * auraSpeed)
+        end
+        
+        waveTime = waveTime + (dt * 1.5)
+        pingPongTime = pingPongTime + (dt * 2) -- Velocidade do Vai e Vem
+
+        local myProps = {}
+        for _, prop in ipairs(propsFolder:GetChildren()) do
+            if prop.Name:find("Prop" .. LocalPlayer.Name) then
+                table.insert(myProps, prop)
+            end
+        end
+
+        local totalProps = #myProps
+        if totalProps == 0 then return end
+
+        local targetGroups = {}
+        
+        -- Prioridade 1: Se Órbita Estática estiver ligada, ignora os eixos móveis dos players
+        if orbitStaticEnabled and staticPosition then
+            for index, prop in ipairs(myProps) do
+                table.insert(targetGroups, {prop = prop, isStatic = true, staticCenter = staticPosition, groupIndex = index, groupTotal = totalProps})
+            end
+        -- Prioridade 2: Divisão mútua entre você e o Alvo
+        elseif auraEnabled and auraTargetEnabled and targetHrp then
+            local half = math.ceil(totalProps / 2)
+            for index, prop in ipairs(myProps) do
+                if index <= half then
+                    table.insert(targetGroups, {prop = prop, centerHrp = myHrp, groupIndex = index, groupTotal = half})
+                else
+                    table.insert(targetGroups, {prop = prop, centerHrp = targetHrp, groupIndex = index - half, groupTotal = totalProps - half})
+                end
+            end
+        -- Prioridade 3: Apenas no Alvo
+        elseif auraTargetEnabled and targetHrp then
+            for index, prop in ipairs(myProps) do
+                table.insert(targetGroups, {prop = prop, centerHrp = targetHrp, groupIndex = index, groupTotal = totalProps})
+            end
+        -- Prioridade 4: Apenas em Você
+        else
+            if myHrp then
+                for index, prop in ipairs(myProps) do
+                    table.insert(targetGroups, {prop = prop, centerHrp = myHrp, groupIndex = index, groupTotal = totalProps})
+                end
+            end
+        end
+
+        -- Lógica de cálculo posicional por prop
+        for _, data in ipairs(targetGroups) do
+            local prop = data.prop
+            local index = data.groupIndex
+            local groupTotal = data.groupTotal
+            
+            -- Define qual será o ponto central (Estático ou um Player HRP)
+            local centerPosition = nil
+            local referenceCFrame = nil
+            
+            if data.isStatic then
+                centerPosition = data.staticCenter
+                referenceCFrame = CFrame.new(centerPosition)
+            elseif data.centerHrp then
+                centerPosition = data.centerHrp.Position
+                referenceCFrame = data.centerHrp.CFrame
+            end
+
+            if centerPosition then
+                local offsetAngle = angle + ((index - 1) * (math.pi * 2 / groupTotal))
+                
+                -- Cálculo Dinâmico da Distância (Efeito Vai e Vem)
+                local dynamicDistance = auraDistance
+                if effectPingPongEnabled then
+                    if auraDistance > 5 then
+                        -- Oscila suavemente de 5 até o valor do slider máximo configurado
+                        local wave = (math.sin(pingPongTime) + 1) * 0.5
+                        dynamicDistance = 5 + (wave * (auraDistance - 5))
+                    else
+                        dynamicDistance = 5
+                    end
+                end
+
+                -- 1. Calcula Posição X e Z com a nova distância dinâmica
+                local px, pz = 0, 0
+                if currentShape == "Quadrado" then
+                    px, pz = getSquareOffset(offsetAngle, dynamicDistance)
+                elseif currentShape == "Triangulo" then
+                    px, pz = getTriangleOffset(offsetAngle, dynamicDistance)
+                else
+                    px = math.cos(offsetAngle) * dynamicDistance
+                    pz = math.sin(offsetAngle) * dynamicDistance
+                end
+
+                -- 2. Efeito Sobe e Desce
+                local yOffset = 0
+                if effectWaveEnabled then
+                    local activeIndex = (math.floor(waveTime / math.pi) % groupTotal) + 1
+                    local activeProgress = waveTime % math.pi 
+                    if index == activeIndex then
+                        yOffset = math.sin(activeProgress) * maxWaveHeight
+                    end
+                elseif effectWaveV2Enabled then
+                    local groupFactor = (index % 2 == 0) and 1 or -1
+                    yOffset = (math.sin(waveTime * 0.8 * groupFactor) + 1) * 0.5 * maxWaveHeight
+                end
+
+                local targetPosition = centerPosition + Vector3.new(px, auraHeight + yOffset, pz)
+
+                -- 3. Rotação/Direção do CFrame
+                local baseCFrame
+                if currentMovement:find("virado para fora") or currentMovement:find("Virado para fora") then
+                    baseCFrame = CFrame.lookAt(targetPosition, targetPosition + Vector3.new(px, 0, pz))
+                elseif currentMovement:find("virado para dentro") or currentMovement:find("Virado para dentro") then
+                    baseCFrame = CFrame.lookAt(targetPosition, Vector3.new(centerPosition.X, targetPosition.Y, centerPosition.Z))
+                else
+                    baseCFrame = CFrame.new(targetPosition) * (referenceCFrame - referenceCFrame.Position)
+                end
+
+                -- 4. Multiplicadores de Eixo Especiais
+                local targetCFrame = baseCFrame
+                if currentMovement:find("De cabeça para baixo") then
+                    targetCFrame = baseCFrame * CFrame.Angles(0, 0, math.pi)
+                elseif currentMovement:find("Deitado") then
+                    targetCFrame = baseCFrame * CFrame.Angles(math.pi / 2, 0, 0)
+                end
+
+                local remote = prop:FindFirstChild("SetCurrentCFrame")
+                if remote then
+                    task.spawn(function()
+                        pcall(function()
+                            remote:InvokeServer(targetCFrame)
+                        end)
+                    end)
+                end
+            end
+        end
+    end)
+end)
+
 
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Antis-----------------------------------------------------
@@ -2728,7 +2929,7 @@ Tab4:AddToggle({
 })
 
 
-local doorParts = {}
+local doorParts = {} -- Agora vai guardar o estado original: [part] = estado_original_booleano
 local doorConnection
 
 local function isDoor(obj)
@@ -2737,16 +2938,25 @@ local function isDoor(obj)
 end
 
 local function setDoorNoclip(obj, state)
-    if obj:IsA("BasePart") then
-        doorParts[obj] = true
-        obj.CanCollide = not state
+    -- Função auxiliar para processar uma única parte
+    local function processPart(part)
+        if part:IsA("BasePart") then
+            -- Só salva o estado original se a parte ainda não estiver na tabela
+            if doorParts[part] == nil then
+                doorParts[part] = part.CanCollide
+            end
+            
+            if state then
+                part.CanCollide = false -- Se noclip ativado, desativa colisão
+            else
+                part.CanCollide = doorParts[part] -- Se desativado, restaura o original
+            end
+        end
     end
 
+    processPart(obj)
     for _, v in ipairs(obj:GetDescendants()) do
-        if v:IsA("BasePart") then
-            doorParts[v] = true
-            v.CanCollide = not state
-        end
+        processPart(v)
     end
 end
 
@@ -2763,10 +2973,10 @@ Tab4:AddToggle({
     Description = "As portas não vão mais te empurrar!",
     Default = false,
     Callback = function(Value)
-
-        applyDoorNoclip(Value)
-
+        
         if Value then
+            applyDoorNoclip(true)
+            
             doorConnection = workspace.DescendantAdded:Connect(function(obj)
                 if isDoor(obj) then
                     task.wait()
@@ -2774,18 +2984,21 @@ Tab4:AddToggle({
                 end
             end)
         else
-            for part in pairs(doorParts) do
-                if part and part.Parent then
-                    part.CanCollide = true
-                end
-            end
-
-            table.clear(doorParts)
-
+            -- Desconecta o evento primeiro para não gerar conflitos
             if doorConnection then
                 doorConnection:Disconnect()
                 doorConnection = nil
             end
+
+            -- Restaura o estado original de cada parte salva
+            for part, originalCollide in pairs(doorParts) do
+                if part and part.Parent then
+                    part.CanCollide = originalCollide
+                end
+            end
+
+            -- Limpa a tabela para a próxima vez
+            table.clear(doorParts)
         end
     end
 })
@@ -4107,228 +4320,7 @@ Tab5:AddButton({
     end
 })
 
-Tab5:AddSection({ "FIRE FE COLOR" })
-
--- Dropdown para escolher a cor do fogo
-Tab5:AddDropdown({
-    Name = "Fire Colors",
-    Description = "Select the <font color='rgb(255, 100, 100)'>Fire Color</font>",
-    Options = {"White", "Orange", "Green", "Blue", "Purple", "Black"},
-    Default = "White",
-    Flag = "fire_color_dropdown",
-    Callback = function(Value)
-        -- Tabela com as cores e seus respectivos IDs e códigos
-        local fireColors = {
-            ["White"] = {
-                id = "18637074370",
-                code = "030FireWhite"
-            },
-            ["Orange"] = {
-                id = "18637025451", 
-                code = "031FireOrange"
-            },
-            ["Green"] = {
-                id = "18637078598",
-                code = "032FireGreen"
-            },
-            ["Blue"] = {
-                id = "18637076370",
-                code = "033FireBlue"
-            },
-            ["Purple"] = {
-                id = "18637070174",
-                code = "034FirePurple"
-            },
-            ["Black"] = {
-                id = "18637072603",
-                code = "035FireBlack"
-            }
-        }
-        
-        -- Armazena globalmente a cor selecionada
-        _G.selectedColor = Value
-        print("" .. Value)
-    end
-})
-
--- Botão para equipar a cor escolhida
-Tab5:AddButton({
-    Name = "Equip Fire Color",
-    Callback = function()
-        -- Tabela com as cores e seus respectivos IDs e códigos
-        local fireColors = {
-            ["White"] = {
-                id = "18637074370",
-                code = "030FireWhite"
-            },
-            ["Orange"] = {
-                id = "18637025451", 
-                code = "031FireOrange"
-            },
-            ["Green"] = {
-                id = "18637078598",
-                code = "032FireGreen"
-            },
-            ["Blue"] = {
-                id = "18637076370",
-                code = "033FireBlue"
-            },
-            ["Purple"] = {
-                id = "18637070174",
-                code = "034FirePurple"
-            },
-            ["Black"] = {
-                id = "18637072603",
-                code = "035FireBlack"
-            }
-        }
-        
-        local selectedColor = _G.selectedColor or "White"
-        
-        if selectedColor and fireColors[selectedColor] then
-            local colorData = fireColors[selectedColor]
-            
-            local args = {
-                [1] = colorData.id,
-                [2] = colorData.code
-            }
-            
-            -- Aplica o emmiter com a cor selecionada
-            game:GetService("ReplicatedStorage").Remotes.ApplyEmmiter:InvokeServer(unpack(args))
-            
-            print("Equipado: " .. selectedColor .. " Fire")
-        else
-            warn("Erro: Cor não encontrada!")
-        end
-    end
-})
-
-
--- Dropdown para escolher a cor do smoke
-Tab5:AddDropdown({
-    Name = "Smoke Colors",
-    Description = "Select the <font color='rgb(150, 150, 150)'>Smoke Color</font>",
-    Options = {"White", "Yellow", "Orange", "Green", "Blue", "Purple", "Red", "Black"},
-    Default = "White",
-    Flag = "smoke_color_dropdown",
-    Callback = function(Value)
-        -- Tabela com as cores de smoke e seus respectivos IDs e códigos
-        local smokeColors = {
-            ["White"] = {
-                id = "18637791748",
-                code = "080SmokeWhite"
-            },
-            ["Yellow"] = {
-                id = "18637800482",
-                code = "081SmokeYellow"
-            },
-            ["Orange"] = {
-                id = "18637793920",
-                code = "082SmokeOrange"
-            },
-            ["Green"] = {
-                id = "18637789299",
-                code = "083SmokeGreen"
-            },
-            ["Blue"] = {
-                id = "18637803021",
-                code = "084SmokeBlue"
-            },
-            ["Purple"] = {
-                id = "18637813360",
-                code = "085SmokePurple"
-            },
-            ["Red"] = {
-                id = "18637796598",
-                code = "086SmokeRed"
-            },
-            ["Black"] = {
-                id = "18637798529",
-                code = "087SmokeBlack"
-            }
-        }
-        
-        -- Armazena globalmente a cor de smoke selecionada
-        _G.selectedSmokeColor = Value
-        print("" .. Value)
-    end
-})
-
--- Botão para equipar a cor de smoke escolhida
-Tab5:AddButton({
-    Name = "Equip Smoke Color",
-    Callback = function()
-        -- Tabela com as cores de smoke e seus respectivos IDs e códigos
-        local smokeColors = {
-            ["White"] = {
-                id = "18637791748",
-                code = "080SmokeWhite"
-            },
-            ["Yellow"] = {
-                id = "18637800482",
-                code = "081SmokeYellow"
-            },
-            ["Orange"] = {
-                id = "18637793920",
-                code = "082SmokeOrange"
-            },
-            ["Green"] = {
-                id = "18637789299",
-                code = "083SmokeGreen"
-            },
-            ["Blue"] = {
-                id = "18637803021",
-                code = "084SmokeBlue"
-            },
-            ["Purple"] = {
-                id = "18637813360",
-                code = "085SmokePurple"
-            },
-            ["Red"] = {
-                id = "18637796598",
-                code = "086SmokeRed"
-            },
-            ["Black"] = {
-                id = "18637798529",
-                code = "087SmokeBlack"
-            }
-        }
-        
-        local selectedSmokeColor = _G.selectedSmokeColor or "White"
-        
-        if selectedSmokeColor and smokeColors[selectedSmokeColor] then
-            local colorData = smokeColors[selectedSmokeColor]
-            
-            local args = {
-                [1] = colorData.id,
-                [2] = colorData.code
-            }
-            
-            -- Aplica o emmiter com a cor de smoke selecionada
-            game:GetService("ReplicatedStorage").Remotes.ApplyEmmiter:InvokeServer(unpack(args))
-            
-            print("Equipado: " .. selectedSmokeColor .. " Smoke")
-        else
-            warn("Erro: Cor de smoke não encontrada!")
-        end
-    end
-})
-
-Tab5:AddSection({ " Animações" })
-
-loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Anima%C3%A7%C3%B5es%20Brookhaven%20"))()
-
-Tab5:AddButton({
-    Name = "Animações",
-    Description = "",
-    Callback = function()
-        if _G.ToggleAnimGui then
-            _G.ToggleAnimGui(true) -- Abre a interface de forma certeira!
-        else
-            warn("O script de animacoes ainda nao terminou de carregar.")
-        end
-    end
-})
+Tab5:AddSection({ " Animações Secretas" })
 
 Tab5:AddButton({
     Name = "Mr. Toilet Idle ",
@@ -4723,7 +4715,7 @@ Tab6:AddButton({
 
 Tab6:AddSection({ "Banir Jogadores da Sua Casa" })
 
-do -- 📦 ESCOPO ISOLADO (Evita conflitos com outros scripts da sua UI)
+do -- ?? ESCOPO ISOLADO (Evita conflitos com outros scripts da sua UI)
     local Players = game:GetService("Players")
     local LocalPlayer = Players.LocalPlayer
 
@@ -5136,69 +5128,7 @@ Tab6:AddToggle({
     end    
 })
 
-Tab6:AddSection({ "Teleporta para a casa..." })
 
--- Lista de casas para teletransporte
-local casas = {
-    ["Casa 1"] = Vector3.new(260.29, 4.37, 209.32),
-    ["Casa 2"] = Vector3.new(234.49, 4.37, 228.00),
-    ["Casa 3"] = Vector3.new(262.79, 21.37, 210.84),
-    ["Casa 4"] = Vector3.new(229.60, 21.37, 225.40),
-    ["Casa 5"] = Vector3.new(173.44, 21.37, 228.11),
-    ["Casa 6"] = Vector3.new(-43, 21, -137),
-    ["Casa 7"] = Vector3.new(-40, 36, -137),
-    ["Casa 11"] = Vector3.new(-21, 40, 436),
-    ["Casa 12"] = Vector3.new(155, 37, 433),
-    ["Casa 13"] = Vector3.new(255, 35, 431),
-    ["Casa 14"] = Vector3.new(254, 38, 394),
-    ["Casa 15"] = Vector3.new(148, 39, 387),
-    ["Casa 16"] = Vector3.new(-17, 42, 395),
-    ["Casa 17"] = Vector3.new(-189, 37, -247),
-    ["Casa 18"] = Vector3.new(-354, 37, -244),
-    ["Casa 19"] = Vector3.new(-456, 36, -245),
-    ["Casa 20"] = Vector3.new(-453, 38, -295),
-    ["Casa 21"] = Vector3.new(-356, 38, -294),
-    ["Casa 22"] = Vector3.new(-187, 37, -295),
-    ["Casa 23"] = Vector3.new(-410, 68, -447),
-    ["Casa 24"] = Vector3.new(-348, 69, -496),
-    ["Casa 28"] = Vector3.new(-103, 12, 1087),
-    ["Casa 29"] = Vector3.new(-730, 6, 808),
-    ["Casa 30"] = Vector3.new(-245, 7, 822),
-    ["Casa 31"] = Vector3.new(639, 76, -361),
-    ["Casa 32"] = Vector3.new(-908, 6, -361),
-    ["Casa 33"] = Vector3.new(-111, 70, -417),
-    ["Casa 34"] = Vector3.new(230, 38, 569),
-    ["Casa 35"] = Vector3.new(-30, 13, 2209),
-    ["Casa 36"] = Vector3.new(249, 20, -2295),
-    ["Casa 37"] = Vector3.new(-1919, 16, 328),
-    ["Casa 38"] = Vector3.new(500, 1, 385),
-}
-
--- Criar lista de nomes de casas ordenada
-local casasNomes = {}
-for nome, _ in pairs(casas) do
-    table.insert(casasNomes, nome)
-end
-
-table.sort(casasNomes, function(a, b)
-    local numA = tonumber(a:match("%d+")) or 0
-    local numB = tonumber(b:match("%d+")) or 0
-    return numA < numB
-end)
-
--- Dropdown para teletransporte
-pcall(function()
-    Tab6:AddDropdown({
-        Name = "Teleporta para a casa",
-        Options = casasNomes,
-        Callback = function(casaSelecionada)
-            local player = game.Players.LocalPlayer
-            if player and player.Character then
-                player.Character.HumanoidRootPart.CFrame = CFrame.new(casas[casaSelecionada])
-            end
-        end
-    })
-end)
 ---------------------------------------------------------------------------------------------------------------------------------
                                           -- === Tab7 Carros=== --
 ---------------------------------------------------------------------------------------------------------------------------------
@@ -7339,5 +7269,3 @@ TabScript:AddToggle({
         end
     end
 })
-
-
