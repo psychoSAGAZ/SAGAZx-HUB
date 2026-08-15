@@ -3339,14 +3339,14 @@ Tab5:AddButton({
         
         -- Tabela de corpos e seus respectivos códigos correspondentes
         local bodyCodes = {
-            ["Corpo Normal"]          = "BH-AE-0f8f8960d421497695b6c7f81888d9a6",
-            ["Corpo Normal Esticado"] = "BH-AE-6d902b983af44f819336326f3c5f0a2c",
-            ["Corpo Alto Fino"]       = "BH-AE-7dd15b77d3834f81ac83bc309f919d1a"
+            ["Corpo Normal"]          = "BH-AE-2b3636f80a1d4554bb1571035a202374",
+            ["Corpo Normal Esticado"] = "BH-AE-8a760f757e594be7bcebba8030df614f",
+            ["Corpo Alto Fino"]       = "BH-AE-67ceaab967b14798825daab9cfd2144d"
         }
 
         -- Recupera a escolha do dropdown. Se estiver vazia, usa "Corpo Normal" por padrão.
         local chosenBody = _G.SelectedBodyType or "Corpo Normal"
-        local code = bodyCodes[chosenBody] or "BH-AE-98069945232645a5a4c827bb7eb2f2bb"
+        local code = bodyCodes[chosenBody] or "BH-AE-2b3636f80a1d4554bb1571035a202374"
 
         task.spawn(function()
             pcall(function()
@@ -3354,7 +3354,7 @@ Tab5:AddButton({
             end)
         end)
 
-        task.wait(4) -- Tempo para a limpeza do reset terminar
+        task.wait(1) -- Tempo para a limpeza do reset terminar
 
         -- ==========================================
         -- 3. PRIMEIRA TENTATIVA DE EQUIPAR (ROUPAS & ACESSÓRIOS)
@@ -3574,13 +3574,13 @@ Tab5:AddButton({
         -- 2. RESETAR O LOCALPLAYER COM O CORPO DO DROPDOWN
         -- ==========================================
         local bodyCodes = {
-            ["Corpo Normal"]          = "BH-AE-0f8f8960d421497695b6c7f81888d9a6",
-            ["Corpo Normal Esticado"] = "BH-AE-6d902b983af44f819336326f3c5f0a2c",
-            ["Corpo Alto Fino"]       = "BH-AE-7dd15b77d3834f81ac83bc309f919d1a"
+            ["Corpo Normal"]          = "BH-AE-2b3636f80a1d4554bb1571035a202374",
+            ["Corpo Normal Esticado"] = "BH-AE-8a760f757e594be7bcebba8030df614f",
+            ["Corpo Alto Fino"]       = "BH-AE-67ceaab967b14798825daab9cfd2144d"
         }
 
         local chosenBody = _G.SelectedBodyType or "Corpo Normal"
-        local code = bodyCodes[chosenBody] or "BH-AE-98069945232645a5a4c827bb7eb2f2bb"
+        local code = bodyCodes[chosenBody] or "BH-AE-2b3636f80a1d4554bb1571035a202374"
 
         task.spawn(function()
             pcall(function()
@@ -3897,12 +3897,12 @@ local function AplicarSkin(data)
 
     -- Usa o tipo de corpo selecionado no Dropdown da UI
     local bodyCodes = {
-        ["Corpo Normal"]          = "BH-AE-0f8f8960d421497695b6c7f81888d9a6",
-        ["Corpo Normal Esticado"] = "BH-AE-6d902b983af44f819336326f3c5f0a2c",
-        ["Corpo Alto Fino"]       = "BH-AE-7dd15b77d3834f81ac83bc309f919d1a"
+        ["Corpo Normal"]          = "BH-AE-2b3636f80a1d4554bb1571035a202374",
+        ["Corpo Normal Esticado"] = "BH-AE-8a760f757e594be7bcebba8030df614f",
+        ["Corpo Alto Fino"]       = "BH-AE-67ceaab967b14798825daab9cfd2144d"
     }
     local chosenBody = _G.SelectedBodyTypeSkinManager or "Corpo Normal"
-    local code = bodyCodes[chosenBody] or "BH-AE-0f8f8960d421497695b6c7f81888d9a6"
+    local code = bodyCodes[chosenBody] or "BH-AE-2b3636f80a1d4554bb1571035a202374"
 
     task.spawn(function()
         pcall(function()
@@ -6573,7 +6573,245 @@ TabScript:AddButton({
         loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Expand%20Hotbar%20"))()
     end
 })
- 
+
+TabScript:AddButton({
+    Name = "Interface de Botões Antigas do Brookhaven(Irreversível)",
+    Description = "Meio Bugado",
+    Callback = function()
+        -- ====================================================================
+        -- PROTEÇÃO CONTRA DUPLA EXECUÇÃO
+        -- ====================================================================
+        if _G.ScriptJaExecutado then
+            warn("O script já foi executado! Ignorando nova execução.")
+            return
+        end
+        _G.ScriptJaExecutado = true
+
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+        local MainGUIHandler = PlayerGui:WaitForChild("MainGUIHandler")
+        local MainButtons = MainGUIHandler:WaitForChild("MainButtons")
+        local NoResetGUIHandler = PlayerGui:WaitForChild("NoResetGUIHandler")
+
+        -- 0. DESATIVA O FRAME "New"
+        local newFrame = MainButtons:FindFirstChild("New")
+        if newFrame then
+            newFrame.Visible = false
+        end
+
+        -- ====================================================================
+        -- 1. EXCLUI OS BOTÕES "005Close" DOS CAMINHOS ESPECIFICADOS
+        -- ====================================================================
+        local caminhosClose = {
+            {"NoResetGUIHandler", "CharacterThemeMenu", "Catalog", "Header", "CategoryTabs", "005Close"},
+            {"NoResetGUIHandler", "CharacterNameMenu", "Catalog", "Header", "CategoryTabs", "005Close"},
+            {"NoResetGUIHandler", "CharacterJobMenu", "Catalog", "Header", "CategoryTabs", "005Close"},
+            {"NoResetGUIHandler", "PetsKidsMenu", "Catalog", "Header", "CategoryTabs", "005Close"}
+        }
+
+        for _, caminho in ipairs(caminhosClose) do
+            local obj = PlayerGui
+            for _, nome in ipairs(caminho) do
+                if obj then
+                    obj = obj:FindFirstChild(nome)
+                end
+            end
+            if obj then
+                obj:Destroy()
+            end
+        end
+
+        -- ====================================================================
+        -- 2. RECONFIGURA O CATEGORYTABS E UILISTLAYOUT DO PETSKIDSMENU
+        -- ====================================================================
+        local petsKidsTabs = NoResetGUIHandler:FindFirstChild("PetsKidsMenu")
+            and NoResetGUIHandler.PetsKidsMenu:FindFirstChild("Catalog")
+            and NoResetGUIHandler.PetsKidsMenu.Catalog:FindFirstChild("Header")
+            and NoResetGUIHandler.PetsKidsMenu.Catalog.Header:FindFirstChild("CategoryTabs")
+
+        if petsKidsTabs then
+            petsKidsTabs.Size = UDim2.new(0, 300, 0, 29)
+            petsKidsTabs.Position = UDim2.new(0, 10, 0, 18)
+
+            local uiListLayout = petsKidsTabs:FindFirstChildOfClass("UIListLayout")
+            if uiListLayout then
+                uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+                uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+            end
+        end
+
+        -- ====================================================================
+        -- 3. GERENCIAMENTO E DESATIVAÇÃO DOS FRAMES
+        -- ====================================================================
+        local menusParaGerenciar = {
+            NoResetGUIHandler:FindFirstChild("PetsKidsMenu"),
+            NoResetGUIHandler:FindFirstChild("CharacterThemeMenu"),
+            NoResetGUIHandler:FindFirstChild("CharacterNameMenu"),
+            NoResetGUIHandler:FindFirstChild("CharacterJobMenu")
+        }
+
+        local function fecharTodosOsMenus()
+            for _, menu in ipairs(menusParaGerenciar) do
+                if menu then
+                    menu.Visible = false
+                end
+            end
+        end
+
+        -- Variável para guardar o último menu ativado (Inicia com CharacterNameMenu como padrão)
+        local ultimoMenuAtivo = NoResetGUIHandler:FindFirstChild("CharacterNameMenu")
+
+        -- Monitora trocas de menu para salvar a última escolha
+        for _, menu in ipairs(menusParaGerenciar) do
+            if menu then
+                menu:GetPropertyChangedSignal("Visible"):Connect(function()
+                    if menu.Visible then
+                        ultimoMenuAtivo = menu
+                    end
+                end)
+            end
+        end
+
+        -- ====================================================================
+        -- 4. ESTRUTURA DOS FRAMES (FramePaiCustom e FrameFilhoCustom)
+        -- ====================================================================
+        if MainButtons:FindFirstChild("FramePaiCustom") then
+            MainButtons.FramePaiCustom:Destroy()
+        end
+
+        local FramePai = Instance.new("Frame")
+        FramePai.Name = "FramePaiCustom"
+        FramePai.Size = UDim2.new(1, 0, 1, 0)
+        FramePai.Active = false
+        FramePai.BackgroundTransparency = 1
+        FramePai.Parent = MainButtons
+
+        local FrameFilho = Instance.new("Frame")
+        FrameFilho.Name = "FrameFilhoCustom"
+        FrameFilho.Size = UDim2.new(0, 70, 0, 400)
+        FrameFilho.AnchorPoint = Vector2.new(1, 0)
+        FrameFilho.Position = UDim2.new(1, 0, 0, 0)
+        FrameFilho.BackgroundTransparency = 1
+        FrameFilho.Parent = FramePai
+
+        -- ====================================================================
+        -- 5. CLONAGEM DO SLIDE
+        -- ====================================================================
+        local SlideClonado = nil
+        local targetSlide = newFrame 
+            and newFrame:FindFirstChild("Frame") 
+            and newFrame.Frame:FindFirstChild("Frame") 
+            and newFrame.Frame.Frame:FindFirstChild("Slide")
+
+        if targetSlide then
+            SlideClonado = targetSlide:Clone()
+            SlideClonado.Size = UDim2.new(0, 300, 0, 60)
+            SlideClonado.Position = UDim2.new(0, 713, 0, 25)
+            SlideClonado.Visible = false
+            SlideClonado.Parent = FramePai
+
+            local slideGridLayout = SlideClonado:FindFirstChildOfClass("UIGridLayout")
+            if slideGridLayout then
+                slideGridLayout.CellSize = UDim2.new(0, 70, 0, 50)
+                slideGridLayout.FillDirection = Enum.FillDirection.Vertical
+                slideGridLayout.FillDirectionMaxCells = 1
+            end
+
+            -- Botão vermelho no Slide
+            local slideButton = Instance.new("ImageButton")
+            slideButton.Name = "Z_LastSlideButton"
+            slideButton.LayoutOrder = 999999
+            slideButton.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
+            slideButton.BackgroundTransparency = 0.3
+            slideButton.Parent = SlideClonado
+
+            local slideBtnCorner = Instance.new("UICorner")
+            slideBtnCorner.CornerRadius = UDim.new(0, 8)
+            slideBtnCorner.Parent = slideButton
+
+            local slideBtnIcon = Instance.new("ImageLabel")
+            slideBtnIcon.Name = "Icon"
+            slideBtnIcon.Size = UDim2.new(1, 0, 1, 0)
+            slideBtnIcon.Position = UDim2.new(0, 0, 0, 0)
+            slideBtnIcon.BackgroundTransparency = 1
+            slideBtnIcon.Image = "rbxassetid://6893025659"
+            slideBtnIcon.Parent = slideButton
+
+            slideButton.MouseButton1Click:Connect(function()
+                SlideClonado.Visible = false
+                fecharTodosOsMenus()
+            end)
+        end
+
+        -- ====================================================================
+        -- 6. CLONAGEM DO BUTTONS E BOTÃO PRINCIPAL (CUSTOM)
+        -- ====================================================================
+        local targetButtons = newFrame 
+            and newFrame:FindFirstChild("Frame") 
+            and newFrame.Frame:FindFirstChild("Frame") 
+            and newFrame.Frame.Frame:FindFirstChild("Buttons")
+
+        if targetButtons then
+            local ButtonsClonado = targetButtons:Clone()
+            ButtonsClonado.Size = UDim2.new(1, 0, 1, 0)
+            ButtonsClonado.Position = UDim2.new(0, 0, 0, 0)
+            ButtonsClonado.Parent = FrameFilho
+
+            local gridLayout = ButtonsClonado:FindFirstChildOfClass("UIGridLayout")
+            if gridLayout then
+                gridLayout.CellSize = UDim2.new(1, 0, 0, 65)
+                gridLayout.FillDirection = Enum.FillDirection.Horizontal
+                gridLayout.FillDirectionMaxCells = 1
+            end
+
+            -- Conecta os outros botões do Buttons para fechar o Slide e menus
+            for _, child in ipairs(ButtonsClonado:GetChildren()) do
+                if child:IsA("GuiButton") then
+                    child.MouseButton1Click:Connect(function()
+                        if SlideClonado then
+                            SlideClonado.Visible = false
+                        end
+                        fecharTodosOsMenus()
+                    end)
+                end
+            end
+
+            -- Cria o NOSSO botão dentro do Buttons
+            local customButton = Instance.new("ImageButton")
+            customButton.Name = "CustomImageButton"
+            customButton.BackgroundTransparency = 0.6
+            customButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            customButton.Parent = ButtonsClonado
+
+            local uiCorner = Instance.new("UICorner")
+            uiCorner.CornerRadius = UDim.new(0, 8)
+            uiCorner.Parent = customButton
+
+            local imageLabel = Instance.new("ImageLabel")
+            imageLabel.Name = "CustomIcon"
+            imageLabel.Size = UDim2.new(0.85, 0, 0.85, 0)
+            imageLabel.Position = UDim2.new(0, 5, 0, 5)
+            imageLabel.BackgroundTransparency = 1
+            imageLabel.Image = "rbxassetid://82364297327086"
+            imageLabel.Parent = customButton
+
+            -- Ação do nosso botão customizado
+            customButton.MouseButton1Click:Connect(function()
+                fecharTodosOsMenus()
+
+                if SlideClonado then
+                    SlideClonado.Visible = not SlideClonado.Visible
+                    
+                    if SlideClonado.Visible and ultimoMenuAtivo then
+                        ultimoMenuAtivo.Visible = true
+                    end
+                end
+            end)
+        end
+    end
+})
+
 TabScript:AddButton({
     Name = "Fly Car",
     Description = "Faz Você Voar Com o Carro",
@@ -6727,33 +6965,7 @@ TabScript:AddToggle({
     end
 })
 
-TabScript:AddToggle({
-    Name = "Interface de Botão Antiga Do Brookhaven",
-    Default = false,
-    Callback = function(Value)
-        local player = game:GetService("Players").LocalPlayer
-        local gui = player:WaitForChild("PlayerGui")
 
-        local main = gui:WaitForChild("MainGUIHandler")
-        local buttons = main:WaitForChild("MainButtons")
-
-        local old = buttons:WaitForChild("Old")
-        local new = buttons:WaitForChild("New")
-
-        if Value then
-            -- Mostra a interface antiga
-            old.Visible = true
-            old.Position = UDim2.new(0.200000003, 57, 0, 0)
-            old.Size = UDim2.new(0.75, 0, 1, 0)
-
-            new.Visible = false
-        else
-            -- Mostra a interface nova
-            old.Visible = false
-            new.Visible = true
-        end
-    end
-})
 
 TabScript:AddToggle({
     Name = "Shaders",
