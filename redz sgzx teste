@@ -2581,6 +2581,425 @@ function MyLibrary:MakeWindow(Configs)
 
     CloseButton.Activated:Connect(Window.CloseBtn)
     MinimizeButton.Activated:Connect(Window.MinimizeBtn)
+    
+    -- ==================== NOVAS FUNCIONALIDADES DE CONFIGURAÇÃO ====================
+-- Adicione isso dentro da função MakeWindow, antes do return Window
+
+-- Adicionar botão de configuração
+local ConfigButton = SetProps(CloseButton:Clone(), {
+    Position = UDim2.new(1, -60, 0.5),
+    Image = "rbxassetid://10734950309", -- Ícone de engrenagem
+    Name = "Config"
+})
+ConfigButton.Parent = ButtonsFolder
+
+-- Menu de Configuração
+local ConfigMenu = Create("Frame", MainFrame, {
+    Size = UDim2.new(1, -20, 1, -40),
+    Position = UDim2.new(0, 10, 0, 35),
+    BackgroundTransparency = 0.05,
+    ClipsDescendants = true,
+    Visible = false,
+    Name = "ConfigMenu"
+})
+Make("Corner", ConfigMenu, UDim.new(0, 8))
+Make("Gradient", ConfigMenu, { Rotation = 270 })
+
+-- Botão X para fechar
+local CloseConfig = Make("Button", ConfigMenu, {
+    Size = UDim2.new(0, 25, 0, 25),
+    Position = UDim2.new(0, 10, 0, 10),
+    Text = "X",
+    Font = Enum.Font.GothamBold,
+    TextSize = 14,
+    TextColor3 = Theme["Color Text"]
+})
+Make("Corner", CloseConfig, UDim.new(0, 5))
+CloseConfig.Activated:Connect(function()
+    ConfigMenu.Visible = false
+end)
+
+-- Abas do menu de configuração
+local ConfigTabs = Create("Frame", ConfigMenu, {
+    Size = UDim2.new(0, 100, 1, -40),
+    Position = UDim2.new(0, 10, 0, 40),
+    BackgroundTransparency = 1,
+    Name = "ConfigTabs"
+})
+
+local ConfigTabList = Create("UIListLayout", ConfigTabs, {
+    Padding = UDim.new(0, 5),
+    SortOrder = "LayoutOrder"
+})
+
+local ConfigContent = Create("Frame", ConfigMenu, {
+    Size = UDim2.new(1, -120, 1, -50),
+    Position = UDim2.new(1, -10, 1, -10),
+    AnchorPoint = Vector2.new(1, 1),
+    BackgroundTransparency = 1,
+    Name = "ConfigContent"
+})
+
+local CurrentConfigTab = nil
+local ConfigTabButtons = {}
+
+local function SelectConfigTab(TabName)
+    if CurrentConfigTab == TabName then return end
+    CurrentConfigTab = TabName
+    
+    -- Limpar conteúdo anterior
+    for _, child in pairs(ConfigContent:GetChildren()) do
+        if child:IsA("Frame") or child:IsA("ScrollingFrame") then
+            child:Destroy()
+        end
+    end
+    
+    -- Destacar botão selecionado
+    for name, btn in pairs(ConfigTabButtons) do
+        if name == TabName then
+            btn.BackgroundColor3 = Theme["Color Theme"]
+        else
+            btn.BackgroundColor3 = Theme["Color Hub 2"]
+        end
+    end
+    
+    if TabName == "Interface" then
+        CreateInterfaceTab()
+    elseif TabName == "Fontes" then
+        CreateFontsTab()
+    elseif TabName == "Imagens" then
+        CreateImagesTab()
+    elseif TabName == "Config" then
+        CreateConfigTab()
+    end
+end
+
+local function CreateConfigTabButton(Name, Icon)
+    local Button = Make("Button", ConfigTabs, {
+        Size = UDim2.new(1, 0, 0, 30),
+        Text = Name,
+        Font = Enum.Font.GothamBold,
+        TextSize = 11,
+        TextColor3 = Theme["Color Text"]
+    })
+    Make("Corner", Button, UDim.new(0, 5))
+    
+    if Icon and Icon ~= "" then
+        local IconLabel = Create("ImageLabel", Button, {
+            Size = UDim2.new(0, 16, 0, 16),
+            Position = UDim2.new(0, 7, 0.5),
+            AnchorPoint = Vector2.new(0, 0.5),
+            Image = Icon,
+            BackgroundTransparency = 1
+        })
+        Button.TextXAlignment = Enum.TextXAlignment.Left
+        Button.Text = "  " .. Name
+    end
+    
+    ConfigTabButtons[Name] = Button
+    Button.Activated:Connect(function()
+        SelectConfigTab(Name)
+    end)
+    return Button
+end
+
+-- Função para criar slider de cor
+local function CreateColorSlider(Parent, Label, ColorProp, YPos)
+    local SliderFrame = Create("Frame", Parent, {
+        Size = UDim2.new(1, -20, 0, 60),
+        Position = UDim2.new(0, 10, 0, YPos),
+        BackgroundTransparency = 1
+    })
+    
+    local LabelText = InsertTheme(Create("TextLabel", SliderFrame, {
+        Size = UDim2.new(1, 0, 0, 20),
+        Text = Label,
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = Theme["Color Text"],
+        TextXAlignment = "Left",
+        BackgroundTransparency = 1
+    }), "Text")
+    
+    local Slider = Tab:AddSlider({
+        Name = "",
+        Min = 0,
+        Max = 255,
+        Default = 100,
+        Increase = 1,
+        Callback = function(Value)
+            local Color = Theme[ColorProp]
+            if typeof(Color) == "Color3" then
+                local r, g, b
+                if string.find(Label, "R") then
+                    r, g, b = Value/255, (Color.G*255)/255, (Color.B*255)/255
+                elseif string.find(Label, "G") then
+                    r, g, b = (Color.R*255)/255, Value/255, (Color.B*255)/255
+                else
+                    r, g, b = (Color.R*255)/255, (Color.G*255)/255, Value/255
+                end
+                Theme[ColorProp] = Color3.fromRGB(r*255, g*255, b*255)
+                MyLibrary:SetTheme(MyLibrary.Save.Theme)
+            end
+        end
+    })
+    
+    SliderFrame.Parent = Parent
+    -- Ajustar posição do slider dentro do frame
+    if Slider.Cont then
+        Slider.Cont.Parent = SliderFrame
+        Slider.Cont.Position = UDim2.new(0, 0, 0, 25)
+    end
+    
+    return Slider
+end
+
+-- Função para criar aba de Interface
+local function CreateInterfaceTab()
+    local Scroll = Create("ScrollingFrame", ConfigContent, {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        ScrollBarThickness = 2,
+        ScrollBarImageColor3 = Theme["Color Theme"],
+        AutomaticCanvasSize = "Y",
+        ScrollingDirection = "Y",
+        CanvasSize = UDim2.new()
+    })
+    
+    -- Sliders para cores principais
+    CreateColorSlider(Scroll, "Cor do Tema (R)", "Color Theme", 10)
+    CreateColorSlider(Scroll, "Cor do Tema (G)", "Color Theme", 80)
+    CreateColorSlider(Scroll, "Cor do Tema (B)", "Color Theme", 150)
+    
+    CreateColorSlider(Scroll, "Cor de Fundo (R)", "Color Hub 2", 220)
+    CreateColorSlider(Scroll, "Cor de Fundo (G)", "Color Hub 2", 290)
+    CreateColorSlider(Scroll, "Cor de Fundo (B)", "Color Hub 2", 360)
+    
+    CreateColorSlider(Scroll, "Cor do Texto (R)", "Color Text", 430)
+    CreateColorSlider(Scroll, "Cor do Texto (G)", "Color Text", 500)
+    CreateColorSlider(Scroll, "Cor do Texto (B)", "Color Text", 570)
+end
+
+-- Função para criar aba de Fontes
+local function CreateFontsTab()
+    local FontList = {}
+    for _, font in pairs(Enum.Font:GetEnumItems()) do
+        table.insert(FontList, font.Name)
+    end
+    
+    local Dropdown = Tab:AddDropdown({
+        Name = "Escolher Fonte",
+        Options = FontList,
+        Default = "Gotham",
+        Callback = function(Value)
+            for _, Val in pairs(MyLibrary.Instances) do
+                if Val.Instance:IsA("TextLabel") or Val.Instance:IsA("TextBox") or Val.Instance:IsA("TextButton") then
+                    pcall(function()
+                        Val.Instance.Font = Enum.Font[Value]
+                    end)
+                end
+            end
+        end
+    })
+    
+    if Dropdown and Dropdown.Cont then
+        Dropdown.Cont.Parent = ConfigContent
+        Dropdown.Cont.Position = UDim2.new(0, 10, 0, 10)
+    end
+end
+
+-- Função para criar aba de Imagens
+local function CreateImagesTab()
+    local ImageLabel = Create("TextLabel", ConfigContent, {
+        Size = UDim2.new(1, -20, 0, 20),
+        Position = UDim2.new(0, 10, 0, 10),
+        Text = "ID da Imagem de Fundo:",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = Theme["Color Text"],
+        TextXAlignment = "Left",
+        BackgroundTransparency = 1
+    })
+    
+    local ImageInput = InsertTheme(Create("TextBox", ConfigContent, {
+        Size = UDim2.new(1, -20, 0, 30),
+        Position = UDim2.new(0, 10, 0, 35),
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        TextColor3 = Theme["Color Text"],
+        PlaceholderText = "rbxassetid://...",
+        Text = "",
+        BackgroundColor3 = Theme["Color Stroke"]
+    }), "Text")
+    Make("Corner", ImageInput, UDim.new(0, 5))
+    
+    local ApplyButton = Make("Button", ConfigContent, {
+        Size = UDim2.new(1, -20, 0, 30),
+        Position = UDim2.new(0, 10, 0, 75),
+        Text = "Aplicar Imagem",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = Theme["Color Text"]
+    })
+    Make("Corner", ApplyButton, UDim.new(0, 5))
+    
+    ApplyButton.Activated:Connect(function()
+        local imageId = ImageInput.Text
+        if imageId:find("rbxassetid://") then
+            pcall(function()
+                MainFrame.Image = imageId
+                MyLibrary.Save["HubImage"] = imageId
+                SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+            end)
+        end
+    end)
+    
+    -- Para o ícone
+    local IconLabel = Create("TextLabel", ConfigContent, {
+        Size = UDim2.new(1, -20, 0, 20),
+        Position = UDim2.new(0, 10, 0, 120),
+        Text = "ID do Ícone da Janela:",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = Theme["Color Text"],
+        TextXAlignment = "Left",
+        BackgroundTransparency = 1
+    })
+    
+    local IconInput = InsertTheme(Create("TextBox", ConfigContent, {
+        Size = UDim2.new(1, -20, 0, 30),
+        Position = UDim2.new(0, 10, 0, 145),
+        Font = Enum.Font.Gotham,
+        TextSize = 12,
+        TextColor3 = Theme["Color Text"],
+        PlaceholderText = "rbxassetid://...",
+        Text = "",
+        BackgroundColor3 = Theme["Color Stroke"]
+    }), "Text")
+    Make("Corner", IconInput, UDim.new(0, 5))
+    
+    local ApplyIconButton = Make("Button", ConfigContent, {
+        Size = UDim2.new(1, -20, 0, 30),
+        Position = UDim2.new(0, 10, 0, 185),
+        Text = "Aplicar Ícone",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = Theme["Color Text"]
+    })
+    Make("Corner", ApplyIconButton, UDim.new(0, 5))
+    
+    ApplyIconButton.Activated:Connect(function()
+        local iconId = IconInput.Text
+        if iconId:find("rbxassetid://") then
+            pcall(function()
+                for _, Tab in pairs(MyLibrary.Tabs) do
+                    if Tab.TabInfo.Icon then
+                        -- Atualizar ícone das abas
+                        local tabButton = Tab.Cont.Parent
+                        if tabButton then
+                            -- Encontrar o ImageLabel correspondente
+                            for _, child in pairs(tabButton:GetChildren()) do
+                                if child:IsA("ImageLabel") then
+                                    child.Image = iconId
+                                end
+                            end
+                        end
+                    end
+                end
+                MyLibrary.Save["HubIcon"] = iconId
+                SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+            end)
+        end
+    end)
+end
+
+-- Função para criar aba de Config
+local function CreateConfigTab()
+    local KeyLabel = Create("TextLabel", ConfigContent, {
+        Size = UDim2.new(1, -20, 0, 20),
+        Position = UDim2.new(0, 10, 0, 10),
+        Text = "Tecla para abrir/fechar (clique e pressione):",
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = Theme["Color Text"],
+        TextXAlignment = "Left",
+        BackgroundTransparency = 1
+    })
+    
+    local KeyButton = Make("Button", ConfigContent, {
+        Size = UDim2.new(1, -20, 0, 40),
+        Position = UDim2.new(0, 10, 0, 35),
+        Text = Settings["ToggleKey"] or "RightShift",
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
+        TextColor3 = Theme["Color Text"]
+    })
+    Make("Corner", KeyButton, UDim.new(0, 5))
+    
+    local ListeningForKey = false
+    KeyButton.Activated:Connect(function()
+        if not ListeningForKey then
+            ListeningForKey = true
+            KeyButton.Text = "Pressione uma tecla..."
+            
+            local connection
+            connection = UserInputService.InputBegan:Connect(function(Input)
+                if Input.UserInputType == Enum.UserInputType.Keyboard then
+                    Settings["ToggleKey"] = Input.KeyCode.Name
+                    KeyButton.Text = Input.KeyCode.Name
+                    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+                    connection:Disconnect()
+                    ListeningForKey = false
+                end
+            end)
+        end
+    end)
+    
+    -- Configurar listener da tecla
+    if Settings["ToggleKey"] then
+        UserInputService.InputBegan:Connect(function(Input)
+            if Input.KeyCode == Enum.KeyCode[Settings["ToggleKey"]] then
+                MainFrame.Visible = not MainFrame.Visible
+            end
+        end)
+    end
+end
+
+-- Criar botões das abas de configuração
+local Tabs = {
+    Interface = "rbxassetid://10734950309",
+    Fontes = "rbxassetid://10709764761", -- ícone de fonte (type)
+    Imagens = "rbxassetid://10723415040", -- ícone de imagem
+    Config = "rbxassetid://10709761530" -- ícone de âncora
+}
+
+for Name, Icon in pairs(Tabs) do
+    CreateConfigTabButton(Name, Icon)
+end
+
+-- Abrir menu de configuração
+ConfigButton.Activated:Connect(function()
+    ConfigMenu.Visible = not ConfigMenu.Visible
+    if ConfigMenu.Visible then
+        SelectConfigTab("Interface")
+    end
+end)
+
+-- Carregar configurações salvas
+if MyLibrary.Save["HubImage"] then
+    pcall(function()
+        MainFrame.Image = MyLibrary.Save["HubImage"]
+    end)
+end
+
+if MyLibrary.Save["HubIcon"] then
+    pcall(function()
+        for _, Tab in pairs(MyLibrary.Tabs) do
+            -- Atualizar ícones das abas existentes
+        end
+    end)
+end
+    
     return Window
 end
 
