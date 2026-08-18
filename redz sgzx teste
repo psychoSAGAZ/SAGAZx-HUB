@@ -48,12 +48,17 @@ local MyLibrary = {
         }
     },
     Info = {
-        Version = "1.1.0"
+        Version = "1.2.0"
     },
     Save = {
         UISize = {550, 380},
         TabSize = 160,
-        Theme = "Purple"
+        Theme = "Purple",
+        Font = Enum.Font.Gotham,
+        HubImage = "",
+        IconImage = "",
+        Keybind = Enum.KeyCode.RightShift,
+        CustomColors = {}
     },
     Settings = {},
     Connection = {},
@@ -132,6 +137,11 @@ local SetProps, SetChildren, InsertTheme, Create do
                 if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
                 if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
                 if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
+                if rawget(decode, "Font") then MyLibrary.Save["Font"] = decode["Font"] end
+                if rawget(decode, "HubImage") then MyLibrary.Save["HubImage"] = decode["HubImage"] end
+                if rawget(decode, "IconImage") then MyLibrary.Save["IconImage"] = decode["IconImage"] end
+                if rawget(decode, "Keybind") then MyLibrary.Save["Keybind"] = decode["Keybind"] end
+                if rawget(decode, "CustomColors") then MyLibrary.Save["CustomColors"] = decode["CustomColors"] end
             end
         end
     end
@@ -367,6 +377,14 @@ local function SaveJson(FileName, save)
 end
 
 local Theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+local CustomColors = MyLibrary.Save.CustomColors or {}
+
+local function GetEffectiveColor(name)
+    if CustomColors[name] then
+        return CustomColors[name]
+    end
+    return Theme[name]
+end
 
 local function AddEle(Name, Func)
     MyLibrary.Elements[Name] = Func
@@ -379,7 +397,6 @@ end
 
 -- ==================== CORREÇÕES IMPORTANTES ====================
 AddEle("Corner", function(parent, CornerRadius)
-    -- Removida referência à variável `props` que não existia
     local New = SetProps(Create("UICorner", parent, {
         CornerRadius = CornerRadius or UDim.new(0, 7)
     }), nil)
@@ -389,7 +406,7 @@ end)
 AddEle("Stroke", function(parent, props, ...)
     local args = {...}
     local New = InsertTheme(SetProps(Create("UIStroke", parent, {
-        Color = args[1] or Theme["Color Stroke"],
+        Color = args[1] or GetEffectiveColor("Color Stroke"),
         Thickness = args[2] or 1,
         ApplyStrokeMode = "Border"
     }), props), "Stroke")
@@ -401,7 +418,7 @@ AddEle("Button", function(parent, props, ...)
     local New = InsertTheme(SetProps(Create("TextButton", parent, {
         Text = "",
         Size = UDim2.fromScale(1, 1),
-        BackgroundColor3 = Theme["Color Hub 2"],
+        BackgroundColor3 = GetEffectiveColor("Color Hub 2"),
         AutoButtonColor = false
     }), props), "Frame")
 
@@ -420,15 +437,15 @@ end)
 AddEle("Gradient", function(parent, props, ...)
     local args = {...}
     local New = InsertTheme(SetProps(Create("UIGradient", parent, {
-        Color = Theme["Color Hub 1"]
+        Color = GetEffectiveColor("Color Hub 1")
     }), props), "Gradient")
     return New
 end)
 
 local function ButtonFrame(Instance, Title, Description, HolderSize)
     local TitleL = InsertTheme(Create("TextLabel", {
-        Font = Enum.Font.FredokaOne,
-        TextColor3 = Theme["Color Text"],
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Text"),
         Size = UDim2.new(1, -20),
         AutomaticSize = "Y",
         Position = UDim2.new(0, 0, 0.5),
@@ -442,8 +459,8 @@ local function ButtonFrame(Instance, Title, Description, HolderSize)
     }), "Text")
 
     local DescL = InsertTheme(Create("TextLabel", {
-        Font = Enum.Font.Gotham,
-        TextColor3 = Theme["Color Dark Text"],
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Dark Text"),
         Size = UDim2.new(1, -20),
         AutomaticSize = "Y",
         Position = UDim2.new(0, 12, 0, 15),
@@ -543,37 +560,95 @@ function MyLibrary:GetIcon(index)
     return firstMatch or index
 end
 
-function MyLibrary:SetTheme(NewTheme)
-    if not VerifyTheme(NewTheme) then return end
-
-    MyLibrary.Save.Theme = NewTheme
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-    Theme = MyLibrary.Themes[NewTheme]
-
-    Connection:FireConnection("ThemeChanged", NewTheme)
-
-    -- Loop com pcall para evitar parar se algum elemento falhar
+function MyLibrary:ApplyTheme()
+    Connection:FireConnection("ThemeChanging")
+    -- Aplica cores customizadas se existirem, senão usa o tema padrão
     for _, Val in ipairs(MyLibrary.Instances) do
         local ok, err = pcall(function()
             if Val.Type == "Gradient" then
-                Val.Instance.Color = Theme["Color Hub 1"]
+                Val.Instance.Color = GetEffectiveColor("Color Hub 1")
             elseif Val.Type == "Frame" then
-                Val.Instance.BackgroundColor3 = Theme["Color Hub 2"]
+                Val.Instance.BackgroundColor3 = GetEffectiveColor("Color Hub 2")
             elseif Val.Type == "Stroke" then
-                Val.Instance[GetColor(Val.Instance)] = Theme["Color Stroke"]
+                Val.Instance[GetColor(Val.Instance)] = GetEffectiveColor("Color Stroke")
             elseif Val.Type == "Theme" then
-                Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
+                Val.Instance[GetColor(Val.Instance)] = GetEffectiveColor("Color Theme")
             elseif Val.Type == "Text" then
-                Val.Instance[GetColor(Val.Instance)] = Theme["Color Text"]
+                Val.Instance[GetColor(Val.Instance)] = GetEffectiveColor("Color Text")
             elseif Val.Type == "DarkText" then
-                Val.Instance[GetColor(Val.Instance)] = Theme["Color Dark Text"]
+                Val.Instance[GetColor(Val.Instance)] = GetEffectiveColor("Color Dark Text")
             elseif Val.Type == "ScrollBar" then
-                Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
+                Val.Instance[GetColor(Val.Instance)] = GetEffectiveColor("Color Theme")
             end
         end)
         if not ok then
             warn("Erro ao atualizar tema para", Val.Instance:GetFullName(), err)
         end
+    end
+    Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
+end
+
+function MyLibrary:SetTheme(NewTheme)
+    if not VerifyTheme(NewTheme) then return end
+
+    MyLibrary.Save.Theme = NewTheme
+    Theme = MyLibrary.Themes[NewTheme]
+    -- Limpa cores customizadas ao trocar o tema
+    MyLibrary.Save.CustomColors = {}
+    CustomColors = {}
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    self:ApplyTheme()
+end
+
+function MyLibrary:SetCustomColor(name, color)
+    if type(name) == "string" and typeof(color) == "Color3" then
+        CustomColors[name] = color
+        MyLibrary.Save.CustomColors = CustomColors
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+        self:ApplyTheme()
+    end
+end
+
+function MyLibrary:SetFont(font)
+    if typeof(font) == "EnumItem" and font.EnumType == Enum.Font then
+        MyLibrary.Save.Font = font
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+        -- Aplica a fonte a todos os textos
+        for _, Val in ipairs(MyLibrary.Instances) do
+            if Val.Type == "Text" or Val.Type == "DarkText" then
+                if Val.Instance:IsA("TextLabel") or Val.Instance:IsA("TextBox") then
+                    Val.Instance.Font = font
+                end
+            end
+        end
+    end
+end
+
+function MyLibrary:SetKeybind(key)
+    if typeof(key) == "EnumItem" and key.EnumType == Enum.KeyCode then
+        MyLibrary.Save.Keybind = key
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    end
+end
+
+function MyLibrary:SetHubImage(assetId)
+    MyLibrary.Save.HubImage = assetId or ""
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    -- Aplica a imagem ao MainFrame (que é o "Hub")
+    local main = ScreenGui:FindFirstChild("Hub")
+    if main and main:IsA("ImageButton") then
+        main.Image = assetId
+    end
+end
+
+function MyLibrary:SetIconImage(assetId)
+    MyLibrary.Save.IconImage = assetId or ""
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    -- Aplica a imagem ao ícone do topo
+    local icon = ScreenGui:FindFirstChild("IconLabel")
+    if icon and icon:IsA("ImageLabel") then
+        icon.Image = assetId
     end
 end
 
@@ -608,7 +683,8 @@ function MyLibrary:MakeWindow(Configs)
         Size = UDim2.fromOffset(UISizeX, UISizeY),
         Position = UDim2.new(0.5, -UISizeX/2, 0.5, -UISizeY/2),
         BackgroundTransparency = 0.03,
-        Name = "Hub"
+        Name = "Hub",
+        Image = MyLibrary.Save.HubImage or ""
     }), "Main")
     Make("Gradient", MainFrame, { Rotation = 45 })
     MakeDrag(MainFrame)
@@ -624,16 +700,26 @@ function MyLibrary:MakeWindow(Configs)
         Name = "Top Bar"
     })
 
+    -- Ícone no topo (opcional)
+    local IconLabel = Create("ImageLabel", TopBar, {
+        Size = UDim2.new(0, 20, 0, 20),
+        Position = UDim2.new(0, 10, 0.5),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundTransparency = 1,
+        Image = MyLibrary.Save.IconImage or "",
+        Name = "IconLabel"
+    })
+
     local Title = InsertTheme(Create("TextLabel", TopBar, {
-        Position = UDim2.new(0, 15, 0.5),
+        Position = UDim2.new(0, 35, 0.5),
         AnchorPoint = Vector2.new(0, 0.5),
         AutomaticSize = "XY",
         Text = WTitle,
         TextXAlignment = "Left",
         TextSize = 12,
-        TextColor3 = Theme["Color Text"],
+        TextColor3 = GetEffectiveColor("Color Text"),
         BackgroundTransparency = 1,
-        Font = Enum.Font.BuilderSansBold,
+        Font = MyLibrary.Save.Font,
         Name = "Title"
     }, {
         InsertTheme(Create("TextLabel", {
@@ -642,19 +728,19 @@ function MyLibrary:MakeWindow(Configs)
             AnchorPoint = Vector2.new(0, 1),
             Position = UDim2.new(1, 5, 0.9),
             Text = WMiniText,
-            TextColor3 = Theme["Color Dark Text"],
+            TextColor3 = GetEffectiveColor("Color Dark Text"),
             BackgroundTransparency = 1,
             TextXAlignment = "Left",
             TextYAlignment = "Bottom",
             TextSize = 9,
-            Font = Enum.Font.Gotham,
+            Font = MyLibrary.Save.Font,
             Name = "SubTitle"
         }), "DarkText")
     }), "Text")
 
     local MainScroll = InsertTheme(Create("ScrollingFrame", Components, {
         Size = UDim2.new(0, MyLibrary.Save.TabSize, 1, -TopBar.Size.Y.Offset),
-        ScrollBarImageColor3 = Theme["Color Theme"],
+        ScrollBarImageColor3 = GetEffectiveColor("Color Theme"),
         Position = UDim2.new(0, 0, 1, 0),
         AnchorPoint = Vector2.new(0, 1),
         ScrollBarThickness = 1.5,
@@ -744,7 +830,14 @@ function MyLibrary:MakeWindow(Configs)
         Name = "Minimize"
     })
 
-    SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
+    -- Novo botão de configuração
+    local ConfigButton = SetProps(CloseButton:Clone(), {
+        Position = UDim2.new(1, -60, 0.5),
+        Image = "rbxassetid://10709790948", -- ícone de engrenagem, você pode trocar
+        Name = "Config"
+    })
+
+    SetChildren(ButtonsFolder, { CloseButton, MinimizeButton, ConfigButton })
 
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
@@ -833,22 +926,22 @@ function MyLibrary:MakeWindow(Configs)
             AnchorPoint = Vector2.new(0.5, 0.5)
         }, {
             InsertTheme(Create("TextLabel", {
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.Save.Font,
                 Size = UDim2.new(1, 0, 0, 20),
                 Text = DTitle,
                 TextXAlignment = "Left",
-                TextColor3 = Theme["Color Text"],
+                TextColor3 = GetEffectiveColor("Color Text"),
                 TextSize = 15,
                 Position = UDim2.fromOffset(15, 5),
                 BackgroundTransparency = 1
             }), "Text"),
             InsertTheme(Create("TextLabel", {
-                Font = Enum.Font.GothamMedium,
+                Font = MyLibrary.Save.Font,
                 Size = UDim2.new(1, -25),
                 AutomaticSize = "Y",
                 Text = DText,
                 TextXAlignment = "Left",
-                TextColor3 = Theme["Color Dark Text"],
+                TextColor3 = GetEffectiveColor("Color Dark Text"),
                 TextSize = 12,
                 Position = UDim2.fromOffset(15, 25),
                 BackgroundTransparency = 1,
@@ -862,7 +955,7 @@ function MyLibrary:MakeWindow(Configs)
             Size = UDim2.fromScale(1, 0.35),
             Position = UDim2.fromScale(0, 1),
             AnchorPoint = Vector2.new(0, 1),
-            BackgroundColor3 = Theme["Color Hub 2"],
+            BackgroundColor3 = GetEffectiveColor("Color Hub 2"),
             BackgroundTransparency = 1
         }, {
             Create("UIListLayout", {
@@ -876,7 +969,7 @@ function MyLibrary:MakeWindow(Configs)
         local Screen = InsertTheme(Create("Frame", MainFrame, {
             BackgroundTransparency = 0.6,
             Active = true,
-            BackgroundColor3 = Theme["Color Hub 2"],
+            BackgroundColor3 = GetEffectiveColor("Color Hub 2"),
             Size = UDim2.new(1, 0, 1, 0),
             Name = "Dialog"
         }), "Stroke")
@@ -897,8 +990,8 @@ function MyLibrary:MakeWindow(Configs)
             Make("Corner", Button)
             SetProps(Button, {
                 Text = Name,
-                Font = Enum.Font.GothamBold,
-                TextColor3 = Theme["Color Text"],
+                Font = MyLibrary.Save.Font,
+                TextColor3 = GetEffectiveColor("Color Text"),
                 TextSize = 12
             })
 
@@ -923,6 +1016,419 @@ function MyLibrary:MakeWindow(Configs)
         end)
         return Dialog
     end
+
+    -- ==================== SISTEMA DE CONFIGURAÇÃO ====================
+    local SettingsFrame = Create("Frame", MainFrame, {
+        Name = "SettingsFrame",
+        Size = UDim2.fromScale(0.9, 0.85),
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 0.05,
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        Visible = false,
+        ClipsDescendants = true
+    })
+    Make("Corner", SettingsFrame)
+    Make("Gradient", SettingsFrame, { Rotation = 45 })
+    Make("Stroke", SettingsFrame)
+
+    -- Botão X para fechar
+    local CloseSettingsBtn = Create("TextButton", SettingsFrame, {
+        Size = UDim2.new(0, 30, 0, 30),
+        Position = UDim2.new(0, 5, 0, 5),
+        BackgroundColor3 = GetEffectiveColor("Color Theme"),
+        Text = "X",
+        Font = Enum.Font.GothamBold,
+        TextSize = 18,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        AutoButtonColor = false
+    })
+    Make("Corner", CloseSettingsBtn, UDim.new(0, 6))
+
+    CloseSettingsBtn.MouseEnter:Connect(function()
+        CloseSettingsBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    end)
+    CloseSettingsBtn.MouseLeave:Connect(function()
+        CloseSettingsBtn.BackgroundColor3 = GetEffectiveColor("Color Theme")
+    end)
+    CloseSettingsBtn.Activated:Connect(function()
+        SettingsFrame.Visible = false
+    end)
+
+    -- Conteúdo das configurações
+    local SettingsContent = Create("Frame", SettingsFrame, {
+        Size = UDim2.new(1, -10, 1, -40),
+        Position = UDim2.new(0, 5, 0, 40),
+        BackgroundTransparency = 1
+    })
+
+    -- Botões de submenu
+    local SubmenuFrame = Create("Frame", SettingsContent, {
+        Size = UDim2.new(0, 120, 1, 0),
+        BackgroundTransparency = 1
+    }, {
+        Create("UIListLayout", {
+            Padding = UDim.new(0, 5),
+            SortOrder = "LayoutOrder"
+        })
+    })
+
+    local SubmenuButtons = {}
+    local function AddSubmenuButton(name, icon)
+        local btn = Make("Button", SubmenuFrame, {
+            Size = UDim2.new(1, 0, 0, 25),
+            Text = name,
+            Font = MyLibrary.Save.Font,
+            TextColor3 = GetEffectiveColor("Color Text"),
+            TextSize = 12
+        })
+        Make("Corner", btn, UDim.new(0, 4))
+        table.insert(SubmenuButtons, btn)
+        return btn
+    end
+
+    local InterfaceBtn = AddSubmenuButton("Interface")
+    local FontsBtn = AddSubmenuButton("Fontes")
+    local ImagesBtn = AddSubmenuButton("Imagens")
+    local ConfigBtn = AddSubmenuButton("Config")
+
+    -- Área de conteúdo (direita)
+    local ContentArea = Create("Frame", SettingsContent, {
+        Size = UDim2.new(1, -130, 1, 0),
+        Position = UDim2.new(0, 130, 0, 0),
+        BackgroundTransparency = 0.8,
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    })
+    Make("Corner", ContentArea)
+    Make("Stroke", ContentArea)
+
+    local currentContent = nil
+
+    local function ShowContent(content)
+        if currentContent then
+            currentContent.Visible = false
+        end
+        content.Visible = true
+        currentContent = content
+    end
+
+    -- Conteúdo: Interface (Cores)
+    local InterfaceContent = Create("Frame", ContentArea, {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        Visible = false
+    }, {
+        Create("UIListLayout", {
+            Padding = UDim.new(0, 10),
+            SortOrder = "LayoutOrder"
+        }),
+        Create("UIPadding", {
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
+        })
+    })
+
+    -- Função para criar botão de cor
+    local function AddColorPicker(parent, colorName)
+        local frame = Create("Frame", parent, {
+            Size = UDim2.new(1, 0, 0, 30),
+            BackgroundTransparency = 1
+        })
+
+        local label = InsertTheme(Create("TextLabel", frame, {
+            Size = UDim2.new(0, 120, 1, 0),
+            Text = colorName,
+            Font = MyLibrary.Save.Font,
+            TextColor3 = GetEffectiveColor("Color Text"),
+            TextXAlignment = "Left",
+            BackgroundTransparency = 1,
+            TextSize = 12
+        }), "Text")
+
+        local colorBtn = Make("Button", frame, {
+            Size = UDim2.new(0, 80, 1, 0),
+            Position = UDim2.new(1, -80, 0, 0),
+            BackgroundColor3 = GetEffectiveColor(colorName)
+        })
+        Make("Corner", colorBtn, UDim.new(0, 4))
+
+        colorBtn.Activated:Connect(function()
+            -- Abre um diálogo simples de escolha de cor
+            local colorPickerFrame = Create("Frame", ScreenGui, {
+                Size = UDim2.fromOffset(250, 150),
+                Position = UDim2.fromScale(0.5, 0.5),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                BackgroundTransparency = 0.1,
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            })
+            Make("Corner", colorPickerFrame)
+            Make("Stroke", colorPickerFrame)
+            Make("Gradient", colorPickerFrame, { Rotation = 45 })
+
+            local textBox = Create("TextBox", colorPickerFrame, {
+                Size = UDim2.new(1, -20, 0, 25),
+                Position = UDim2.new(0, 10, 0, 10),
+                Text = "#" .. tostring(GetEffectiveColor(colorName)):gsub("Color3", ""),
+                Font = Enum.Font.Gotham,
+                TextSize = 12,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            })
+            Make("Corner", textBox, UDim.new(0, 4))
+
+            local applyBtn = Create("TextButton", colorPickerFrame, {
+                Size = UDim2.new(1, -20, 0, 25),
+                Position = UDim2.new(0, 10, 0, 50),
+                Text = "Aplicar",
+                Font = Enum.Font.GothamBold,
+                TextSize = 14,
+                BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+            })
+            Make("Corner", applyBtn, UDim.new(0, 4))
+
+            local closeBtn = Create("TextButton", colorPickerFrame, {
+                Size = UDim2.new(1, -20, 0, 25),
+                Position = UDim2.new(0, 10, 0, 90),
+                Text = "Fechar",
+                Font = Enum.Font.GothamBold,
+                TextSize = 14,
+                BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            })
+            Make("Corner", closeBtn, UDim.new(0, 4))
+
+            closeBtn.Activated:Connect(function()
+                colorPickerFrame:Destroy()
+            end)
+            applyBtn.Activated:Connect(function()
+                local hex = textBox.Text:gsub("#", "")
+                if #hex == 6 then
+                    local r = tonumber(hex:sub(1,2), 16)
+                    local g = tonumber(hex:sub(3,4), 16)
+                    local b = tonumber(hex:sub(5,6), 16)
+                    if r and g and b then
+                        local newColor = Color3.fromRGB(r, g, b)
+                        MyLibrary:SetCustomColor(colorName, newColor)
+                        colorBtn.BackgroundColor3 = newColor
+                        colorPickerFrame:Destroy()
+                    end
+                end
+            end)
+        end)
+
+        return frame
+    end
+
+    -- Adiciona botões de cores customizáveis
+    AddColorPicker(InterfaceContent, "Color Hub 1")
+    AddColorPicker(InterfaceContent, "Color Hub 2")
+    AddColorPicker(InterfaceContent, "Color Stroke")
+    AddColorPicker(InterfaceContent, "Color Theme")
+    AddColorPicker(InterfaceContent, "Color Text")
+    AddColorPicker(InterfaceContent, "Color Dark Text")
+
+    -- Conteúdo: Fontes
+    local FontsContent = Create("Frame", ContentArea, {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        Visible = false
+    }, {
+        Create("UIListLayout", {
+            Padding = UDim.new(0, 5),
+            SortOrder = "LayoutOrder"
+        }),
+        Create("UIPadding", {
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
+        })
+    })
+
+    local fontList = {}
+    for i, font in ipairs(Enum.Font:GetEnumItems()) do
+        table.insert(fontList, font)
+    end
+
+    local fontButtons = {}
+    for _, font in ipairs(fontList) do
+        local fontBtn = Make("Button", FontsContent, {
+            Size = UDim2.new(1, 0, 0, 25),
+            Text = font.Name,
+            Font = font,
+            TextColor3 = GetEffectiveColor("Color Text"),
+            TextSize = 12
+        })
+        Make("Corner", fontBtn, UDim.new(0, 4))
+        fontBtn.Activated:Connect(function()
+            MyLibrary:SetFont(font)
+            -- Atualiza visual dos botões de fonte
+            for _, btn in ipairs(fontButtons) do
+                btn.BackgroundColor3 = (btn == fontBtn) and GetEffectiveColor("Color Theme") or GetEffectiveColor("Color Hub 2")
+            end
+        end)
+        table.insert(fontButtons, fontBtn)
+    end
+
+    -- Conteúdo: Imagens
+    local ImagesContent = Create("Frame", ContentArea, {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        Visible = false
+    }, {
+        Create("UIListLayout", {
+            Padding = UDim.new(0, 10),
+            SortOrder = "LayoutOrder"
+        }),
+        Create("UIPadding", {
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
+        })
+    })
+
+    -- Imagem do Hub
+    local HubImageLabel = Create("TextLabel", ImagesContent, {
+        Size = UDim2.new(1, 0, 0, 20),
+        Text = "Imagem do Hub",
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Text"),
+        TextXAlignment = "Left",
+        BackgroundTransparency = 1,
+        TextSize = 12
+    })
+
+    local HubImageInput = Create("TextBox", ImagesContent, {
+        Size = UDim2.new(1, -20, 0, 30),
+        Text = MyLibrary.Save.HubImage or "",
+        PlaceholderText = "ID da imagem (rbxassetid://...)",
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Text"),
+        BackgroundColor3 = GetEffectiveColor("Color Hub 2"),
+        TextSize = 12
+    })
+    Make("Corner", HubImageInput, UDim.new(0, 4))
+
+    local HubImageApply = Make("Button", ImagesContent, {
+        Size = UDim2.new(1, -20, 0, 25),
+        Text = "Aplicar",
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Text"),
+        TextSize = 12
+    })
+    Make("Corner", HubImageApply, UDim.new(0, 4))
+    HubImageApply.Activated:Connect(function()
+        MyLibrary:SetHubImage(HubImageInput.Text)
+    end)
+
+    -- Imagem do Ícone
+    local IconImageLabel = Create("TextLabel", ImagesContent, {
+        Size = UDim2.new(1, 0, 0, 20),
+        Text = "Imagem do Ícone",
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Text"),
+        TextXAlignment = "Left",
+        BackgroundTransparency = 1,
+        TextSize = 12
+    })
+
+    local IconImageInput = Create("TextBox", ImagesContent, {
+        Size = UDim2.new(1, -20, 0, 30),
+        Text = MyLibrary.Save.IconImage or "",
+        PlaceholderText = "ID da imagem (rbxassetid://...)",
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Text"),
+        BackgroundColor3 = GetEffectiveColor("Color Hub 2"),
+        TextSize = 12
+    })
+    Make("Corner", IconImageInput, UDim.new(0, 4))
+
+    local IconImageApply = Make("Button", ImagesContent, {
+        Size = UDim2.new(1, -20, 0, 25),
+        Text = "Aplicar",
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Text"),
+        TextSize = 12
+    })
+    Make("Corner", IconImageApply, UDim.new(0, 4))
+    IconImageApply.Activated:Connect(function()
+        MyLibrary:SetIconImage(IconImageInput.Text)
+    end)
+
+    -- Conteúdo: Config (tecla)
+    local ConfigContent = Create("Frame", ContentArea, {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        Visible = false
+    }, {
+        Create("UIListLayout", {
+            Padding = UDim.new(0, 10),
+            SortOrder = "LayoutOrder"
+        }),
+        Create("UIPadding", {
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
+        })
+    })
+
+    local KeyLabel = Create("TextLabel", ConfigContent, {
+        Size = UDim2.new(1, 0, 0, 20),
+        Text = "Tecla para abrir/fechar o Hub",
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Text"),
+        TextXAlignment = "Left",
+        BackgroundTransparency = 1,
+        TextSize = 12
+    })
+
+    local KeyButton = Make("Button", ConfigContent, {
+        Size = UDim2.new(1, -20, 0, 30),
+        Text = tostring(MyLibrary.Save.Keybind.Name),
+        Font = MyLibrary.Save.Font,
+        TextColor3 = GetEffectiveColor("Color Text"),
+        TextSize = 12
+    })
+    Make("Corner", KeyButton, UDim.new(0, 4))
+
+    local listening = false
+    KeyButton.Activated:Connect(function()
+        if listening then return end
+        listening = true
+        KeyButton.Text = "Pressione uma tecla..."
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                MyLibrary:SetKeybind(input.KeyCode)
+                KeyButton.Text = input.KeyCode.Name
+                connection:Disconnect()
+                listening = false
+            end
+        end)
+    end)
+
+    -- Conectar botões de submenu
+    InterfaceBtn.Activated:Connect(function() ShowContent(InterfaceContent) end)
+    FontsBtn.Activated:Connect(function() ShowContent(FontsContent) end)
+    ImagesBtn.Activated:Connect(function() ShowContent(ImagesContent) end)
+    ConfigBtn.Activated:Connect(function() ShowContent(ConfigContent) end)
+
+    -- ConfigButton abre/fecha o menu de configurações
+    ConfigButton.Activated:Connect(function()
+        SettingsFrame.Visible = not SettingsFrame.Visible
+    end)
+
+    -- Tecla configurada para abrir/fechar o hub
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.UserInputType == Enum.UserInputType.Keyboard then
+            if input.KeyCode == MyLibrary.Save.Keybind then
+                MainFrame.Visible = not MainFrame.Visible
+            end
+        end
+    end)
 
     function Window:SelectTab(TabSelect)
         if type(TabSelect) == "number" then
@@ -957,9 +1463,9 @@ function MyLibrary:MakeWindow(Configs)
             Size = UDim2.new(1, TIcon and -25 or -15, 1),
             Position = UDim2.fromOffset(TIcon and 25 or 15),
             BackgroundTransparency = 1,
-            Font = Enum.Font.BuilderSansBold,
+            Font = MyLibrary.Save.Font,
             Text = TName,
-            TextColor3 = Theme["Color Text"],
+            TextColor3 = GetEffectiveColor("Color Text"),
             TextSize = 10,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextTransparency = (FirstTab and 0.3) or 0,
@@ -979,7 +1485,7 @@ function MyLibrary:MakeWindow(Configs)
             Size = FirstTab and UDim2.new(0, 4, 0, 4) or UDim2.new(0, 4, 0, 13),
             Position = UDim2.new(0, 1, 0.5),
             AnchorPoint = Vector2.new(0, 0.5),
-            BackgroundColor3 = Theme["Color Theme"],
+            BackgroundColor3 = GetEffectiveColor("Color Theme"),
             BackgroundTransparency = FirstTab and 1 or 0
         }), "Theme")
         Make("Corner", Selected, UDim.new(0.5, 0))
@@ -991,7 +1497,7 @@ function MyLibrary:MakeWindow(Configs)
             ScrollBarThickness = 1.5,
             BackgroundTransparency = 1,
             ScrollBarImageTransparency = 0.2,
-            ScrollBarImageColor3 = Theme["Color Theme"],
+            ScrollBarImageColor3 = GetEffectiveColor("Color Theme"),
             AutomaticCanvasSize = "Y",
             ScrollingDirection = "Y",
             BorderSizePixel = 0,
@@ -1069,9 +1575,9 @@ function MyLibrary:MakeWindow(Configs)
             })
 
             local SectionLabel = InsertTheme(Create("TextLabel", SectionFrame, {
-                Font = Enum.Font.BuilderSansExtraBold,
+                Font = MyLibrary.Save.Font,
                 Text = SectionName,
-                TextColor3 = Theme["Color Text"],
+                TextColor3 = GetEffectiveColor("Color Text"),
                 Size = UDim2.new(1, -25, 1, 0),
                 Position = UDim2.new(0, 5),
                 BackgroundTransparency = 1,
@@ -1165,7 +1671,7 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(0, 35, 0, 18),
                 Position = UDim2.new(1, -10, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
+                BackgroundColor3 = GetEffectiveColor("Color Stroke")
             }), "Stroke")
             Make("Corner", ToggleHolder, UDim.new(0.5, 0))
 
@@ -1180,7 +1686,7 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(0, 12, 0, 12),
                 Position = UDim2.new(0, 0, 0.5),
                 AnchorPoint = Vector2.new(0, 0.5),
-                BackgroundColor3 = Theme["Color Theme"]
+                BackgroundColor3 = GetEffectiveColor("Color Theme")
             }), "Theme")
             Make("Corner", Toggle, UDim.new(0.5, 0))
 
@@ -1245,7 +1751,7 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(0, 150, 0, 18),
                 Position = UDim2.new(1, -10, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
+                BackgroundColor3 = GetEffectiveColor("Color Stroke")
             }), "Stroke")
             Make("Corner", SelectedFrame, UDim.new(0, 4))
 
@@ -1254,9 +1760,9 @@ function MyLibrary:MakeWindow(Configs)
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.Save.Font,
                 TextScaled = true,
-                TextColor3 = Theme["Color Text"],
+                TextColor3 = GetEffectiveColor("Color Text"),
                 Text = "..."
             }), "Text")
 
@@ -1290,7 +1796,7 @@ function MyLibrary:MakeWindow(Configs)
             Make("Gradient", DropFrame, { Rotation = 60 })
 
             local ScrollFrame = InsertTheme(Create("ScrollingFrame", DropFrame, {
-                ScrollBarImageColor3 = Theme["Color Theme"],
+                ScrollBarImageColor3 = GetEffectiveColor("Color Theme"),
                 Size = UDim2.new(1, 0, 1, 0),
                 ScrollBarThickness = 1.5,
                 BackgroundTransparency = 1,
@@ -1349,7 +1855,7 @@ function MyLibrary:MakeWindow(Configs)
                 else
                     NoClickFrame.Visible = true
                     Arrow.Image = "rbxassetid://10709790948"
-                    CreateTween({Arrow, "ImageColor3", Theme["Color Theme"], 0.2})
+                    CreateTween({Arrow, "ImageColor3", GetEffectiveColor("Color Theme"), 0.2})
                     CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
                 end
                 WaitClick = false
@@ -1462,7 +1968,7 @@ function MyLibrary:MakeWindow(Configs)
                     local IsSelected = InsertTheme(Create("Frame", Button, {
                         Position = UDim2.new(0, 1, 0.5),
                         Size = UDim2.new(0, 4, 0, 4),
-                        BackgroundColor3 = Theme["Color Theme"],
+                        BackgroundColor3 = GetEffectiveColor("Color Theme"),
                         BackgroundTransparency = 1,
                         AnchorPoint = Vector2.new(0, 0.5)
                     }), "Theme")
@@ -1472,8 +1978,8 @@ function MyLibrary:MakeWindow(Configs)
                         Size = UDim2.new(1, 0, 1),
                         Position = UDim2.new(0, 10),
                         Text = Name,
-                        TextColor3 = Theme["Color Text"],
-                        Font = Enum.Font.FredokaOne,
+                        TextColor3 = GetEffectiveColor("Color Text"),
+                        Font = MyLibrary.Save.Font,
                         TextXAlignment = "Left",
                         BackgroundTransparency = 1,
                         TextTransparency = 0.4
@@ -1572,7 +2078,7 @@ function MyLibrary:MakeWindow(Configs)
             return Dropdown
         end
 
-        -- Dropdown de Jogadores (com busca) — também corrigido
+        -- Dropdown de Jogadores (com busca)
         function Tab:AddDropdownPlayer(Configs)
             local DName = Configs[1] or Configs.Name or Configs.Title or "..."
             local DDesc = Configs.Desc or Configs.Description or ""
@@ -1587,7 +2093,7 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(0, 150, 0, 18),
                 Position = UDim2.new(1, -10, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
+                BackgroundColor3 = GetEffectiveColor("Color Stroke")
             }), "Stroke")
             Make("Corner", SelectedFrame, UDim.new(0, 4))
 
@@ -1596,9 +2102,9 @@ function MyLibrary:MakeWindow(Configs)
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.Save.Font,
                 TextScaled = true,
-                TextColor3 = Theme["Color Text"],
+                TextColor3 = GetEffectiveColor("Color Text"),
                 Text = tostring(OpDefault)
             }), "Text")
 
@@ -1643,17 +2149,17 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(1, -10, 1, 0),
                 Position = UDim2.new(0, 8, 0, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamMedium,
+                Font = MyLibrary.Save.Font,
                 TextSize = 12,
-                TextColor3 = Theme["Color Text"],
+                TextColor3 = GetEffectiveColor("Color Text"),
                 PlaceholderText = "Pesquisar...",
-                PlaceholderColor3 = Theme["Color Dark Text"],
+                PlaceholderColor3 = GetEffectiveColor("Color Dark Text"),
                 Text = "",
                 TextXAlignment = "Left"
             }), "Text")
 
             local ScrollFrame = InsertTheme(Create("ScrollingFrame", DropFrame, {
-                ScrollBarImageColor3 = Theme["Color Theme"],
+                ScrollBarImageColor3 = GetEffectiveColor("Color Theme"),
                 Size = UDim2.new(1, 0, 1, -34),
                 Position = UDim2.new(0, 0, 0, 32),
                 ScrollBarThickness = 1.5,
@@ -1715,7 +2221,7 @@ function MyLibrary:MakeWindow(Configs)
                     SearchTextBox.Text = ""
                     NoClickFrame.Visible = true
                     Arrow.Image = "rbxassetid://10709790948"
-                    CreateTween({Arrow, "ImageColor3", Theme["Color Theme"], 0.2})
+                    CreateTween({Arrow, "ImageColor3", GetEffectiveColor("Color Theme"), 0.2})
                     CalculateSize(false)
                     CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
                 end
@@ -1788,7 +2294,7 @@ function MyLibrary:MakeWindow(Configs)
                     local IsSelected = InsertTheme(Create("Frame", Button, {
                         Position = UDim2.new(0, 1, 0.5),
                         Size = UDim2.new(0, 4, 0, 4),
-                        BackgroundColor3 = Theme["Color Theme"],
+                        BackgroundColor3 = GetEffectiveColor("Color Theme"),
                         BackgroundTransparency = 1,
                         AnchorPoint = Vector2.new(0, 0.5)
                     }), "Theme")
@@ -1822,8 +2328,8 @@ function MyLibrary:MakeWindow(Configs)
                         Size = UDim2.new(1, -28, 1),
                         Position = UDim2.new(0, 28),
                         Text = Name,
-                        TextColor3 = Theme["Color Text"],
-                        Font = Enum.Font.FredokaOne,
+                        TextColor3 = GetEffectiveColor("Color Text"),
+                        Font = MyLibrary.Save.Font,
                         TextXAlignment = "Left",
                         BackgroundTransparency = 1,
                         TextTransparency = 0.4,
@@ -1907,7 +2413,7 @@ function MyLibrary:MakeWindow(Configs)
             return Dropdown
         end
 
-        -- Dropdown com Busca (genérico) — corrigido
+        -- Dropdown com Busca (genérico)
         function Tab:AddDropdownSearch(Configs)
             local DName = Configs[1] or Configs.Name or Configs.Title or "Dropdown"
             local DDesc = Configs.Desc or Configs.Description or ""
@@ -1923,7 +2429,7 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(0, 150, 0, 18),
                 Position = UDim2.new(1, -10, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
+                BackgroundColor3 = GetEffectiveColor("Color Stroke")
             }), "Stroke")
             Make("Corner", SelectedFrame, UDim.new(0, 4))
 
@@ -1932,9 +2438,9 @@ function MyLibrary:MakeWindow(Configs)
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.Save.Font,
                 TextScaled = true,
-                TextColor3 = Theme["Color Text"],
+                TextColor3 = GetEffectiveColor("Color Text"),
                 Text = "..."
             }), "Text")
 
@@ -1979,17 +2485,17 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(1, -10, 1, 0),
                 Position = UDim2.new(0, 8, 0, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamMedium,
+                Font = MyLibrary.Save.Font,
                 TextSize = 12,
-                TextColor3 = Theme["Color Text"],
+                TextColor3 = GetEffectiveColor("Color Text"),
                 PlaceholderText = "Pesquisar...",
-                PlaceholderColor3 = Theme["Color Dark Text"],
+                PlaceholderColor3 = GetEffectiveColor("Color Dark Text"),
                 Text = "",
                 TextXAlignment = "Left"
             }), "Text")
 
             local ScrollFrame = InsertTheme(Create("ScrollingFrame", DropFrame, {
-                ScrollBarImageColor3 = Theme["Color Theme"],
+                ScrollBarImageColor3 = GetEffectiveColor("Color Theme"),
                 Size = UDim2.new(1, 0, 1, -34),
                 Position = UDim2.new(0, 0, 0, 32),
                 ScrollBarThickness = 1.5,
@@ -2051,7 +2557,7 @@ function MyLibrary:MakeWindow(Configs)
                     SearchTextBox.Text = ""
                     NoClickFrame.Visible = true
                     Arrow.Image = "rbxassetid://10709790948"
-                    CreateTween({Arrow, "ImageColor3", Theme["Color Theme"], 0.2})
+                    CreateTween({Arrow, "ImageColor3", GetEffectiveColor("Color Theme"), 0.2})
                     CalculateSize(false)
                     CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
                 end
@@ -2166,7 +2672,7 @@ function MyLibrary:MakeWindow(Configs)
                     local IsSelected = InsertTheme(Create("Frame", Button, {
                         Position = UDim2.new(0, 1, 0.5),
                         Size = UDim2.new(0, 4, 0, 4),
-                        BackgroundColor3 = Theme["Color Theme"],
+                        BackgroundColor3 = GetEffectiveColor("Color Theme"),
                         BackgroundTransparency = 1,
                         AnchorPoint = Vector2.new(0, 0.5)
                     }), "Theme")
@@ -2176,8 +2682,8 @@ function MyLibrary:MakeWindow(Configs)
                         Size = UDim2.new(1, 0, 1),
                         Position = UDim2.new(0, 10),
                         Text = Name,
-                        TextColor3 = Theme["Color Text"],
-                        Font = Enum.Font.FredokaOne,
+                        TextColor3 = GetEffectiveColor("Color Text"),
+                        Font = MyLibrary.Save.Font,
                         TextXAlignment = "Left",
                         BackgroundTransparency = 1,
                         TextTransparency = 0.4
@@ -2295,7 +2801,7 @@ function MyLibrary:MakeWindow(Configs)
             })
 
             local SliderBar = InsertTheme(Create("Frame", SliderHolder, {
-                BackgroundColor3 = Theme["Color Stroke"],
+                BackgroundColor3 = GetEffectiveColor("Color Stroke"),
                 Size = UDim2.new(1, -20, 0, 6),
                 Position = UDim2.new(0.5, 0, 0.5),
                 AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2303,7 +2809,7 @@ function MyLibrary:MakeWindow(Configs)
             Make("Corner", SliderBar)
 
             local Indicator = InsertTheme(Create("Frame", SliderBar, {
-                BackgroundColor3 = Theme["Color Theme"],
+                BackgroundColor3 = GetEffectiveColor("Color Theme"),
                 Size = UDim2.fromScale(0.3, 1),
                 BorderSizePixel = 0
             }), "Theme")
@@ -2323,8 +2829,8 @@ function MyLibrary:MakeWindow(Configs)
                 AnchorPoint = Vector2.new(1, 0.5),
                 Position = UDim2.new(0, 0, 0.5),
                 BackgroundTransparency = 1,
-                TextColor3 = Theme["Color Text"],
-                Font = Enum.Font.FredokaOne,
+                TextColor3 = GetEffectiveColor("Color Text"),
+                Font = MyLibrary.Save.Font,
                 TextSize = 12
             }), "Text")
 
@@ -2424,7 +2930,7 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(0, 150, 0, 18),
                 Position = UDim2.new(1, -10, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
+                BackgroundColor3 = GetEffectiveColor("Color Stroke")
             }), "Stroke")
             Make("Corner", SelectedFrame, UDim.new(0, 4))
 
@@ -2433,9 +2939,9 @@ function MyLibrary:MakeWindow(Configs)
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.Save.Font,
                 TextScaled = true,
-                TextColor3 = Theme["Color Text"],
+                TextColor3 = GetEffectiveColor("Color Text"),
                 ClearTextOnFocus = TClearText,
                 PlaceholderText = TPlaceholderText,
                 Text = ""
@@ -2466,7 +2972,7 @@ function MyLibrary:MakeWindow(Configs)
                 CreateTween({Pencil, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
             end)
             TextBoxInput.Focused:Connect(function()
-                CreateTween({Pencil, "ImageColor3", Theme["Color Theme"], 0.2})
+                CreateTween({Pencil, "ImageColor3", GetEffectiveColor("Color Theme"), 0.2})
             end)
 
             TextBox.OnChanging = false
@@ -2491,7 +2997,7 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(1, 0, 0, 15),
                 Position = UDim2.new(0, 5),
                 TextColor3 = Color3.fromRGB(40, 150, 255),
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.Save.Font,
                 TextXAlignment = "Left",
                 BackgroundTransparency = 1,
                 TextSize = 10,
@@ -2502,7 +3008,7 @@ function MyLibrary:MakeWindow(Configs)
                 Size = UDim2.new(1, 0, 0, 65),
                 AnchorPoint = Vector2.new(0, 1),
                 Position = UDim2.new(0, 0, 1),
-                BackgroundColor3 = Theme["Color Hub 2"]
+                BackgroundColor3 = GetEffectiveColor("Color Hub 2")
             }), "Frame")
             Make("Corner", FrameHolder)
 
@@ -2518,8 +3024,8 @@ function MyLibrary:MakeWindow(Configs)
             local LTitle = InsertTheme(Create("TextLabel", FrameHolder, {
                 Size = UDim2.new(1, -52, 0, 15),
                 Position = UDim2.new(0, 44, 0, 7),
-                Font = Enum.Font.GothamBold,
-                TextColor3 = Theme["Color Text"],
+                Font = MyLibrary.Save.Font,
+                TextColor3 = GetEffectiveColor("Color Text"),
                 TextXAlignment = "Left",
                 BackgroundTransparency = 1,
                 TextSize = 10,
@@ -2531,8 +3037,8 @@ function MyLibrary:MakeWindow(Configs)
                 Position = UDim2.new(0, 44, 0, 22),
                 TextWrapped = "Y",
                 AutomaticSize = "Y",
-                Font = Enum.Font.Gotham,
-                TextColor3 = Theme["Color Dark Text"],
+                Font = MyLibrary.Save.Font,
+                TextColor3 = GetEffectiveColor("Color Dark Text"),
                 TextXAlignment = "Left",
                 BackgroundTransparency = 1,
                 TextSize = 8,
@@ -2544,7 +3050,7 @@ function MyLibrary:MakeWindow(Configs)
                 AnchorPoint = Vector2.new(0.5, 1),
                 Position = UDim2.new(0.5, 0, 1, -7),
                 Text = "Copia Nick",
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.Save.Font,
                 TextSize = 12,
                 TextColor3 = Color3.fromRGB(220, 220, 220),
                 BackgroundColor3 = Color3.fromRGB(50, 150, 50)
@@ -2581,425 +3087,6 @@ function MyLibrary:MakeWindow(Configs)
 
     CloseButton.Activated:Connect(Window.CloseBtn)
     MinimizeButton.Activated:Connect(Window.MinimizeBtn)
-    
-    -- ==================== NOVAS FUNCIONALIDADES DE CONFIGURAÇÃO ====================
--- Adicione isso dentro da função MakeWindow, antes do return Window
-
--- Adicionar botão de configuração
-local ConfigButton = SetProps(CloseButton:Clone(), {
-    Position = UDim2.new(1, -60, 0.5),
-    Image = "rbxassetid://10734950309", -- Ícone de engrenagem
-    Name = "Config"
-})
-ConfigButton.Parent = ButtonsFolder
-
--- Menu de Configuração
-local ConfigMenu = Create("Frame", MainFrame, {
-    Size = UDim2.new(1, -20, 1, -40),
-    Position = UDim2.new(0, 10, 0, 35),
-    BackgroundTransparency = 0.05,
-    ClipsDescendants = true,
-    Visible = false,
-    Name = "ConfigMenu"
-})
-Make("Corner", ConfigMenu, UDim.new(0, 8))
-Make("Gradient", ConfigMenu, { Rotation = 270 })
-
--- Botão X para fechar
-local CloseConfig = Make("Button", ConfigMenu, {
-    Size = UDim2.new(0, 25, 0, 25),
-    Position = UDim2.new(0, 10, 0, 10),
-    Text = "X",
-    Font = Enum.Font.GothamBold,
-    TextSize = 14,
-    TextColor3 = Theme["Color Text"]
-})
-Make("Corner", CloseConfig, UDim.new(0, 5))
-CloseConfig.Activated:Connect(function()
-    ConfigMenu.Visible = false
-end)
-
--- Abas do menu de configuração
-local ConfigTabs = Create("Frame", ConfigMenu, {
-    Size = UDim2.new(0, 100, 1, -40),
-    Position = UDim2.new(0, 10, 0, 40),
-    BackgroundTransparency = 1,
-    Name = "ConfigTabs"
-})
-
-local ConfigTabList = Create("UIListLayout", ConfigTabs, {
-    Padding = UDim.new(0, 5),
-    SortOrder = "LayoutOrder"
-})
-
-local ConfigContent = Create("Frame", ConfigMenu, {
-    Size = UDim2.new(1, -120, 1, -50),
-    Position = UDim2.new(1, -10, 1, -10),
-    AnchorPoint = Vector2.new(1, 1),
-    BackgroundTransparency = 1,
-    Name = "ConfigContent"
-})
-
-local CurrentConfigTab = nil
-local ConfigTabButtons = {}
-
-local function SelectConfigTab(TabName)
-    if CurrentConfigTab == TabName then return end
-    CurrentConfigTab = TabName
-    
-    -- Limpar conteúdo anterior
-    for _, child in pairs(ConfigContent:GetChildren()) do
-        if child:IsA("Frame") or child:IsA("ScrollingFrame") then
-            child:Destroy()
-        end
-    end
-    
-    -- Destacar botão selecionado
-    for name, btn in pairs(ConfigTabButtons) do
-        if name == TabName then
-            btn.BackgroundColor3 = Theme["Color Theme"]
-        else
-            btn.BackgroundColor3 = Theme["Color Hub 2"]
-        end
-    end
-    
-    if TabName == "Interface" then
-        CreateInterfaceTab()
-    elseif TabName == "Fontes" then
-        CreateFontsTab()
-    elseif TabName == "Imagens" then
-        CreateImagesTab()
-    elseif TabName == "Config" then
-        CreateConfigTab()
-    end
-end
-
-local function CreateConfigTabButton(Name, Icon)
-    local Button = Make("Button", ConfigTabs, {
-        Size = UDim2.new(1, 0, 0, 30),
-        Text = Name,
-        Font = Enum.Font.GothamBold,
-        TextSize = 11,
-        TextColor3 = Theme["Color Text"]
-    })
-    Make("Corner", Button, UDim.new(0, 5))
-    
-    if Icon and Icon ~= "" then
-        local IconLabel = Create("ImageLabel", Button, {
-            Size = UDim2.new(0, 16, 0, 16),
-            Position = UDim2.new(0, 7, 0.5),
-            AnchorPoint = Vector2.new(0, 0.5),
-            Image = Icon,
-            BackgroundTransparency = 1
-        })
-        Button.TextXAlignment = Enum.TextXAlignment.Left
-        Button.Text = "  " .. Name
-    end
-    
-    ConfigTabButtons[Name] = Button
-    Button.Activated:Connect(function()
-        SelectConfigTab(Name)
-    end)
-    return Button
-end
-
--- Função para criar slider de cor
-local function CreateColorSlider(Parent, Label, ColorProp, YPos)
-    local SliderFrame = Create("Frame", Parent, {
-        Size = UDim2.new(1, -20, 0, 60),
-        Position = UDim2.new(0, 10, 0, YPos),
-        BackgroundTransparency = 1
-    })
-    
-    local LabelText = InsertTheme(Create("TextLabel", SliderFrame, {
-        Size = UDim2.new(1, 0, 0, 20),
-        Text = Label,
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        TextColor3 = Theme["Color Text"],
-        TextXAlignment = "Left",
-        BackgroundTransparency = 1
-    }), "Text")
-    
-    local Slider = Tab:AddSlider({
-        Name = "",
-        Min = 0,
-        Max = 255,
-        Default = 100,
-        Increase = 1,
-        Callback = function(Value)
-            local Color = Theme[ColorProp]
-            if typeof(Color) == "Color3" then
-                local r, g, b
-                if string.find(Label, "R") then
-                    r, g, b = Value/255, (Color.G*255)/255, (Color.B*255)/255
-                elseif string.find(Label, "G") then
-                    r, g, b = (Color.R*255)/255, Value/255, (Color.B*255)/255
-                else
-                    r, g, b = (Color.R*255)/255, (Color.G*255)/255, Value/255
-                end
-                Theme[ColorProp] = Color3.fromRGB(r*255, g*255, b*255)
-                MyLibrary:SetTheme(MyLibrary.Save.Theme)
-            end
-        end
-    })
-    
-    SliderFrame.Parent = Parent
-    -- Ajustar posição do slider dentro do frame
-    if Slider.Cont then
-        Slider.Cont.Parent = SliderFrame
-        Slider.Cont.Position = UDim2.new(0, 0, 0, 25)
-    end
-    
-    return Slider
-end
-
--- Função para criar aba de Interface
-local function CreateInterfaceTab()
-    local Scroll = Create("ScrollingFrame", ConfigContent, {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        ScrollBarThickness = 2,
-        ScrollBarImageColor3 = Theme["Color Theme"],
-        AutomaticCanvasSize = "Y",
-        ScrollingDirection = "Y",
-        CanvasSize = UDim2.new()
-    })
-    
-    -- Sliders para cores principais
-    CreateColorSlider(Scroll, "Cor do Tema (R)", "Color Theme", 10)
-    CreateColorSlider(Scroll, "Cor do Tema (G)", "Color Theme", 80)
-    CreateColorSlider(Scroll, "Cor do Tema (B)", "Color Theme", 150)
-    
-    CreateColorSlider(Scroll, "Cor de Fundo (R)", "Color Hub 2", 220)
-    CreateColorSlider(Scroll, "Cor de Fundo (G)", "Color Hub 2", 290)
-    CreateColorSlider(Scroll, "Cor de Fundo (B)", "Color Hub 2", 360)
-    
-    CreateColorSlider(Scroll, "Cor do Texto (R)", "Color Text", 430)
-    CreateColorSlider(Scroll, "Cor do Texto (G)", "Color Text", 500)
-    CreateColorSlider(Scroll, "Cor do Texto (B)", "Color Text", 570)
-end
-
--- Função para criar aba de Fontes
-local function CreateFontsTab()
-    local FontList = {}
-    for _, font in pairs(Enum.Font:GetEnumItems()) do
-        table.insert(FontList, font.Name)
-    end
-    
-    local Dropdown = Tab:AddDropdown({
-        Name = "Escolher Fonte",
-        Options = FontList,
-        Default = "Gotham",
-        Callback = function(Value)
-            for _, Val in pairs(MyLibrary.Instances) do
-                if Val.Instance:IsA("TextLabel") or Val.Instance:IsA("TextBox") or Val.Instance:IsA("TextButton") then
-                    pcall(function()
-                        Val.Instance.Font = Enum.Font[Value]
-                    end)
-                end
-            end
-        end
-    })
-    
-    if Dropdown and Dropdown.Cont then
-        Dropdown.Cont.Parent = ConfigContent
-        Dropdown.Cont.Position = UDim2.new(0, 10, 0, 10)
-    end
-end
-
--- Função para criar aba de Imagens
-local function CreateImagesTab()
-    local ImageLabel = Create("TextLabel", ConfigContent, {
-        Size = UDim2.new(1, -20, 0, 20),
-        Position = UDim2.new(0, 10, 0, 10),
-        Text = "ID da Imagem de Fundo:",
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        TextColor3 = Theme["Color Text"],
-        TextXAlignment = "Left",
-        BackgroundTransparency = 1
-    })
-    
-    local ImageInput = InsertTheme(Create("TextBox", ConfigContent, {
-        Size = UDim2.new(1, -20, 0, 30),
-        Position = UDim2.new(0, 10, 0, 35),
-        Font = Enum.Font.Gotham,
-        TextSize = 12,
-        TextColor3 = Theme["Color Text"],
-        PlaceholderText = "rbxassetid://...",
-        Text = "",
-        BackgroundColor3 = Theme["Color Stroke"]
-    }), "Text")
-    Make("Corner", ImageInput, UDim.new(0, 5))
-    
-    local ApplyButton = Make("Button", ConfigContent, {
-        Size = UDim2.new(1, -20, 0, 30),
-        Position = UDim2.new(0, 10, 0, 75),
-        Text = "Aplicar Imagem",
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        TextColor3 = Theme["Color Text"]
-    })
-    Make("Corner", ApplyButton, UDim.new(0, 5))
-    
-    ApplyButton.Activated:Connect(function()
-        local imageId = ImageInput.Text
-        if imageId:find("rbxassetid://") then
-            pcall(function()
-                MainFrame.Image = imageId
-                MyLibrary.Save["HubImage"] = imageId
-                SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-            end)
-        end
-    end)
-    
-    -- Para o ícone
-    local IconLabel = Create("TextLabel", ConfigContent, {
-        Size = UDim2.new(1, -20, 0, 20),
-        Position = UDim2.new(0, 10, 0, 120),
-        Text = "ID do Ícone da Janela:",
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        TextColor3 = Theme["Color Text"],
-        TextXAlignment = "Left",
-        BackgroundTransparency = 1
-    })
-    
-    local IconInput = InsertTheme(Create("TextBox", ConfigContent, {
-        Size = UDim2.new(1, -20, 0, 30),
-        Position = UDim2.new(0, 10, 0, 145),
-        Font = Enum.Font.Gotham,
-        TextSize = 12,
-        TextColor3 = Theme["Color Text"],
-        PlaceholderText = "rbxassetid://...",
-        Text = "",
-        BackgroundColor3 = Theme["Color Stroke"]
-    }), "Text")
-    Make("Corner", IconInput, UDim.new(0, 5))
-    
-    local ApplyIconButton = Make("Button", ConfigContent, {
-        Size = UDim2.new(1, -20, 0, 30),
-        Position = UDim2.new(0, 10, 0, 185),
-        Text = "Aplicar Ícone",
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        TextColor3 = Theme["Color Text"]
-    })
-    Make("Corner", ApplyIconButton, UDim.new(0, 5))
-    
-    ApplyIconButton.Activated:Connect(function()
-        local iconId = IconInput.Text
-        if iconId:find("rbxassetid://") then
-            pcall(function()
-                for _, Tab in pairs(MyLibrary.Tabs) do
-                    if Tab.TabInfo.Icon then
-                        -- Atualizar ícone das abas
-                        local tabButton = Tab.Cont.Parent
-                        if tabButton then
-                            -- Encontrar o ImageLabel correspondente
-                            for _, child in pairs(tabButton:GetChildren()) do
-                                if child:IsA("ImageLabel") then
-                                    child.Image = iconId
-                                end
-                            end
-                        end
-                    end
-                end
-                MyLibrary.Save["HubIcon"] = iconId
-                SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-            end)
-        end
-    end)
-end
-
--- Função para criar aba de Config
-local function CreateConfigTab()
-    local KeyLabel = Create("TextLabel", ConfigContent, {
-        Size = UDim2.new(1, -20, 0, 20),
-        Position = UDim2.new(0, 10, 0, 10),
-        Text = "Tecla para abrir/fechar (clique e pressione):",
-        Font = Enum.Font.GothamBold,
-        TextSize = 12,
-        TextColor3 = Theme["Color Text"],
-        TextXAlignment = "Left",
-        BackgroundTransparency = 1
-    })
-    
-    local KeyButton = Make("Button", ConfigContent, {
-        Size = UDim2.new(1, -20, 0, 40),
-        Position = UDim2.new(0, 10, 0, 35),
-        Text = Settings["ToggleKey"] or "RightShift",
-        Font = Enum.Font.GothamBold,
-        TextSize = 14,
-        TextColor3 = Theme["Color Text"]
-    })
-    Make("Corner", KeyButton, UDim.new(0, 5))
-    
-    local ListeningForKey = false
-    KeyButton.Activated:Connect(function()
-        if not ListeningForKey then
-            ListeningForKey = true
-            KeyButton.Text = "Pressione uma tecla..."
-            
-            local connection
-            connection = UserInputService.InputBegan:Connect(function(Input)
-                if Input.UserInputType == Enum.UserInputType.Keyboard then
-                    Settings["ToggleKey"] = Input.KeyCode.Name
-                    KeyButton.Text = Input.KeyCode.Name
-                    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-                    connection:Disconnect()
-                    ListeningForKey = false
-                end
-            end)
-        end
-    end)
-    
-    -- Configurar listener da tecla
-    if Settings["ToggleKey"] then
-        UserInputService.InputBegan:Connect(function(Input)
-            if Input.KeyCode == Enum.KeyCode[Settings["ToggleKey"]] then
-                MainFrame.Visible = not MainFrame.Visible
-            end
-        end)
-    end
-end
-
--- Criar botões das abas de configuração
-local Tabs = {
-    Interface = "rbxassetid://10734950309",
-    Fontes = "rbxassetid://10709764761", -- ícone de fonte (type)
-    Imagens = "rbxassetid://10723415040", -- ícone de imagem
-    Config = "rbxassetid://10709761530" -- ícone de âncora
-}
-
-for Name, Icon in pairs(Tabs) do
-    CreateConfigTabButton(Name, Icon)
-end
-
--- Abrir menu de configuração
-ConfigButton.Activated:Connect(function()
-    ConfigMenu.Visible = not ConfigMenu.Visible
-    if ConfigMenu.Visible then
-        SelectConfigTab("Interface")
-    end
-end)
-
--- Carregar configurações salvas
-if MyLibrary.Save["HubImage"] then
-    pcall(function()
-        MainFrame.Image = MyLibrary.Save["HubImage"]
-    end)
-end
-
-if MyLibrary.Save["HubIcon"] then
-    pcall(function()
-        for _, Tab in pairs(MyLibrary.Tabs) do
-            -- Atualizar ícones das abas existentes
-        end
-    end)
-end
-    
     return Window
 end
 
