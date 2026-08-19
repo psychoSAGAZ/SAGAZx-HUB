@@ -608,30 +608,82 @@ local function CreateAnimationCard(pack)
 end
 
 --------------------------------------------------
--- SISTEMA DE FILTRAGEM POR DIGITAÇÃO (OTIMIZADO)
+-- SISTEMA DE FILTRAGEM POR DIGITAÇÃO (PESQUISA COMPLETA)
 --------------------------------------------------
+
+-- Arrays para armazenar todos os dados do catálogo
+local AllEmotesData = {}
+local AllAnimsData = {}
 
 local function UpdateSearch()
 	local Texto = string.lower(SearchBar.Text)
-
-	for _,obj in ipairs(Frame:GetChildren()) do
-		if obj:IsA("ImageButton") then
-			local itemMode = obj:GetAttribute("ItemMode")
-			
-			if itemMode == currentMode then
-				local Nome = string.lower(obj:GetAttribute("EmoteName") or "")
-				local Id = obj.Name
-
-				if Texto == "" or string.find(Nome, Texto, 1, true) or string.find(Id, Texto, 1, true) then
+	
+	if Texto == "" then
+		-- Se pesquisa vazia, mostra apenas os itens já carregados
+		for _,obj in ipairs(Frame:GetChildren()) do
+			if obj:IsA("ImageButton") then
+				local itemMode = obj:GetAttribute("ItemMode")
+				if itemMode == currentMode then
 					obj.Visible = true
 				else
 					obj.Visible = false
 				end
-			else
-				obj.Visible = false
+			end
+		end
+		ReorderItems()
+		RefreshLayout()
+		return
+	end
+	
+	-- Se há pesquisa, procura em TODA a lista
+	local dataToSearch = currentMode == "Emotes" and AllEmotesData or AllAnimsData
+	local isEmoteMode = currentMode == "Emotes"
+	
+	-- Esconde todos os botões primeiro
+	for _,obj in ipairs(Frame:GetChildren()) do
+		if obj:IsA("ImageButton") then
+			obj.Visible = false
+		end
+	end
+	
+	-- Procura e cria botões para itens que correspondem à pesquisa
+	local searchResults = {}
+	
+	for _, item in ipairs(dataToSearch) do
+		local itemName = string.lower(item.name or "")
+		local itemId = tostring(item.id)
+		
+		if string.find(itemName, Texto, 1, true) or string.find(itemId, Texto, 1, true) then
+			table.insert(searchResults, item)
+		end
+	end
+	
+	-- Cria botões para os resultados da pesquisa
+	for _, item in ipairs(searchResults) do
+		if isEmoteMode then
+			CreateEmote(item)
+		else
+			CreateAnimationCard(item)
+		end
+	end
+	
+	-- Mostra apenas os resultados da pesquisa
+	local searchIds = {}
+	for _, item in ipairs(searchResults) do
+		searchIds[tostring(item.id)] = true
+	end
+	
+	for _,obj in ipairs(Frame:GetChildren()) do
+		if obj:IsA("ImageButton") then
+			local itemMode = obj:GetAttribute("ItemMode")
+			if itemMode == currentMode and searchIds[obj.Name] then
+				obj.Visible = true
 			end
 		end
 	end
+	
+	ReorderItems()
+	RefreshLayout()
 end
 
 SearchBar:GetPropertyChangedSignal("Text"):Connect(UpdateSearch)
@@ -648,6 +700,9 @@ task.spawn(function()
 	if success and response then
 		local parsed = HttpService:JSONDecode(response)
 		if parsed and parsed.data then
+			-- Salva TODOS os dados para pesquisa
+			AllEmotesData = parsed.data
+			
 			local CatalogLookup = {}
 			for _, asset in ipairs(parsed.data) do CatalogLookup[tostring(asset.id)] = asset.name end
 
@@ -682,6 +737,9 @@ task.spawn(function()
 	if success and response then
 		local parsed = HttpService:JSONDecode(response)
 		if parsed and parsed.data then
+			-- Salva TODOS os dados para pesquisa
+			AllAnimsData = parsed.data
+			
 			local CatalogLookup = {}
 			for _, pack in ipairs(parsed.data) do CatalogLookup[tostring(pack.id)] = pack.name end
 
