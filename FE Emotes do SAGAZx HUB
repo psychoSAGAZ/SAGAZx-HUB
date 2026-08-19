@@ -175,13 +175,14 @@ Kill.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- PLAY EMOTE
+-- PLAY EMOTE (OTIMIZADO - SEM CONGELAMENTO)
 --------------------------------------------------
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 local CurrentTrack
+local AnimationCache = {} -- Cache para animações já carregadas
 
 local function PlayEmote(assetId)
 	if not assetId then return end
@@ -194,40 +195,56 @@ local function PlayEmote(assetId)
 		CurrentTrack = nil
 	end
 
-	local AnimationId
+	-- Usa cache se disponível
+	local AnimationId = AnimationCache[assetId]
+	
+	if not AnimationId then
+		-- Carrega de forma assíncrona
+		task.spawn(function()
+			local success, objects = pcall(function()
+				return game:GetObjects("rbxassetid://" .. tostring(assetId))
+			end)
 
-	local success, objects = pcall(function()
-		return game:GetObjects("rbxassetid://" .. tostring(assetId))
-	end)
+			if success and objects and #objects > 0 then
+				local obj = objects[1]
 
-	if success and objects and #objects > 0 then
+				if obj:IsA("Animation") then
+					AnimationId = obj.AnimationId
+				elseif obj:FindFirstChildOfClass("Animation") then
+					AnimationId = obj:FindFirstChildOfClass("Animation").AnimationId
+				else
+					AnimationId = "rbxassetid://" .. assetId
+				end
+			else
+				AnimationId = "rbxassetid://" .. assetId
+			end
 
-		local obj = objects[1]
+			-- Salva no cache
+			AnimationCache[assetId] = AnimationId
 
-		if obj:IsA("Animation") then
-			AnimationId = obj.AnimationId
+			-- Cria e toca a animação
+			local Animation = Instance.new("Animation")
+			Animation.AnimationId = AnimationId
 
-		elseif obj:FindFirstChildOfClass("Animation") then
-			AnimationId = obj:FindFirstChildOfClass("Animation").AnimationId
+			local Track = Humanoid:LoadAnimation(Animation)
+			Track.Priority = Enum.AnimationPriority.Action
+			Track.Looped = true
+			Track:Play()
 
-		else
-			AnimationId = "rbxassetid://" .. assetId
-		end
-
+			CurrentTrack = Track
+		end)
 	else
-		AnimationId = "rbxassetid://" .. assetId
+		-- Usa cache diretamente
+		local Animation = Instance.new("Animation")
+		Animation.AnimationId = AnimationId
+
+		local Track = Humanoid:LoadAnimation(Animation)
+		Track.Priority = Enum.AnimationPriority.Action
+		Track.Looped = true
+		Track:Play()
+
+		CurrentTrack = Track
 	end
-
-	local Animation = Instance.new("Animation")
-	Animation.AnimationId = AnimationId
-
-	local Track = Humanoid:LoadAnimation(Animation)
-
-	Track.Priority = Enum.AnimationPriority.Action
-	Track.Looped = true
-	Track:Play()
-
-	CurrentTrack = Track
 end
 
 --------------------------------------------------
@@ -412,7 +429,6 @@ local function SaveFavorites(mode)
 end
 
 local function RefreshLayout()
-	task.wait()
 	Frame.CanvasSize = UDim2.new(0,0,0,Grid.AbsoluteContentSize.Y + 10)
 end
 
@@ -444,7 +460,7 @@ local function ReorderItems()
 end
 
 --------------------------------------------------
--- MUDANÇA DE VISIBILIDADE POR MODO
+-- MUDANÇA DE VISIBILIDADE POR MODO (ULTRA OTIMIZADO)
 --------------------------------------------------
 
 local function SwitchMode(mode)
@@ -453,7 +469,9 @@ local function SwitchMode(mode)
 	
 	for _, obj in ipairs(Frame:GetChildren()) do
 		if obj:IsA("ImageButton") then
-			if obj:GetAttribute("ItemMode") == mode then
+			local itemMode = obj:GetAttribute("ItemMode")
+			
+			if itemMode == mode then
 				obj.Visible = true
 			else
 				obj.Visible = false
@@ -478,7 +496,7 @@ ModeToggle.MouseButton1Click:Connect(function()
 end)
 
 --------------------------------------------------
--- CRIAÇÃO DOS BOTÕES DE EMOTE
+-- CRIAÇÃO DOS BOTÕES DE EMOTE (OTIMIZADO)
 --------------------------------------------------
 
 local function CreateEmote(asset)
@@ -534,7 +552,7 @@ local function CreateEmote(asset)
 end
 
 --------------------------------------------------
--- CRIAÇÃO DOS BOTÕES DE PACK DE ANIMAÇÃO
+-- CRIAÇÃO DOS BOTÕES DE PACK DE ANIMAÇÃO (OTIMIZADO)
 --------------------------------------------------
 
 local function CreateAnimationCard(pack)
@@ -590,7 +608,7 @@ local function CreateAnimationCard(pack)
 end
 
 --------------------------------------------------
--- SISTEMA DE FILTRAGEM POR DIGITAÇÃO
+-- SISTEMA DE FILTRAGEM POR DIGITAÇÃO (OTIMIZADO)
 --------------------------------------------------
 
 local function UpdateSearch()
@@ -619,10 +637,10 @@ end
 SearchBar:GetPropertyChangedSignal("Text"):Connect(UpdateSearch)
 
 --------------------------------------------------
--- CARREGAMENTO ASSÍNCRONO DOS DOIS LINKS (GITHUB)
+-- CARREGAMENTO ASSÍNCRONO OTIMIZADO
 --------------------------------------------------
 
--- 1. Carrega Emotes
+-- 1. Carrega Emotes (500 últimos)
 task.spawn(function()
 	local url = "https://raw.githubusercontent.com/psychoSAGAZ/Anima-es-e-emotes/refs/heads/main/EmoteSniper.json"
 	local success, response = pcall(function() return game:HttpGet(url) end)
@@ -633,27 +651,23 @@ task.spawn(function()
 			local CatalogLookup = {}
 			for _, asset in ipairs(parsed.data) do CatalogLookup[tostring(asset.id)] = asset.name end
 
-			-- PASSO CENTRAL: Instancia os favoritos salvos locais primeiro
+			-- Instancia os favoritos salvos locais primeiro
 			for favId, favValue in pairs(Favorites) do
 				local name = type(favValue) == "string" and favValue or CatalogLookup[tostring(favId)] or "Emote Desconhecido"
 				CreateEmote({id = favId, name = name})
 			end
 			
-			-- GARANTIA: Aplica a ordem correta na grade ANTES de renderizar o resto do catálogo
-			ReorderItems()
-			RefreshLayout()
-
-			local batchCount = 0
-			for _, asset in ipairs(parsed.data) do
-				if not Favorites[tostring(asset.id)] then
+			-- Carrega apenas os últimos 500 emotes
+			local totalEmotes = #parsed.data
+			local startIndex = math.max(1, totalEmotes - 499)
+			
+			for i = startIndex, totalEmotes do
+				local asset = parsed.data[i]
+				if asset and not Favorites[tostring(asset.id)] then
 					CreateEmote(asset)
-					batchCount += 1
-					if batchCount % 40 == 0 then 
-						task.wait() 
-						ReorderItems() -- Mantém atualizado em tempo real no processo parcelado
-					end
 				end
 			end
+			
 			ReorderItems()
 			RefreshLayout()
 		end
@@ -671,6 +685,7 @@ task.spawn(function()
 			local CatalogLookup = {}
 			for _, pack in ipairs(parsed.data) do CatalogLookup[tostring(pack.id)] = pack.name end
 
+			-- Instancia os favoritos primeiro
 			for favId, favValue in pairs(AnimFavorites) do
 				local name = type(favValue) == "string" and favValue or CatalogLookup[tostring(favId)] or "Pack Desconhecido"
 				local matchedPack = nil
@@ -680,20 +695,15 @@ task.spawn(function()
 				CreateAnimationCard(matchedPack or {id = favId, name = name, bundledItems = {}})
 			end
 			
-			ReorderItems()
-
-			local batchCount = 0
+			-- Carrega todos os packs
 			for _, pack in ipairs(parsed.data) do
 				if not AnimFavorites[tostring(pack.id)] then
 					CreateAnimationCard(pack)
-					batchCount += 1
-					if batchCount % 40 == 0 then 
-						task.wait() 
-						ReorderItems()
-					end
 				end
 			end
+			
 			ReorderItems()
+			RefreshLayout()
 		end
 	end
 end)
