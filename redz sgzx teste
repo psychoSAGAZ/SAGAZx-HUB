@@ -36,9 +36,9 @@ local MyLibrary = {
         },
         Purple = {
             ["Color Hub 1"] = ColorSequence.new({
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 0)),
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 255))
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 0)), -Hub 1
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 0, 255)), -Hub 2
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 255)) -Hub 3
             }),
             ["Color Hub 2"] = Color3.fromRGB(255, 255, 255),
             ["Color Stroke"] = Color3.fromRGB(255, 255, 255),
