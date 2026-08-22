@@ -80,6 +80,10 @@ local UIScale = ViewportSize.Y / 450
 local Settings = MyLibrary.Settings
 local Flags = MyLibrary.Flags
 
+local function VerifyTheme(Theme)
+    return MyLibrary.Themes[Theme] ~= nil
+end
+
 local SetProps, SetChildren, InsertTheme, Create do
     InsertTheme = function(Instance, Type)
         table.insert(MyLibrary.Instances, {
@@ -398,14 +402,6 @@ local function MakeDrag(Instance)
         end)
     end)
     return Instance
-end
-
-local function VerifyTheme(Theme)
-    for name, _ in pairs(MyLibrary.Themes) do
-        if name == Theme then
-            return true
-        end
-    end
 end
 
 local function SaveJson(FileName, save)
