@@ -34,27 +34,28 @@ local MyLibrary = {
             ["Color Text"] = Color3.fromRGB(245, 245, 245),
             ["Color Dark Text"] = Color3.fromRGB(190, 190, 190)
         },
-        Purple = {
-            ["Color Hub 1"] = ColorSequence.new({
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 0)),
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 0, 255)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))
-            }),
-            ["Color Hub 2"] = Color3.fromRGB(0, 255, 0),
-            ["Color Stroke"] = Color3.fromRGB(128, 0, 128),
-            ["Color Theme"] = Color3.fromRGB(255, 192, 203),
-            ["Color Text"] = Color3.fromRGB(255, 255, 255),
-            ["Color Dark Text"] = Color3.fromRGB(0, 0, 0)
-        }
-    },
+		Purple = {
+			["Color Hub 1"] = ColorSequence.new({
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(27.5, 25, 30)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(32.5, 32.5, 32.5)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(27.5, 25, 30))
+			}),
+			["Color Hub 2"] = Color3.fromRGB(30, 30, 30),
+			["Color Stroke"] = Color3.fromRGB(40, 40, 40),
+			["Color Theme"] = Color3.fromRGB(150, 0, 255),
+			["Color Text"] = Color3.fromRGB(240, 240, 240),
+			["Color Dark Text"] = Color3.fromRGB(180, 180, 180)
+		}
+},
     Info = {
         Version = "1.1.0"
     },
     Save = {
-        UISize = {550, 380},
-        TabSize = 160,
-        Theme = "Purple"
-    },
+    UISize = {550, 380},
+    TabSize = 160,
+    Theme = "Purple",
+    CustomColors = {}
+},
     Settings = {},
     Connection = {},
     Instances = {},
@@ -125,18 +126,66 @@ local SetProps, SetChildren, InsertTheme, Create do
         return new
     end
 
-    local function Save(file)
-        if readfile and isfile and isfile(file) then
-            local decode = HttpService:JSONDecode(readfile(file))
-            if type(decode) == "table" then
-                if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
-                if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
-                if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
+local function Save(file)
+    if readfile and isfile and isfile(file) then
+        local decode = HttpService:JSONDecode(readfile(file))
+        if type(decode) == "table" then
+            if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
+            if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
+            if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
+            if rawget(decode, "CustomColors") and type(decode["CustomColors"]) == "table" then
+                MyLibrary.Save.CustomColors = decode["CustomColors"]
             end
         end
     end
+end
 
     pcall(Save, "SAGAZx HUB lib.json")
+end
+
+local function Color3ToHex(c)
+    return string.format("#%02X%02X%02X", math.round(c.R * 255), math.round(c.G * 255), math.round(c.B * 255))
+end
+
+local function HexToColor3(hex)
+    hex = hex:gsub("#", "")
+    local r = tonumber(hex:sub(1, 2), 16) or 0
+    local g = tonumber(hex:sub(3, 4), 16) or 0
+    local b = tonumber(hex:sub(5, 6), 16) or 0
+    return Color3.fromRGB(r, g, b)
+end
+
+local function SerializeThemeValue(v)
+    if typeof(v) == "Color3" then
+        return { T = "Color3", C = Color3ToHex(v) }
+    elseif typeof(v) == "ColorSequence" then
+        local kps = {}
+        for _, kp in ipairs(v.Keypoints) do
+            table.insert(kps, { Time = kp.Time, C = Color3ToHex(kp.Value) })
+        end
+        return { T = "ColorSequence", K = kps }
+    end
+end
+
+local function DeserializeThemeValue(data)
+    if type(data) ~= "table" then return nil end
+    if data.T == "Color3" then
+        return HexToColor3(data.C)
+    elseif data.T == "ColorSequence" then
+        local kps = {}
+        for _, kp in ipairs(data.K or {}) do
+            table.insert(kps, ColorSequenceKeypoint.new(kp.Time, HexToColor3(kp.C)))
+        end
+        return ColorSequence.new(kps)
+    end
+end
+
+local OriginalThemes = {}
+for themeName, themeTable in pairs(MyLibrary.Themes) do
+    OriginalThemes[themeName] = {}
+    for key, value in pairs(themeTable) do
+        OriginalThemes[themeName][key] = value
+    end
 end
 
 local Funcs = {} do
@@ -366,7 +415,17 @@ local function SaveJson(FileName, save)
     end
 end
 
+local function ApplyCustomColorsToTheme(targetTheme)
+    for key, data in pairs(MyLibrary.Save.CustomColors or {}) do
+        local val = DeserializeThemeValue(data)
+        if val then
+            targetTheme[key] = val
+        end
+    end
+end
+
 local Theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+ApplyCustomColorsToTheme(Theme)
 
 local function AddEle(Name, Func)
     MyLibrary.Elements[Name] = Func
@@ -543,12 +602,68 @@ function MyLibrary:GetIcon(index)
     return firstMatch or index
 end
 
+function MyLibrary:SetThemeColor(key, value)
+    local currentTheme = MyLibrary.Themes[MyLibrary.Save.Theme]
+    if not currentTheme or currentTheme[key] == nil then
+        warn("Chave de cor inválida:", tostring(key))
+        return
+    end
+
+    -- Se for o gradiente e receber uma tabela com 3 cores, converte para ColorSequence
+    if key == "Color Hub 1" and type(value) == "table" then
+        if #value >= 3 then
+            value = ColorSequence.new({
+                ColorSequenceKeypoint.new(0.00, value[1]),
+                ColorSequenceKeypoint.new(0.50, value[2]),
+                ColorSequenceKeypoint.new(1.00, value[3])
+            })
+        else
+            warn("Para 'Color Hub 1' passe uma tabela com 3 Color3.")
+            return
+        end
+    end
+
+    if value == nil then
+        -- Remove a customização e restaura a cor original
+        MyLibrary.Save.CustomColors[key] = nil
+        currentTheme[key] = OriginalThemes[MyLibrary.Save.Theme][key]
+    else
+        MyLibrary.Save.CustomColors[key] = SerializeThemeValue(value)
+        currentTheme[key] = value
+    end
+
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
+
+    -- Atualiza os elementos já criados
+    for _, Val in ipairs(MyLibrary.Instances) do
+        pcall(function()
+            if Val.Type == "Gradient" then
+                Val.Instance.Color = currentTheme["Color Hub 1"]
+            elseif Val.Type == "Frame" then
+                Val.Instance.BackgroundColor3 = currentTheme["Color Hub 2"]
+            elseif Val.Type == "Stroke" then
+                Val.Instance[GetColor(Val.Instance)] = currentTheme["Color Stroke"]
+            elseif Val.Type == "Theme" then
+                Val.Instance[GetColor(Val.Instance)] = currentTheme["Color Theme"]
+            elseif Val.Type == "Text" then
+                Val.Instance[GetColor(Val.Instance)] = currentTheme["Color Text"]
+            elseif Val.Type == "DarkText" then
+                Val.Instance[GetColor(Val.Instance)] = currentTheme["Color Dark Text"]
+            elseif Val.Type == "ScrollBar" then
+                Val.Instance[GetColor(Val.Instance)] = currentTheme["Color Theme"]
+            end
+        end)
+    end
+end
+
 function MyLibrary:SetTheme(NewTheme)
     if not VerifyTheme(NewTheme) then return end
 
     MyLibrary.Save.Theme = NewTheme
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     Theme = MyLibrary.Themes[NewTheme]
+    ApplyCustomColorsToTheme(Theme)
 
     Connection:FireConnection("ThemeChanged", NewTheme)
 
