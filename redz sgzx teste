@@ -1,10 +1,3 @@
---[[
-    SAGAZx HUB - Biblioteca de Interface Roblox
-    Versão: 1.2.0 (com configurações avançadas)
-    Baseada em redz lib V5
-    Adaptada e ampliada conforme solicitação
-]]
-
 local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -55,36 +48,12 @@ local MyLibrary = {
         }
     },
     Info = {
-        Version = "1.2.0"
+        Version = "1.1.0"
     },
     Save = {
         UISize = {550, 380},
         TabSize = 160,
-        Theme = "Purple",
-        CustomColors = {
-            Color1 = "#282828", -- Hub 1 (dark)
-            Color2 = "#1E1E1E", -- Hub 1 (mid)
-            Color3 = "#141414", -- Hub 1 (light)
-            Color4 = "#121212", -- Hub 2
-            Color5 = "#232323", -- Stroke
-            Color6 = "#00AAFF", -- Theme
-            Color7 = "#F0F0F0", -- Text
-            Color8 = "#969696"  -- Dark Text
-        },
-        HubImage = "",
-        HubIcon = "",
-        HubImageTransparency = 0,
-        ComponentTransparency = 0,
-        TabTransparency = 0,
-        SelectedFont = "Gotham",
-        BorderEnabled = false,
-        BorderColorOption = "RGB (Completo)",
-        BorderEffectOption = "Girar Gradiente",
-        ClickSoundEnabled = false,
-        ToggleKey = "RightControl",
-        SaveTogglesEnabled = false,
-        CustomThemeName = nil,
-        SavedThemes = {}
+        Theme = "Purple"
     },
     Settings = {},
     Connection = {},
@@ -95,258 +64,14 @@ local MyLibrary = {
     Tabs = {},
     Icons = (function()
         return {
+            -- ... (todos os ícones mantidos, omitidos aqui por brevidade)
+            -- Cole a lista completa de ícones que você já tinha no original
             ["accessibility"] = "rbxassetid://10709751939",
-            ["activity"] = "rbxassetid://10709751939",
-            ["airplay"] = "rbxassetid://10709751939",
-            ["alarm-clock"] = "rbxassetid://10709751939",
-            ["alert-circle"] = "rbxassetid://10709751939",
-            ["align-center"] = "rbxassetid://10709751939",
-            ["archive"] = "rbxassetid://10709751939",
-            ["arrow-down"] = "rbxassetid://10709751939",
-            ["arrow-up"] = "rbxassetid://10709751939",
-            ["award"] = "rbxassetid://10709751939",
-            ["bell"] = "rbxassetid://10709751939",
-            ["book"] = "rbxassetid://10709751939",
-            ["briefcase"] = "rbxassetid://10709751939",
-            ["calendar"] = "rbxassetid://10709751939",
-            ["camera"] = "rbxassetid://10709751939",
-            ["cast"] = "rbxassetid://10709751939",
-            ["check"] = "rbxassetid://10709751939",
-            ["chevron-down"] = "rbxassetid://10709751939",
-            ["chevron-left"] = "rbxassetid://10709751939",
-            ["chevron-right"] = "rbxassetid://10709751939",
-            ["chevron-up"] = "rbxassetid://10709751939",
-            ["clock"] = "rbxassetid://10709751939",
-            ["cloud"] = "rbxassetid://10709751939",
-            ["code"] = "rbxassetid://10709751939",
-            ["copy"] = "rbxassetid://10709751939",
-            ["credit-card"] = "rbxassetid://10709751939",
-            ["download"] = "rbxassetid://10709751939",
-            ["edit"] = "rbxassetid://10709751939",
-            ["external-link"] = "rbxassetid://10709751939",
-            ["eye"] = "rbxassetid://10709751939",
-            ["file"] = "rbxassetid://10709751939",
-            ["filter"] = "rbxassetid://10709751939",
-            ["flag"] = "rbxassetid://10709751939",
-            ["folder"] = "rbxassetid://10709751939",
-            ["gift"] = "rbxassetid://10709751939",
-            ["globe"] = "rbxassetid://10709751939",
-            ["heart"] = "rbxassetid://10709751939",
-            ["help-circle"] = "rbxassetid://10709751939",
-            ["home"] = "rbxassetid://10709751939",
-            ["image"] = "rbxassetid://10709751939",
-            ["info"] = "rbxassetid://10709751939",
-            ["key"] = "rbxassetid://10709751939",
-            ["link"] = "rbxassetid://10709751939",
-            ["lock"] = "rbxassetid://10709751939",
-            ["log-out"] = "rbxassetid://10709751939",
-            ["mail"] = "rbxassetid://10709751939",
-            ["menu"] = "rbxassetid://10709751939",
-            ["message-square"] = "rbxassetid://10709751939",
-            ["mic"] = "rbxassetid://10709751939",
-            ["monitor"] = "rbxassetid://10709751939",
-            ["moon"] = "rbxassetid://10709751939",
-            ["more-horizontal"] = "rbxassetid://10709751939",
-            ["music"] = "rbxassetid://10709751939",
-            ["navigation"] = "rbxassetid://10709751939",
-            ["package"] = "rbxassetid://10709751939",
-            ["paperclip"] = "rbxassetid://10709751939",
-            ["pause"] = "rbxassetid://10709751939",
-            ["play"] = "rbxassetid://10709751939",
-            ["plus"] = "rbxassetid://10709751939",
-            ["power"] = "rbxassetid://10709751939",
-            ["printer"] = "rbxassetid://10709751939",
-            ["refresh-cw"] = "rbxassetid://10709751939",
-            ["repeat"] = "rbxassetid://10709751939",
-            ["save"] = "rbxassetid://10709751939",
-            ["search"] = "rbxassetid://10709751939",
-            ["send"] = "rbxassetid://10709751939",
-            ["settings"] = "rbxassetid://10709751939",
-            ["share"] = "rbxassetid://10709751939",
-            ["shield"] = "rbxassetid://10709751939",
-            ["shopping-cart"] = "rbxassetid://10709751939",
-            ["star"] = "rbxassetid://10709751939",
-            ["sun"] = "rbxassetid://10709751939",
-            ["tag"] = "rbxassetid://10709751939",
-            ["target"] = "rbxassetid://10709751939",
-            ["trash"] = "rbxassetid://10709751939",
-            ["trending-up"] = "rbxassetid://10709751939",
-            ["upload"] = "rbxassetid://10709751939",
-            ["user"] = "rbxassetid://10709751939",
-            ["users"] = "rbxassetid://10709751939",
-            ["video"] = "rbxassetid://10709751939",
-            ["volume-2"] = "rbxassetid://10709751939",
-            ["wifi"] = "rbxassetid://10709751939",
-            ["zap"] = "rbxassetid://10709751939",
-            ["zoom-in"] = "rbxassetid://10709751939",
-            ["zoom-out"] = "rbxassetid://10709751939"
+            -- ... etc ...
+            ["zoomout"] = "rbxassetid://10747384679"
         }
     end)()
 }
-
--- Funções auxiliares para cores (hex <-> Color3)
-local function Color3ToHex(c)
-    return string.format("#%02X%02X%02X", math.floor(c.R*255), math.floor(c.G*255), math.floor(c.B*255))
-end
-
-local function HexToColor3(hex)
-    if type(hex) ~= "string" then return Color3.new(1,1,1) end
-    hex = hex:gsub("#", "")
-    if #hex ~= 6 then return Color3.new(1,1,1) end
-    local r = tonumber(hex:sub(1,2), 16) / 255
-    local g = tonumber(hex:sub(3,4), 16) / 255
-    local b = tonumber(hex:sub(5,6), 16) / 255
-    if not r or not g or not b then return Color3.new(1,1,1) end
-    return Color3.new(r, g, b)
-end
-
--- Converte as cores de um tema (tabela) de hex para Color3, se necessário
-local function ConvertThemeColors(theme)
-    local result = {}
-    for k, v in pairs(theme) do
-        if k == "Color Hub 1" then
-            -- assumir ColorSequence ou string
-            if typeof(v) == "ColorSequence" then
-                result[k] = v
-            else
-                -- converter de hex para ColorSequence (não vamos usar isso para temas salvos, mas para segurança)
-                -- Aqui simplesmente mantemos a estrutura original dos temas definidos
-                result[k] = v
-            end
-        else
-            if type(v) == "string" and v:sub(1,1) == "#" then
-                result[k] = HexToColor3(v)
-            else
-                result[k] = v
-            end
-        end
-    end
-    return result
-end
-
--- Função para obter o tema atual (considerando temas personalizados)
-function MyLibrary:GetCurrentTheme()
-    if self.Save.Theme == "Custom" then
-        -- Se houver um tema personalizado nomeado e salvo, use-o
-        if self.Save.CustomThemeName and self.Save.SavedThemes[self.Save.CustomThemeName] then
-            return ConvertThemeColors(self.Save.SavedThemes[self.Save.CustomThemeName])
-        end
-        -- Caso contrário, use as cores personalizadas da aba de cores
-        local colors = self.Save.CustomColors
-        local c1 = HexToColor3(colors.Color1)
-        local c2 = HexToColor3(colors.Color2)
-        local c3 = HexToColor3(colors.Color3)
-        local c4 = HexToColor3(colors.Color4)
-        local c5 = HexToColor3(colors.Color5)
-        local c6 = HexToColor3(colors.Color6)
-        local c7 = HexToColor3(colors.Color7)
-        local c8 = HexToColor3(colors.Color8)
-        return {
-            ["Color Hub 1"] = ColorSequence.new({
-                ColorSequenceKeypoint.new(0.00, c1),
-                ColorSequenceKeypoint.new(0.50, c2),
-                ColorSequenceKeypoint.new(1.00, c3)
-            }),
-            ["Color Hub 2"] = c4,
-            ["Color Stroke"] = c5,
-            ["Color Theme"] = c6,
-            ["Color Text"] = c7,
-            ["Color Dark Text"] = c8
-        }
-    end
-    -- Se não for Custom, retorna o tema padrão
-    return self.Themes[self.Save.Theme] or self.Themes.Purple
-end
-
--- Função para salvar as configurações no arquivo
-local function SaveConfig()
-    if not writefile then return end
-    local data = {}
-    for k, v in pairs(MyLibrary.Save) do
-        if k == "CustomColors" then
-            data[k] = {}
-            for ck, cv in pairs(v) do
-                if type(cv) == "string" and cv:sub(1,1) == "#" then
-                    data[k][ck] = cv
-                else
-                    data[k][ck] = Color3ToHex(cv)
-                end
-            end
-        elseif k == "SavedThemes" then
-            data[k] = {}
-            for themeName, themeData in pairs(v) do
-                data[k][themeName] = {}
-                for tk, tv in pairs(themeData) do
-                    if type(tv) == "string" and tv:sub(1,1) == "#" then
-                        data[k][themeName][tk] = tv
-                    elseif typeof(tv) == "ColorSequence" then
-                        -- ColorSequence não pode ser salvo; ignorar ou tratar
-                        -- Para simplicidade, convertemos para hex dos keypoints
-                        local kps = tv.Keypoints
-                        if #kps >= 3 then
-                            data[k][themeName][tk] = {
-                                kp1 = Color3ToHex(kps[1].Value),
-                                kp2 = Color3ToHex(kps[2].Value),
-                                kp3 = Color3ToHex(kps[3].Value)
-                            }
-                        end
-                    else
-                        data[k][themeName][tk] = tv
-                    end
-                end
-            end
-        else
-            data[k] = v
-        end
-    end
-    local json = HttpService:JSONEncode(data)
-    pcall(writefile, "SAGAZx HUB lib.json", json)
-end
-
--- Função para carregar configurações do arquivo
-local function LoadConfig()
-    if not isfile or not readfile then return end
-    local file = "SAGAZx HUB lib.json"
-    if not isfile(file) then return end
-    local success, data = pcall(function()
-        return HttpService:JSONDecode(readfile(file))
-    end)
-    if not success or type(data) ~= "table" then return end
-    for k, v in pairs(data) do
-        if MyLibrary.Save[k] ~= nil then
-            MyLibrary.Save[k] = v
-        end
-    end
-    -- Converter cores de hex para Color3 no CustomColors (se já não estiverem)
-    if MyLibrary.Save.CustomColors then
-        for ck, cv in pairs(MyLibrary.Save.CustomColors) do
-            if type(cv) == "string" and cv:sub(1,1) == "#" then
-                MyLibrary.Save.CustomColors[ck] = cv -- manter como string para salvar depois; usaremos HexToColor3 quando necessário
-            end
-        end
-    end
-    -- Converter SavedThemes: cada chave de cor pode ser string ou tabela (para ColorSequence)
-    if MyLibrary.Save.SavedThemes then
-        for themeName, themeData in pairs(MyLibrary.Save.SavedThemes) do
-            for tk, tv in pairs(themeData) do
-                if type(tv) == "string" and tv:sub(1,1) == "#" then
-                    themeData[tk] = tv -- manter string
-                elseif type(tv) == "table" then
-                    -- se for tabela de keypoints, converte para ColorSequence
-                    if tv.kp1 and tv.kp2 and tv.kp3 then
-                        themeData[tk] = ColorSequence.new({
-                            ColorSequenceKeypoint.new(0.00, HexToColor3(tv.kp1)),
-                            ColorSequenceKeypoint.new(0.50, HexToColor3(tv.kp2)),
-                            ColorSequenceKeypoint.new(1.00, HexToColor3(tv.kp3))
-                        })
-                    end
-                end
-            end
-        end
-    end
-end
-
-LoadConfig() -- Carrega configurações iniciais
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
 local UIScale = ViewportSize.Y / 450
@@ -383,7 +108,7 @@ local SetProps, SetChildren, InsertTheme, Create do
 
     Create = function(...)
         local args = {...}
-        if #args < 1 then return end
+        if type(args) ~= "table" then return end
         local new = Instance.new(args[1])
         local Children = {}
 
@@ -399,6 +124,19 @@ local SetProps, SetChildren, InsertTheme, Create do
         end
         return new
     end
+
+    local function Save(file)
+        if readfile and isfile and isfile(file) then
+            local decode = HttpService:JSONDecode(readfile(file))
+            if type(decode) == "table" then
+                if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
+                if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
+                if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
+            end
+        end
+    end
+
+    pcall(Save, "SAGAZx HUB lib.json")
 end
 
 local Funcs = {} do
@@ -412,20 +150,20 @@ local Funcs = {} do
     function Funcs:FireCallback(tab, ...)
         for _, v in ipairs(tab) do
             if type(v) == "function" then
-                v(...) -- chamada direta
+                task.spawn(v, ...)
             end
         end
     end
 
     function Funcs:ToggleVisible(Obj, Bool)
-        Obj.Visible = Bool ~= nil and Bool or not Obj.Visible
+        Obj.Visible = Bool ~= nil and Bool or Obj.Visible
     end
 
     function Funcs:ToggleParent(Obj, Parent)
         if Parent ~= nil then
-            Obj.Parent = (Obj.Parent == Parent) and nil or Parent
+            Obj.Parent = Parent
         else
-            Obj.Parent = nil
+            Obj.Parent = (not Obj.Parent) and Parent or nil
         end
     end
 
@@ -451,7 +189,7 @@ local Funcs = {} do
     function Funcs:GetCallback(Configs, index)
         local func = Configs[index] or Configs.Callback or function() end
         if type(func) == "table" then
-            return { function(Value) func[1][func[2]] = Value end }
+            return ({ function(Value) func[1][func[2]] = Value end })
         end
         return { func }
     end
@@ -489,7 +227,6 @@ local Connections, Connection = {}, MyLibrary.Connection do
 
     function Connection:FireConnection(CoName, ...)
         local Connection = type(CoName) == "string" and Connections[CoName] or Connections[CoName.Name]
-        if not Connection then return end
         for _, Func in pairs(Connection) do
             task.spawn(Func, ...)
         end
@@ -514,33 +251,21 @@ local GetFlag, SetFlag, CheckFlag do
         end
     end
 
-    local saveQueue, isSaving = {}, false
-
-    local function processSaveQueue()
-        if isSaving or #saveQueue == 0 then return end
-        isSaving = true
+    local db
+    Connection.FlagsChanged:Connect(function(Flag, Value)
         local ScriptFile = Settings.ScriptFile
-        if ScriptFile and writefile then
+        if not db and ScriptFile and writefile then
+            db = true; task.wait(0.1); db = false
             local Success, Encoded = pcall(function()
                 return HttpService:JSONEncode(Flags)
             end)
             if Success then
-                local SaveSuccess = pcall(writefile, ScriptFile, Encoded)
-                if SaveSuccess then
+                local Success = pcall(writefile, ScriptFile, Encoded)
+                if Success then
                     Connection:FireConnection("FileSaved", "Script-Flags", ScriptFile, Encoded)
                 end
             end
         end
-        saveQueue = {}
-        isSaving = false
-    end
-
-    Connection.FlagsChanged:Connect(function(Flag, Value)
-        table.insert(saveQueue, {Flag, Value})
-        task.spawn(function()
-            task.wait(1) -- debounce de 1 segundo
-            processSaveQueue()
-        end)
     end)
 end
 
@@ -632,8 +357,6 @@ local function VerifyTheme(Theme)
             return true
         end
     end
-    -- Também aceita "Custom"
-    if Theme == "Custom" then return true end
 end
 
 local function SaveJson(FileName, save)
@@ -643,8 +366,7 @@ local function SaveJson(FileName, save)
     end
 end
 
--- Variável global do tema atual (será atualizada sempre que necessário)
-local Theme = MyLibrary:GetCurrentTheme()
+local Theme = MyLibrary.Themes[MyLibrary.Save.Theme]
 
 local function AddEle(Name, Func)
     MyLibrary.Elements[Name] = Func
@@ -655,8 +377,9 @@ local function Make(Ele, Instance, props, ...)
     return Element
 end
 
--- ==================== ELEMENTOS BÁSICOS ====================
+-- ==================== CORREÇÕES IMPORTANTES ====================
 AddEle("Corner", function(parent, CornerRadius)
+    -- Removida referência à variável `props` que não existia
     local New = SetProps(Create("UICorner", parent, {
         CornerRadius = CornerRadius or UDim.new(0, 7)
     }), nil)
@@ -784,6 +507,7 @@ local function ButtonFrame(Instance, Title, Description, HolderSize)
     return Frame, Label
 end
 
+-- ==================== CORREÇÃO: GetColor agora reconhece TextBox ====================
 local function GetColor(Instance)
     if Instance:IsA("Frame") then
         return "BackgroundColor3"
@@ -823,8 +547,8 @@ function MyLibrary:SetTheme(NewTheme)
     if not VerifyTheme(NewTheme) then return end
 
     MyLibrary.Save.Theme = NewTheme
-    SaveConfig() -- salva a mudança de tema
-    Theme = MyLibrary:GetCurrentTheme()
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    Theme = MyLibrary.Themes[NewTheme]
 
     Connection:FireConnection("ThemeChanged", NewTheme)
 
@@ -851,10 +575,6 @@ function MyLibrary:SetTheme(NewTheme)
             warn("Erro ao atualizar tema para", Val.Instance:GetFullName(), err)
         end
     end
-
-    -- Também atualiza a fonte e transparências
-    ApplyFontToAll(MyLibrary.Save.SelectedFont)
-    ApplyTransparencies()
 end
 
 function MyLibrary:SetScale(NewScale)
@@ -862,1489 +582,12 @@ function MyLibrary:SetScale(NewScale)
     UIScale, ScreenGui.Scale.Scale = NewScale, NewScale
 end
 
--- Função para aplicar a fonte selecionada a todos os textos da interface
-local function ApplyFontToAll(fontName)
-    local fontEnum = Enum.Font[fontName] or Enum.Font.GothamBold
-    for _, val in ipairs(MyLibrary.Instances) do
-        local obj = val.Instance
-        if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-            obj.Font = fontEnum
-        end
-    end
-    -- Também aplicar a descendentes do MainFrame (caso haja algum não registrado)
-    if ScreenGui and ScreenGui:FindFirstChild("Hub") then
-        local main = ScreenGui.Hub
-        for _, desc in ipairs(main:GetDescendants()) do
-            if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
-                desc.Font = fontEnum
-            end
-        end
-    end
-end
-
--- Função para aplicar transparências configuradas
-local function ApplyTransparencies()
-    for _, val in ipairs(MyLibrary.Instances) do
-        local obj = val.Instance
-        if val.Type == "Frame" and obj ~= ScreenGui.Hub and obj ~= ScreenGui.Hub:FindFirstChild("Top Bar") then
-            -- Aplicar transparência de componentes, exceto o MainFrame e TopBar
-            obj.BackgroundTransparency = MyLibrary.Save.ComponentTransparency
-        end
-    end
-    -- Aplicar transparência das abas
-    for _, tab in pairs(MyLibrary.Tabs) do
-        local tabButton = tab.func and tab.func.TabSelect -- referência ao botão da aba
-        if tabButton then
-            tabButton.BackgroundTransparency = MyLibrary.Save.TabTransparency
-        end
-    end
-end
-
--- Função para aplicar imagem de fundo do hub
-local function ApplyHubImage()
-    local main = ScreenGui:FindFirstChild("Hub")
-    if main and main:IsA("ImageButton") then
-        if MyLibrary.Save.HubImage ~= "" then
-            main.Image = MyLibrary.Save.HubImage
-            main.ImageTransparency = MyLibrary.Save.HubImageTransparency
-        else
-            main.Image = "" -- remove imagem
-            main.ImageTransparency = 1
-        end
-    end
-end
-
--- Função para aplicar ícone do hub (se houver um label de ícone no topo)
-local function ApplyHubIcon()
-    local main = ScreenGui:FindFirstChild("Hub")
-    if main then
-        local iconLabel = main:FindFirstChild("IconLabel")
-        if iconLabel and iconLabel:IsA("ImageLabel") then
-            if MyLibrary.Save.HubIcon ~= "" then
-                iconLabel.Image = MyLibrary.Save.HubIcon
-            else
-                iconLabel.Image = ""
-            end
-        end
-    end
-end
-
--- Função global para salvar configurações (será chamada por elementos da UI de config)
-function MyLibrary:SaveSettings()
-    SaveConfig()
-end
-
--- ==================== INTERFACE DE CONFIGURAÇÃO ====================
--- Esta parte será construída quando o botão de config for clicado.
--- Vamos incluir o código adaptado do fornecido.
-
-local ConfigUI = nil -- referência ao frame de configuração
-
-local function CreateConfigGUI()
-    if ConfigUI then
-        ConfigUI.Visible = not ConfigUI.Visible
-        return
-    end
-
-    -- Cria a janela de configuração dentro da ScreenGui existente
-    ConfigUI = Create("Frame", ScreenGui, {
-        Name = "EditarHubGui",
-        Size = UDim2.fromOffset(250, 300),
-        Position = UDim2.new(0.5, -125, 0.5, -150),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 35),
-        BorderSizePixel = 0,
-        Visible = true,
-        Active = true,
-        ZIndex = 100
-    })
-    Make("Corner", ConfigUI, UDim.new(0, 8))
-    local ConfigStroke = Make("Stroke", ConfigUI, { Color = Color3.fromRGB(70, 70, 85), Thickness = 2 })
-
-    -- Barra superior
-    local TopBar = Create("Frame", ConfigUI, {
-        Name = "TopBar",
-        Size = UDim2.new(1, 0, 0, 35),
-        BackgroundColor3 = Color3.fromRGB(45, 45, 55),
-        BorderSizePixel = 0
-    })
-    Make("Corner", TopBar, UDim.new(0, 8))
-
-    local TitleLabel = Create("TextLabel", TopBar, {
-        Name = "TitleLabel",
-        Size = UDim2.new(1, -45, 1, 0),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "Editar Hub",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 16,
-        Font = Enum.Font.SourceSansBold,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    local CloseButton = Create("TextButton", TopBar, {
-        Name = "CloseButton",
-        Size = UDim2.new(0, 25, 0, 25),
-        Position = UDim2.new(1, -31, 0.5, -12),
-        BackgroundColor3 = Color3.fromRGB(220, 60, 60),
-        Text = "X",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        Font = Enum.Font.SourceSansBold,
-        BorderSizePixel = 0
-    })
-    Make("Corner", CloseButton, UDim.new(0, 5))
-    CloseButton.MouseButton1Click:Connect(function()
-        ConfigUI.Visible = false
-    end)
-
-    -- Frame de navegação
-    local NavFrame = Create("Frame", ConfigUI, {
-        Name = "NavFrame",
-        Size = UDim2.new(1, -12, 0, 30),
-        Position = UDim2.new(0, 6, 0, 42),
-        BackgroundTransparency = 1
-    })
-
-    local NavListLayout = Create("UIListLayout", NavFrame, {
-        FillDirection = Enum.FillDirection.Horizontal,
-        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 2)
-    })
-
-    -- Container de conteúdo
-    local ContentFrame = Create("Frame", ConfigUI, {
-        Name = "ContentFrame",
-        Size = UDim2.new(1, -12, 1, -80),
-        Position = UDim2.new(0, 6, 0, 75),
-        BackgroundTransparency = 1,
-        ClipsDescendants = true
-    })
-
-    local tabButtons = {}
-    local tabPages = {}
-    local buttons = {"Cores", "Imagens", "Temas", "Fontes", "Extras", "Config"}
-
-    local COLOR_ACTIVE = Color3.fromRGB(0, 120, 215)
-    local COLOR_INACTIVE = Color3.fromRGB(50, 50, 65)
-
-    local function selectTab(tabName)
-        for name, button in pairs(tabButtons) do
-            local page = tabPages[name]
-            if name == tabName then
-                button.BackgroundColor3 = COLOR_ACTIVE
-                page.Visible = true
-            else
-                button.BackgroundColor3 = COLOR_INACTIVE
-                page.Visible = false
-            end
-        end
-    end
-
-    -- Criar abas
-    for index, btnText in ipairs(buttons) do
-        local btn = Create("TextButton", NavFrame, {
-            Name = btnText .. "Btn",
-            LayoutOrder = index,
-            Size = UDim2.new(1/#buttons, -2, 1, 0),
-            BackgroundColor3 = COLOR_INACTIVE,
-            Text = btnText,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 9,
-            Font = Enum.Font.SourceSansSemibold,
-            BorderSizePixel = 0
-        })
-        Make("Corner", btn, UDim.new(0, 6))
-        tabButtons[btnText] = btn
-
-        local scroll = Create("ScrollingFrame", ContentFrame, {
-            Name = btnText .. "Scroll",
-            Size = UDim2.new(1, 0, 1, 0),
-            BackgroundColor3 = Color3.fromRGB(22, 22, 26),
-            BorderSizePixel = 0,
-            ScrollBarThickness = 4,
-            ScrollBarImageColor3 = Color3.fromRGB(100, 100, 120),
-            Visible = false,
-            CanvasSize = UDim2.new(0,0,0,0),
-            AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            ScrollingDirection = Enum.ScrollingDirection.Y
-        })
-        Make("Corner", scroll, UDim.new(0, 6))
-
-        local padding = Create("UIPadding", scroll, {
-            PaddingTop = UDim.new(0, 5),
-            PaddingBottom = UDim.new(0, 5),
-            PaddingLeft = UDim.new(0, 5),
-            PaddingRight = UDim.new(0, 5)
-        })
-
-        if btnText ~= "Fontes" then
-            local listLayout = Create("UIListLayout", scroll, {
-                SortOrder = Enum.SortOrder.LayoutOrder,
-                Padding = UDim.new(0, 6)
-            })
-            listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-                scroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
-            end)
-        end
-
-        tabPages[btnText] = scroll
-        btn.MouseButton1Click:Connect(function()
-            selectTab(btnText)
-        end)
-    end
-
-    -- ==================== ABA CORES ====================
-    local coresScroll = tabPages["Cores"]
-    local colorItems = {}
-    local colorTargets = { -- mapeia cada cor para uma chave no Save.CustomColors
-        "Color1", "Color2", "Color3", "Color4", "Color5", "Color6", "Color7", "Color8"
-    }
-
-    -- Função para atualizar a cor em tempo real e salvar
-    local function updateColor(itemIndex, newColor)
-        local key = colorTargets[itemIndex]
-        if key then
-            MyLibrary.Save.CustomColors[key] = Color3ToHex(newColor)
-            Theme = MyLibrary:GetCurrentTheme() -- atualiza tema global
-            -- Aplica a cor aos elementos correspondentes
-            MyLibrary:SetTheme(MyLibrary.Save.Theme) -- reaproveita para aplicar tudo
-            SaveConfig()
-        end
-    end
-
-    for i = 1, 8 do
-        local itemFrame = Create("Frame", coresScroll, {
-            Name = "ColorItem_" .. i,
-            Size = UDim2.new(1, 0, 0, 48),
-            BackgroundColor3 = Color3.fromRGB(32, 32, 40),
-            BorderSizePixel = 0
-        })
-        Make("Corner", itemFrame, UDim.new(0, 6))
-
-        local itemTitleLabel = Create("TextLabel", itemFrame, {
-            Name = "ItemTitle",
-            Size = UDim2.new(1, -10, 0, 16),
-            Position = UDim2.new(0, 5, 0, 4),
-            BackgroundTransparency = 1,
-            Text = "Cor " .. i,
-            TextColor3 = Color3.fromRGB(170, 170, 190),
-            TextSize = 10,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-
-        local rgbBox = Create("TextBox", itemFrame, {
-            Name = "RGBInput",
-            Size = UDim2.new(1, -104, 0, 20),
-            Position = UDim2.new(0, 5, 0, 22),
-            BackgroundColor3 = Color3.fromRGB(20, 20, 25),
-            Text = "",
-            TextColor3 = Color3.fromRGB(220, 220, 230),
-            TextSize = 10,
-            Font = Enum.Font.GothamSemibold,
-            ClearTextOnFocus = false,
-            BorderSizePixel = 0
-        })
-        Make("Corner", rgbBox, UDim.new(0, 4))
-        local rgbStroke = Make("Stroke", rgbBox, { Color = Color3.fromRGB(55, 55, 70), Thickness = 1 })
-
-        local colorBtn = Create("ImageButton", itemFrame, {
-            Name = "ColorFrame",
-            Size = UDim2.new(0, 20, 0, 20),
-            Position = UDim2.new(1, -92, 0, 22),
-            BackgroundColor3 = HexToColor3(MyLibrary.Save.CustomColors[colorTargets[i]]),
-            AutoButtonColor = false,
-            Image = ""
-        })
-        Make("Corner", colorBtn, UDim.new(0, 4))
-        local colorBtnStroke = Make("Stroke", colorBtn, { Color = Color3.fromRGB(80, 80, 100), Thickness = 1 })
-
-        local hexBox = Create("TextBox", itemFrame, {
-            Name = "HexInput",
-            Size = UDim2.new(0, 62, 0, 20),
-            Position = UDim2.new(1, -67, 0, 22),
-            BackgroundColor3 = Color3.fromRGB(20, 20, 25),
-            Text = MyLibrary.Save.CustomColors[colorTargets[i]],
-            TextColor3 = HexToColor3(MyLibrary.Save.CustomColors[colorTargets[i]]),
-            TextSize = 10,
-            Font = Enum.Font.GothamBold,
-            ClearTextOnFocus = false,
-            BorderSizePixel = 0
-        })
-        Make("Corner", hexBox, UDim.new(0, 4))
-        local hexStroke = Make("Stroke", hexBox, { Color = Color3.fromRGB(55, 55, 70), Thickness = 1 })
-
-        rgbBox.Focused:Connect(function() rgbStroke.Color = Color3.fromRGB(0, 120, 215) end)
-        hexBox.Focused:Connect(function() hexStroke.Color = Color3.fromRGB(0, 120, 215) end)
-
-        colorBtn.MouseButton1Click:Connect(function()
-            -- Abrir color picker (reutilizar o código do fornecido)
-            openPickerForConfig(colorBtn, rgbBox, hexBox, function(newColor)
-                updateColor(i, newColor)
-            end)
-        end)
-
-        hexBox.FocusLost:Connect(function()
-            hexStroke.Color = Color3.fromRGB(55, 55, 70)
-            local hexText = hexBox.Text:gsub("#", "")
-            if #hexText == 6 and tonumber(hexText, 16) then
-                local success, newColor = pcall(function()
-                    return Color3.fromHex(hexText)
-                end)
-                if success and newColor then
-                    colorBtn.BackgroundColor3 = newColor
-                    local r = math.round(newColor.R * 255)
-                    local g = math.round(newColor.G * 255)
-                    local b = math.round(newColor.B * 255)
-                    rgbBox.Text = r .. ", " .. g .. ", " .. b
-                    hexBox.Text = "#" .. hexText:upper()
-                    hexBox.TextColor3 = newColor
-                    updateColor(i, newColor)
-                end
-            else
-                local cur = colorBtn.BackgroundColor3
-                hexBox.Text = Color3ToHex(cur)
-                hexBox.TextColor3 = cur
-            end
-        end)
-
-        rgbBox.FocusLost:Connect(function()
-            rgbStroke.Color = Color3.fromRGB(55, 55, 70)
-            local r, g, b = rgbBox.Text:match("(%d+),%s*(%d+),%s*(%d+)")
-            if r and g and b then
-                r = math.clamp(tonumber(r), 0, 255)
-                g = math.clamp(tonumber(g), 0, 255)
-                b = math.clamp(tonumber(b), 0, 255)
-                local newColor = Color3.fromRGB(r, g, b)
-                colorBtn.BackgroundColor3 = newColor
-                rgbBox.Text = r .. ", " .. g .. ", " .. b
-                hexBox.Text = Color3ToHex(newColor)
-                hexBox.TextColor3 = newColor
-                updateColor(i, newColor)
-            else
-                local cur = colorBtn.BackgroundColor3
-                rgbBox.Text = math.round(cur.R*255) .. ", " .. math.round(cur.G*255) .. ", " .. math.round(cur.B*255)
-                hexBox.Text = Color3ToHex(cur)
-                hexBox.TextColor3 = cur
-            end
-        end)
-
-        colorItems[i] = {colorBtn = colorBtn, rgbBox = rgbBox, hexBox = hexBox}
-    end
-
-    -- ==================== POPUP COLOR PICKER (adaptado) ====================
-    local ColorPickerFrame = Create("Frame", ConfigUI, {
-        Name = "ColorPickerFrame",
-        Size = UDim2.fromOffset(230, 230),
-        Position = UDim2.new(0.5, -115, 0.5, -115),
-        BackgroundColor3 = Color3.fromRGB(35, 35, 42),
-        BorderSizePixel = 0,
-        Visible = false,
-        Active = true,
-        ZIndex = 200
-    })
-    Make("Corner", ColorPickerFrame, UDim.new(0, 8))
-    Make("Stroke", ColorPickerFrame, { Color = Color3.fromRGB(80, 80, 100), Thickness = 2 })
-
-    local PickerTitle = Create("TextLabel", ColorPickerFrame, {
-        Name = "PickerTitle",
-        Size = UDim2.new(1, -16, 0, 22),
-        Position = UDim2.new(0, 8, 0, 4),
-        BackgroundTransparency = 1,
-        Text = "Escolher Cor",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 13,
-        Font = Enum.Font.SourceSansBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 201
-    })
-
-    local PresetContainer = Create("Frame", ColorPickerFrame, {
-        Name = "PresetContainer",
-        Size = UDim2.fromOffset(70, 120),
-        Position = UDim2.fromOffset(8, 28),
-        BackgroundTransparency = 1,
-        ZIndex = 201
-    })
-    local PresetGrid = Create("UIGridLayout", PresetContainer, {
-        CellSize = UDim2.fromOffset(18, 18),
-        CellPadding = UDim2.fromOffset(5, 5)
-    })
-
-    local presetColors = {
-        Color3.fromRGB(255, 0, 0),     Color3.fromRGB(0, 255, 0),     Color3.fromRGB(0, 0, 255),
-        Color3.fromRGB(255, 255, 0),   Color3.fromRGB(0, 255, 255),   Color3.fromRGB(255, 0, 255),
-        Color3.fromRGB(255, 128, 0),   Color3.fromRGB(128, 0, 255),   Color3.fromRGB(0, 200, 100),
-        Color3.fromRGB(255, 255, 255), Color3.fromRGB(120, 120, 120), Color3.fromRGB(0, 0, 0)
-    }
-
-    local ColorMap = Create("Frame", ColorPickerFrame, {
-        Name = "ColorMap",
-        Size = UDim2.fromOffset(130, 120),
-        Position = UDim2.fromOffset(88, 28),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0,
-        ZIndex = 201
-    })
-    Make("Corner", ColorMap, UDim.new(0, 4))
-    local HueGradient = Create("UIGradient", ColorMap, {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-            ColorSequenceKeypoint.new(0.166, Color3.fromRGB(255, 255, 0)),
-            ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
-            ColorSequenceKeypoint.new(0.666, Color3.fromRGB(0, 0, 255)),
-            ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
-        })
-    })
-
-    local SaturationOverlay = Create("Frame", ColorMap, {
-        Name = "SaturationOverlay",
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0,
-        ZIndex = 202
-    })
-    Make("Corner", SaturationOverlay, UDim.new(0, 4))
-    local SaturationGradient = Create("UIGradient", SaturationOverlay, {
-        Rotation = 90,
-        Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 1),
-            NumberSequenceKeypoint.new(1, 0)
-        })
-    })
-
-    local MapPointer = Create("Frame", ColorMap, {
-        Name = "MapPointer",
-        Size = UDim2.fromOffset(8, 8),
-        Position = UDim2.new(0.5, -4, 0.5, -4),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 1,
-        BorderColor3 = Color3.fromRGB(0, 0, 0),
-        ZIndex = 203
-    })
-    Make("Corner", MapPointer, UDim.new(1, 0))
-
-    local ValueSliderFrame = Create("Frame", ColorPickerFrame, {
-        Name = "ValueSliderFrame",
-        Size = UDim2.new(1, -16, 0, 14),
-        Position = UDim2.new(0, 8, 0, 156),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0,
-        ZIndex = 201
-    })
-    Make("Corner", ValueSliderFrame, UDim.new(0, 4))
-    local ValueGradient = Create("UIGradient", ValueSliderFrame)
-
-    local ValuePointer = Create("Frame", ValueSliderFrame, {
-        Name = "ValuePointer",
-        Size = UDim2.new(0, 8, 1, 4),
-        Position = UDim2.new(1, -4, 0.5, -9),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0,
-        ZIndex = 202
-    })
-    Make("Corner", ValuePointer, UDim.new(0, 3))
-    Make("Stroke", ValuePointer, { Color = Color3.fromRGB(0, 0, 0), Thickness = 1.5 })
-
-    local OkButton = Create("TextButton", ColorPickerFrame, {
-        Name = "OkButton",
-        Size = UDim2.new(0.65, -12, 0, 28),
-        Position = UDim2.new(0, 8, 1, -34),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0,
-        Text = "Aplicar Cor",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 12,
-        Font = Enum.Font.SourceSansBold,
-        ZIndex = 201
-    })
-    Make("Corner", OkButton, UDim.new(0, 6))
-
-    local CancelButton = Create("TextButton", ColorPickerFrame, {
-        Name = "CancelButton",
-        Size = UDim2.new(0.35, -8, 0, 28),
-        Position = UDim2.new(0.65, 2, 1, -34),
-        BackgroundColor3 = Color3.fromRGB(180, 50, 50),
-        BorderSizePixel = 0,
-        Text = "Cancelar",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 12,
-        Font = Enum.Font.SourceSansBold,
-        ZIndex = 201
-    })
-    Make("Corner", CancelButton, UDim.new(0, 6))
-
-    -- Lógica do picker
-    local currentHue = 0
-    local currentSat = 1
-    local currentVal = 1
-    local previewColor = Color3.fromRGB(255, 255, 255)
-    local activeColorTarget = nil -- {colorBtn, rgbBox, hexBox, callback}
-
-    local function updatePickerVisuals()
-        local pureColor = Color3.fromHSV(currentHue, currentSat, 1)
-        ValueGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
-            ColorSequenceKeypoint.new(1, pureColor)
-        })
-        previewColor = Color3.fromHSV(currentHue, currentSat, currentVal)
-        OkButton.BackgroundColor3 = previewColor
-        local brightness = (previewColor.R * 0.299) + (previewColor.G * 0.587) + (previewColor.B * 0.114)
-        OkButton.TextColor3 = brightness > 0.5 and Color3.fromRGB(20, 20, 20) or Color3.fromRGB(255, 255, 255)
-    end
-
-    local draggingMap = false
-    local draggingSlider = false
-
-    local function updateMapInput(input)
-        local absPos = ColorMap.AbsolutePosition
-        local absSize = ColorMap.AbsoluteSize
-        local mouseX = math.clamp(input.Position.X - absPos.X, 0, absSize.X)
-        local mouseY = math.clamp(input.Position.Y - absPos.Y, 0, absSize.Y)
-        currentHue = mouseX / absSize.X
-        currentSat = 1 - (mouseY / absSize.Y)
-        MapPointer.Position = UDim2.new(0, mouseX - 4, 0, mouseY - 4)
-        updatePickerVisuals()
-    end
-
-    local function updateSliderInput(input)
-        local absPos = ValueSliderFrame.AbsolutePosition
-        local absSize = ValueSliderFrame.AbsoluteSize
-        local mouseX = math.clamp(input.Position.X - absPos.X, 0, absSize.X)
-        currentVal = mouseX / absSize.X
-        ValuePointer.Position = UDim2.new(0, mouseX - 4, 0.5, -9)
-        updatePickerVisuals()
-    end
-
-    ColorMap.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingMap = true
-            updateMapInput(input)
-        end
-    end)
-
-    ValueSliderFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingSlider = true
-            updateSliderInput(input)
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingMap = false
-            draggingSlider = false
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            if draggingMap then
-                updateMapInput(input)
-            elseif draggingSlider then
-                updateSliderInput(input)
-            end
-        end
-    end)
-
-    for _, color in ipairs(presetColors) do
-        local pBtn = Create("TextButton", PresetContainer, {
-            BackgroundColor3 = color,
-            Text = "",
-            BorderSizePixel = 0,
-            ZIndex = 201
-        })
-        Make("Corner", pBtn, UDim.new(0, 3))
-        pBtn.MouseButton1Click:Connect(function()
-            local h, s, v = color:ToHSV()
-            currentHue = h
-            currentSat = s
-            currentVal = v
-            MapPointer.Position = UDim2.new(currentHue, -4, 1 - currentSat, -4)
-            ValuePointer.Position = UDim2.new(currentVal, -4, 0.5, -9)
-            updatePickerVisuals()
-        end)
-    end
-
-    local function openPickerForConfig(colorFrame, rgbBox, hexBox, callback)
-        activeColorTarget = { colorFrame = colorFrame, rgbBox = rgbBox, hexBox = hexBox, callback = callback }
-        local startColor = colorFrame.BackgroundColor3
-        local h, s, v = startColor:ToHSV()
-        currentHue = h
-        currentSat = s
-        currentVal = v
-        MapPointer.Position = UDim2.new(currentHue, -4, 1 - currentSat, -4)
-        ValuePointer.Position = UDim2.new(currentVal, -4, 0.5, -9)
-        updatePickerVisuals()
-        ColorPickerFrame.Visible = true
-    end
-
-    OkButton.MouseButton1Click:Connect(function()
-        if activeColorTarget then
-            activeColorTarget.colorFrame.BackgroundColor3 = previewColor
-            local r = math.round(previewColor.R * 255)
-            local g = math.round(previewColor.G * 255)
-            local b = math.round(previewColor.B * 255)
-            activeColorTarget.rgbBox.Text = r .. ", " .. g .. ", " .. b
-            activeColorTarget.hexBox.Text = Color3ToHex(previewColor)
-            activeColorTarget.hexBox.TextColor3 = previewColor
-            if activeColorTarget.callback then
-                activeColorTarget.callback(previewColor)
-            end
-        end
-        ColorPickerFrame.Visible = false
-    end)
-
-    CancelButton.MouseButton1Click:Connect(function()
-        ColorPickerFrame.Visible = false
-    end)
-
-    -- ==================== ABA IMAGENS ====================
-    local imagensScroll = tabPages["Imagens"]
-
-    local function createImageInputField(titleText, placeholder, saveKey)
-        local container = Create("Frame", imagensScroll, {
-            Name = titleText .. "_Container",
-            Size = UDim2.new(1, 0, 0, 52),
-            BackgroundColor3 = Color3.fromRGB(32, 32, 40),
-            BorderSizePixel = 0
-        })
-        Make("Corner", container, UDim.new(0, 6))
-
-        local titleLabel = Create("TextLabel", container, {
-            Name = "Label",
-            Size = UDim2.new(1, -12, 0, 18),
-            Position = UDim2.new(0, 6, 0, 4),
-            BackgroundTransparency = 1,
-            Text = titleText,
-            TextColor3 = Color3.fromRGB(200, 200, 220),
-            TextSize = 11,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-
-        local textBox = Create("TextBox", container, {
-            Name = "Input",
-            Size = UDim2.new(1, -12, 0, 22),
-            Position = UDim2.new(0, 6, 0, 24),
-            BackgroundColor3 = Color3.fromRGB(20, 20, 25),
-            Text = MyLibrary.Save[saveKey] or "",
-            PlaceholderText = placeholder or "rbxassetid://...",
-            PlaceholderColor3 = Color3.fromRGB(100, 100, 115),
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 10,
-            Font = Enum.Font.GothamSemibold,
-            ClearTextOnFocus = false,
-            BorderSizePixel = 0
-        })
-        Make("Corner", textBox, UDim.new(0, 4))
-        local boxStroke = Make("Stroke", textBox, { Color = Color3.fromRGB(55, 55, 70), Thickness = 1 })
-
-        textBox.Focused:Connect(function() boxStroke.Color = Color3.fromRGB(0, 120, 215) end)
-        textBox.FocusLost:Connect(function()
-            boxStroke.Color = Color3.fromRGB(55, 55, 70)
-            MyLibrary.Save[saveKey] = textBox.Text
-            SaveConfig()
-            if saveKey == "HubImage" then
-                ApplyHubImage()
-            elseif saveKey == "HubIcon" then
-                ApplyHubIcon()
-            end
-        end)
-
-        return textBox
-    end
-
-    createImageInputField("Imagem do Hub", "Cole o ID ou URL da imagem...", "HubImage")
-    createImageInputField("Imagem do Icon do Hub", "Cole o ID ou URL do ícone...", "HubIcon")
-
-    local function createSlider(parentScroll, sliderTitle, initialValue, callback)
-        local sliderContainer = Create("Frame", parentScroll, {
-            Name = sliderTitle .. "_Container",
-            Size = UDim2.new(1, 0, 0, 56),
-            BackgroundColor3 = Color3.fromRGB(32, 32, 40),
-            BorderSizePixel = 0
-        })
-        Make("Corner", sliderContainer, UDim.new(0, 6))
-
-        local sliderTitleLabel = Create("TextLabel", sliderContainer, {
-            Name = "TitleLabel",
-            Size = UDim2.new(1, -50, 0, 18),
-            Position = UDim2.new(0, 6, 0, 4),
-            BackgroundTransparency = 1,
-            Text = sliderTitle,
-            TextColor3 = Color3.fromRGB(200, 200, 220),
-            TextSize = 10,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-
-        local sliderValueLabel = Create("TextLabel", sliderContainer, {
-            Name = "ValueLabel",
-            Size = UDim2.new(0, 40, 0, 18),
-            Position = UDim2.new(1, -46, 0, 4),
-            BackgroundTransparency = 1,
-            Text = math.round(initialValue * 100) .. "%",
-            TextColor3 = Color3.fromRGB(0, 180, 255),
-            TextSize = 10,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Right
-        })
-
-        local sliderBar = Create("Frame", sliderContainer, {
-            Name = "SliderBar",
-            Size = UDim2.new(1, -16, 0, 8),
-            Position = UDim2.new(0, 8, 0, 30),
-            BackgroundColor3 = Color3.fromRGB(20, 20, 25),
-            BorderSizePixel = 0
-        })
-        Make("Corner", sliderBar, UDim.new(1, 0))
-
-        local sliderFill = Create("Frame", sliderBar, {
-            Name = "SliderFill",
-            Size = UDim2.new(initialValue, 0, 1, 0),
-            BackgroundColor3 = Color3.fromRGB(0, 120, 215),
-            BorderSizePixel = 0
-        })
-        Make("Corner", sliderFill, UDim.new(1, 0))
-
-        local sliderKnob = Create("Frame", sliderBar, {
-            Name = "SliderKnob",
-            Size = UDim2.new(0, 14, 0, 14),
-            Position = UDim2.new(initialValue, -7, 0.5, -7),
-            BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-            BorderSizePixel = 0
-        })
-        Make("Corner", sliderKnob, UDim.new(1, 0))
-
-        local dragging = false
-
-        local function update(input)
-            local absPos = sliderBar.AbsolutePosition
-            local absSize = sliderBar.AbsoluteSize
-            local mouseX = math.clamp(input.Position.X - absPos.X, 0, absSize.X)
-            local alpha = mouseX / absSize.X
-            sliderFill.Size = UDim2.new(alpha, 0, 1, 0)
-            sliderKnob.Position = UDim2.new(alpha, -7, 0.5, -7)
-            sliderValueLabel.Text = math.round(alpha * 100) .. "%"
-            if callback then callback(alpha) end
-        end
-
-        sliderBar.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                update(input)
-            end
-        end)
-
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = false
-            end
-        end)
-
-        UserInputService.InputChanged:Connect(function(input)
-            if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and dragging then
-                update(input)
-            end
-        end)
-    end
-
-    createSlider(imagensScroll, "Transparência da imagem do Hub", MyLibrary.Save.HubImageTransparency, function(alpha)
-        MyLibrary.Save.HubImageTransparency = alpha
-        ApplyHubImage()
-        SaveConfig()
-    end)
-
-    createSlider(imagensScroll, "Transparência dos Componentes", MyLibrary.Save.ComponentTransparency, function(alpha)
-        MyLibrary.Save.ComponentTransparency = alpha
-        ApplyTransparencies()
-        SaveConfig()
-    end)
-
-    createSlider(imagensScroll, "Transparência das Tabs", MyLibrary.Save.TabTransparency, function(alpha)
-        MyLibrary.Save.TabTransparency = alpha
-        ApplyTransparencies()
-        SaveConfig()
-    end)
-
-    -- ==================== ABA TEMAS ====================
-    local temasScroll = tabPages["Temas"]
-    local allDropdowns = {}
-
-    local function createRedzDropdown(parentScroll, titleText, options, callback, initialSelected)
-        local dropdownData = {}
-        local container = Create("Frame", parentScroll, {
-            Name = titleText .. "_Dropdown",
-            Size = UDim2.new(1, 0, 0, 38),
-            BackgroundColor3 = Color3.fromRGB(32, 32, 40),
-            BorderSizePixel = 0,
-            ClipsDescendants = true
-        })
-        Make("Corner", container, UDim.new(0, 6))
-
-        local headerButton = Create("TextButton", container, {
-            Name = "HeaderButton",
-            Size = UDim2.new(1, 0, 0, 38),
-            BackgroundTransparency = 1,
-            Text = ""
-        })
-
-        local titleLabel = Create("TextLabel", headerButton, {
-            Name = "TitleLabel",
-            Size = UDim2.new(1, -110, 0, 16),
-            Position = UDim2.new(0, 8, 0, 4),
-            BackgroundTransparency = 1,
-            Text = titleText,
-            TextColor3 = Color3.fromRGB(200, 200, 220),
-            TextSize = 10,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-
-        local selectedLabel = Create("TextLabel", headerButton, {
-            Name = "SelectedLabel",
-            Size = UDim2.new(1, -30, 0, 14),
-            Position = UDim2.new(0, 8, 0, 20),
-            BackgroundTransparency = 1,
-            Text = initialSelected or options[1] or "Nenhum",
-            TextColor3 = Color3.fromRGB(0, 180, 255),
-            TextSize = 10,
-            Font = Enum.Font.GothamSemibold,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-
-        local arrowIcon = Create("TextLabel", headerButton, {
-            Name = "Arrow",
-            Size = UDim2.new(0, 20, 0, 20),
-            Position = UDim2.new(1, -24, 0.5, -10),
-            BackgroundTransparency = 1,
-            Text = "v",
-            TextColor3 = Color3.fromRGB(150, 150, 170),
-            TextSize = 12,
-            Font = Enum.Font.GothamBold
-        })
-
-        local optionsFrame = Create("Frame", container, {
-            Name = "OptionsFrame",
-            Size = UDim2.new(1, -12, 0, 0),
-            Position = UDim2.new(0, 6, 0, 38),
-            BackgroundTransparency = 1
-        })
-        local optionsLayout = Create("UIListLayout", optionsFrame, {
-            SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 3)
-        })
-
-        local isOpen = false
-
-        local function toggleDropdown()
-            isOpen = not isOpen
-            local targetHeight = 38
-            if isOpen then
-                targetHeight = 38 + optionsLayout.AbsoluteContentSize.Y + 6
-                arrowIcon.Text = "^"
-            else
-                arrowIcon.Text = "v"
-            end
-            container.Size = UDim2.new(1, 0, 0, targetHeight)
-        end
-
-        headerButton.MouseButton1Click:Connect(toggleDropdown)
-
-        local function addOptionButton(optText)
-            local optBtn = Create("TextButton", optionsFrame, {
-                Name = optText .. "_Opt",
-                Size = UDim2.new(1, 0, 0, 22),
-                BackgroundColor3 = Color3.fromRGB(24, 24, 30),
-                Text = "  " .. optText,
-                TextColor3 = Color3.fromRGB(180, 180, 200),
-                TextSize = 10,
-                Font = Enum.Font.GothamSemibold,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                BorderSizePixel = 0
-            })
-            Make("Corner", optBtn, UDim.new(0, 4))
-            optBtn.MouseButton1Click:Connect(function()
-                selectedLabel.Text = optText
-                toggleDropdown()
-                if callback then callback(optText) end
-            end)
-        end
-
-        for _, optText in ipairs(options) do
-            addOptionButton(optText)
-        end
-
-        optionsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            if isOpen then
-                container.Size = UDim2.new(1, 0, 0, 38 + optionsLayout.AbsoluteContentSize.Y + 6)
-            end
-        end)
-
-        dropdownData.Container = container
-        dropdownData.getSelectedText = function() return selectedLabel.Text end
-        dropdownData.addOption = function(optText) addOptionButton(optText) end
-        dropdownData.setSelected = function(optText) selectedLabel.Text = optText end
-
-        table.insert(allDropdowns, dropdownData)
-        return dropdownData
-    end
-
-    -- Dropdown de temas de cores definidas
-    local predefinedThemes = {}
-    for name, _ in pairs(MyLibrary.Themes) do
-        table.insert(predefinedThemes, name)
-    end
-    table.insert(predefinedThemes, "Custom") -- permite custom
-
-    createRedzDropdown(temasScroll, "Temas Com Cores Definidas", predefinedThemes, function(selectedTheme)
-        MyLibrary:SetTheme(selectedTheme)
-        SaveConfig()
-    end, MyLibrary.Save.Theme)
-
-    -- Dropdown de temas com imagens
-    local imageThemes = {"Nenhuma", "Cyberpunk City", "Anime Landscape", "Space Galaxy", "Abstract Geometry", "Matrix Rain"}
-    local imageThemeIDs = {
-        ["Nenhuma"] = "",
-        ["Cyberpunk City"] = "rbxassetid://1234567890", -- substitua pelos IDs reais
-        ["Anime Landscape"] = "rbxassetid://1234567891",
-        ["Space Galaxy"] = "rbxassetid://1234567892",
-        ["Abstract Geometry"] = "rbxassetid://1234567893",
-        ["Matrix Rain"] = "rbxassetid://1234567894"
-    }
-    createRedzDropdown(temasScroll, "Temas Com Imagens Definidas", imageThemes, function(selectedImageTheme)
-        local imgId = imageThemeIDs[selectedImageTheme] or ""
-        MyLibrary.Save.HubImage = imgId
-        ApplyHubImage()
-        SaveConfig()
-    end, MyLibrary.Save.HubImage ~= "" and "Imagem Personalizada" or "Nenhuma")
-
-    -- Dropdown de temas salvos
-    local savedThemesList = {}
-    for name, _ in pairs(MyLibrary.Save.SavedThemes) do
-        table.insert(savedThemesList, name)
-    end
-    local savedThemesDropdown = createRedzDropdown(temasScroll, "Temas Salvos", savedThemesList, function(selectedTheme)
-        MyLibrary.Save.CustomThemeName = selectedTheme
-        MyLibrary.Save.Theme = "Custom"
-        MyLibrary:SetTheme("Custom")
-        SaveConfig()
-    end, MyLibrary.Save.CustomThemeName or "")
-
-    -- Container de salvar tema personalizado
-    local saveContainer = Create("Frame", temasScroll, {
-        Name = "SaveTheme_Container",
-        Size = UDim2.new(1, 0, 0, 84),
-        BackgroundColor3 = Color3.fromRGB(32, 32, 40),
-        BorderSizePixel = 0
-    })
-    Make("Corner", saveContainer, UDim.new(0, 6))
-
-    local saveTitleLabel = Create("TextLabel", saveContainer, {
-        Name = "TitleLabel",
-        Size = UDim2.new(1, -12, 0, 18),
-        Position = UDim2.new(0, 6, 0, 4),
-        BackgroundTransparency = 1,
-        Text = "Salvar Seu Tema",
-        TextColor3 = Color3.fromRGB(200, 200, 220),
-        TextSize = 11,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    local saveNameBox = Create("TextBox", saveContainer, {
-        Name = "ThemeNameInput",
-        Size = UDim2.new(1, -12, 0, 22),
-        Position = UDim2.new(0, 6, 0, 24),
-        BackgroundColor3 = Color3.fromRGB(20, 20, 25),
-        Text = "",
-        PlaceholderText = "Digite o nome do seu tema...",
-        PlaceholderColor3 = Color3.fromRGB(100, 100, 115),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 10,
-        Font = Enum.Font.GothamSemibold,
-        ClearTextOnFocus = false,
-        BorderSizePixel = 0
-    })
-    Make("Corner", saveNameBox, UDim.new(0, 4))
-    Make("Stroke", saveNameBox, { Color = Color3.fromRGB(55, 55, 70), Thickness = 1 })
-
-    local saveBtn = Create("TextButton", saveContainer, {
-        Name = "SaveButton",
-        Size = UDim2.new(1, -12, 0, 24),
-        Position = UDim2.new(0, 6, 0, 52),
-        BackgroundColor3 = Color3.fromRGB(0, 120, 215),
-        Text = "Salvar Tema",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 11,
-        Font = Enum.Font.GothamBold,
-        BorderSizePixel = 0
-    })
-    Make("Corner", saveBtn, UDim.new(0, 4))
-
-    saveBtn.MouseButton1Click:Connect(function()
-        local name = saveNameBox.Text
-        if name ~= "" then
-            -- Salva o tema atual (cores, imagem, etc)
-            local themeSnapshot = {}
-            -- Salva as cores atuais do tema (convertendo para hex)
-            local currentTheme = MyLibrary:GetCurrentTheme()
-            for k, v in pairs(currentTheme) do
-                if k == "Color Hub 1" then
-                    -- ColorSequence: salva keypoints como tabela
-                    local kps = v.Keypoints
-                    themeSnapshot[k] = {
-                        kp1 = Color3ToHex(kps[1].Value),
-                        kp2 = Color3ToHex(kps[2].Value),
-                        kp3 = Color3ToHex(kps[3].Value)
-                    }
-                else
-                    themeSnapshot[k] = Color3ToHex(v)
-                end
-            end
-            -- Também pode salvar outras configs se quiser (imagem, etc.)
-            MyLibrary.Save.SavedThemes[name] = themeSnapshot
-            SaveConfig()
-            savedThemesDropdown.addOption(name)
-            saveNameBox.Text = ""
-        end
-    end)
-
-    -- ==================== ABA FONTES ====================
-    local fontesScroll = tabPages["Fontes"]
-
-    local gridLayout = Create("UIGridLayout", fontesScroll, {
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        CellSize = UDim2.fromOffset(52, 32),
-        CellPadding = UDim2.fromOffset(6, 6)
-    })
-
-    gridLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        fontesScroll.CanvasSize = UDim2.new(0, 0, 0, gridLayout.AbsoluteContentSize.Y + 10)
-    end)
-
-    local fontList = {
-        {Name = "Gotham", FontEnum = Enum.Font.GothamBold},
-        {Name = "Source", FontEnum = Enum.Font.SourceSansBold},
-        {Name = "Fredoka", FontEnum = Enum.Font.FredokaOne},
-        {Name = "Amatic", FontEnum = Enum.Font.AmaticSC},
-        {Name = "Creepster", FontEnum = Enum.Font.Creepster},
-        {Name = "Special", FontEnum = Enum.Font.SpecialElite},
-        {Name = "Luckiest", FontEnum = Enum.Font.LuckiestGuy},
-        {Name = "Roboto", FontEnum = Enum.Font.Roboto},
-        {Name = "Arcade", FontEnum = Enum.Font.Arcade},
-        {Name = "Fantasy", FontEnum = Enum.Font.Fantasy},
-        {Name = "Arial", FontEnum = Enum.Font.ArialBold},
-        {Name = "Bodoni", FontEnum = Enum.Font.Bodoni}
-    }
-
-    local fontButtons = {}
-
-    local function applyGlobalFont(fontName)
-        MyLibrary.Save.SelectedFont = fontName
-        ApplyFontToAll(fontName)
-        SaveConfig()
-    end
-
-    for index, fontData in ipairs(fontList) do
-        local fBtn = Create("TextButton", fontesScroll, {
-            Name = fontData.Name .. "_Btn",
-            Size = UDim2.new(1, 0, 0, 32),
-            BackgroundColor3 = (MyLibrary.Save.SelectedFont == fontData.Name) and COLOR_ACTIVE or Color3.fromRGB(32, 32, 40),
-            Text = fontData.Name,
-            TextColor3 = Color3.fromRGB(220, 220, 230),
-            TextSize = 10,
-            Font = fontData.FontEnum,
-            BorderSizePixel = 0
-        })
-        Make("Corner", fBtn, UDim.new(0, 6))
-        table.insert(fontButtons, {Button = fBtn, FontName = fontData.Name, FontEnum = fontData.FontEnum})
-
-        fBtn.MouseButton1Click:Connect(function()
-            for _, item in ipairs(fontButtons) do
-                if item.FontName == fontData.Name then
-                    item.Button.BackgroundColor3 = COLOR_ACTIVE
-                else
-                    item.Button.BackgroundColor3 = Color3.fromRGB(32, 32, 40)
-                end
-            end
-            applyGlobalFont(fontData.Name)
-        end)
-    end
-
-    -- ==================== ABA EXTRAS ====================
-    local extrasScroll = tabPages["Extras"]
-
-    -- Dropdowns de cores e efeitos para bordas animadas
-    local borderColorOptions = {"RGB (Completo)", "Vermelho", "Laranja", "Amarelo", "Verde", "Azul", "Anil", "Violeta"}
-    local borderEffectOptions = {"Girar Gradiente", "Pulsar Brilho", "Onda Fluida", "Neon Strobe", "Fade Suave"}
-
-    createRedzDropdown(extrasScroll, "Cores da Borda", borderColorOptions, function(selected)
-        MyLibrary.Save.BorderColorOption = selected
-        SaveConfig()
-    end, MyLibrary.Save.BorderColorOption)
-
-    createRedzDropdown(extrasScroll, "Efeito da Borda", borderEffectOptions, function(selected)
-        MyLibrary.Save.BorderEffectOption = selected
-        SaveConfig()
-    end, MyLibrary.Save.BorderEffectOption)
-
-    -- Toggle para ativar bordas animadas
-    local toggleContainer = Create("Frame", extrasScroll, {
-        Name = "ToggleBorder_Container",
-        Size = UDim2.new(1, 0, 0, 38),
-        BackgroundColor3 = Color3.fromRGB(32, 32, 40),
-        BorderSizePixel = 0
-    })
-    Make("Corner", toggleContainer, UDim.new(0, 6))
-
-    local toggleTitle = Create("TextLabel", toggleContainer, {
-        Name = "TitleLabel",
-        Size = UDim2.new(1, -55, 1, 0),
-        Position = UDim2.new(0, 8, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "Ativa Bordas Animadas",
-        TextColor3 = Color3.fromRGB(200, 200, 220),
-        TextSize = 10,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    local toggleBtn = Create("TextButton", toggleContainer, {
-        Name = "ToggleButton",
-        Size = UDim2.new(0, 40, 0, 20),
-        Position = UDim2.new(1, -48, 0.5, -10),
-        BackgroundColor3 = MyLibrary.Save.BorderEnabled and Color3.fromRGB(0, 120, 215) or Color3.fromRGB(50, 50, 60),
-        Text = "",
-        BorderSizePixel = 0
-    })
-    Make("Corner", toggleBtn, UDim.new(1, 0))
-
-    local toggleIndicator = Create("Frame", toggleBtn, {
-        Name = "Indicator",
-        Size = UDim2.new(0, 16, 0, 16),
-        Position = MyLibrary.Save.BorderEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
-        BackgroundColor3 = MyLibrary.Save.BorderEnabled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200),
-        BorderSizePixel = 0
-    })
-    Make("Corner", toggleIndicator, UDim.new(1, 0))
-
-    local borderAnimationActive = MyLibrary.Save.BorderEnabled
-
-    toggleBtn.MouseButton1Click:Connect(function()
-        borderAnimationActive = not borderAnimationActive
-        MyLibrary.Save.BorderEnabled = borderAnimationActive
-        SaveConfig()
-        if borderAnimationActive then
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-            toggleIndicator.Position = UDim2.new(1, -18, 0.5, -8)
-            toggleIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        else
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-            toggleIndicator.Position = UDim2.new(0, 2, 0.5, -8)
-            toggleIndicator.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-            -- Restaura stroke padrão do hub
-            local mainStroke = ScreenGui.Hub:FindFirstChildOfClass("UIStroke")
-            if mainStroke then
-                mainStroke.Color = Theme["Color Stroke"] or Color3.fromRGB(70,70,85)
-                mainStroke.Thickness = 2
-            end
-        end
-    end)
-
-    -- Toggle para som de clique
-    local clickSoundContainer = Create("Frame", extrasScroll, {
-        Name = "ToggleClickSound_Container",
-        Size = UDim2.new(1, 0, 0, 38),
-        BackgroundColor3 = Color3.fromRGB(32, 32, 40),
-        BorderSizePixel = 0
-    })
-    Make("Corner", clickSoundContainer, UDim.new(0, 6))
-
-    local clickSoundTitle = Create("TextLabel", clickSoundContainer, {
-        Name = "TitleLabel",
-        Size = UDim2.new(1, -55, 1, 0),
-        Position = UDim2.new(0, 8, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "Som de Click no Hub",
-        TextColor3 = Color3.fromRGB(200, 200, 220),
-        TextSize = 10,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    local clickSoundBtn = Create("TextButton", clickSoundContainer, {
-        Name = "ToggleButton",
-        Size = UDim2.new(0, 40, 0, 20),
-        Position = UDim2.new(1, -48, 0.5, -10),
-        BackgroundColor3 = MyLibrary.Save.ClickSoundEnabled and Color3.fromRGB(0, 120, 215) or Color3.fromRGB(50, 50, 60),
-        Text = "",
-        BorderSizePixel = 0
-    })
-    Make("Corner", clickSoundBtn, UDim.new(1, 0))
-
-    local clickSoundIndicator = Create("Frame", clickSoundBtn, {
-        Name = "Indicator",
-        Size = UDim2.new(0, 16, 0, 16),
-        Position = MyLibrary.Save.ClickSoundEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
-        BackgroundColor3 = MyLibrary.Save.ClickSoundEnabled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200),
-        BorderSizePixel = 0
-    })
-    Make("Corner", clickSoundIndicator, UDim.new(1, 0))
-
-    local clickSoundActive = MyLibrary.Save.ClickSoundEnabled
-
-    -- Sound global
-    local clickSoundEffect = Create("Sound", ScreenGui, {
-        Name = "HubClickSound",
-        SoundId = "rbxassetid://9060817409",
-        Volume = 0.5
-    })
-
-    local function playClickSound()
-        if clickSoundActive then
-            clickSoundEffect:Play()
-        end
-    end
-
-    -- Conectar som a todos os botões da interface principal (redz lib)
-    local function connectClickSoundToHub()
-        if ScreenGui.Hub then
-            for _, desc in ipairs(ScreenGui.Hub:GetDescendants()) do
-                if desc:IsA("TextButton") or desc:IsA("ImageButton") then
-                    desc.Activated:Connect(playClickSound)
-                end
-            end
-        end
-    end
-
-    connectClickSoundToHub()
-
-    clickSoundBtn.MouseButton1Click:Connect(function()
-        clickSoundActive = not clickSoundActive
-        MyLibrary.Save.ClickSoundEnabled = clickSoundActive
-        SaveConfig()
-        if clickSoundActive then
-            clickSoundBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-            clickSoundIndicator.Position = UDim2.new(1, -18, 0.5, -8)
-            clickSoundIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        else
-            clickSoundBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-            clickSoundIndicator.Position = UDim2.new(0, 2, 0.5, -8)
-            clickSoundIndicator.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-        end
-    end)
-
-    -- ==================== ABA CONFIG ====================
-    local configScroll = tabPages["Config"]
-
-    -- Keybind
-    local keybindContainer = Create("Frame", configScroll, {
-        Name = "Keybind_Container",
-        Size = UDim2.new(1, 0, 0, 38),
-        BackgroundColor3 = Color3.fromRGB(32, 32, 40),
-        BorderSizePixel = 0
-    })
-    Make("Corner", keybindContainer, UDim.new(0, 6))
-
-    local keybindTitle = Create("TextLabel", keybindContainer, {
-        Name = "TitleLabel",
-        Size = UDim2.new(1, -45, 1, 0),
-        Position = UDim2.new(0, 8, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "Tecla Para Abrir e Fechar o Hub",
-        TextColor3 = Color3.fromRGB(200, 200, 220),
-        TextSize = 10,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    local keybindBox = Create("TextBox", keybindContainer, {
-        Name = "KeybindBox",
-        Size = UDim2.new(0, 24, 0, 24),
-        Position = UDim2.new(1, -30, 0.5, -12),
-        BackgroundColor3 = Color3.fromRGB(20, 20, 25),
-        Text = MyLibrary.Save.ToggleKey,
-        TextColor3 = Color3.fromRGB(0, 180, 255),
-        TextSize = 9,
-        Font = Enum.Font.GothamBold,
-        ClearTextOnFocus = true,
-        BorderSizePixel = 0
-    })
-    Make("Corner", keybindBox, UDim.new(0, 4))
-    local keybindStroke = Make("Stroke", keybindBox, { Color = Color3.fromRGB(55, 55, 70), Thickness = 1 })
-
-    local selectedKey = Enum.KeyCode[MyLibrary.Save.ToggleKey] or Enum.KeyCode.RightControl
-
-    keybindBox.Focused:Connect(function()
-        keybindStroke.Color = Color3.fromRGB(0, 120, 215)
-        keybindBox.Text = "..."
-    end)
-
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if keybindBox.IsFocused then
-            if input.UserInputType == Enum.UserInputType.Keyboard then
-                selectedKey = input.KeyCode
-                keybindBox.Text = input.KeyCode.Name
-                MyLibrary.Save.ToggleKey = input.KeyCode.Name
-                SaveConfig()
-                keybindBox:ReleaseFocus()
-            end
-        else
-            if not gameProcessed and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == selectedKey then
-                -- Alterna visibilidade do hub principal
-                if ScreenGui.Hub then
-                    ScreenGui.Hub.Visible = not ScreenGui.Hub.Visible
-                end
-            end
-        end
-    end)
-
-    keybindBox.FocusLost:Connect(function()
-        keybindStroke.Color = Color3.fromRGB(55, 55, 70)
-        if keybindBox.Text == "..." or keybindBox.Text == "" then
-            keybindBox.Text = selectedKey.Name
-        end
-    end)
-
-    -- Toggle para salvar toggles
-    local saveTogglesContainer = Create("Frame", configScroll, {
-        Name = "ToggleSaveToggles_Container",
-        Size = UDim2.new(1, 0, 0, 38),
-        BackgroundColor3 = Color3.fromRGB(32, 32, 40),
-        BorderSizePixel = 0
-    })
-    Make("Corner", saveTogglesContainer, UDim.new(0, 6))
-
-    local saveTogglesTitle = Create("TextLabel", saveTogglesContainer, {
-        Name = "TitleLabel",
-        Size = UDim2.new(1, -55, 1, 0),
-        Position = UDim2.new(0, 8, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "Salvar Togles Ativados Permitido",
-        TextColor3 = Color3.fromRGB(200, 200, 220),
-        TextSize = 10,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    local saveTogglesBtn = Create("TextButton", saveTogglesContainer, {
-        Name = "ToggleButton",
-        Size = UDim2.new(0, 40, 0, 20),
-        Position = UDim2.new(1, -48, 0.5, -10),
-        BackgroundColor3 = MyLibrary.Save.SaveTogglesEnabled and Color3.fromRGB(0, 120, 215) or Color3.fromRGB(50, 50, 60),
-        Text = "",
-        BorderSizePixel = 0
-    })
-    Make("Corner", saveTogglesBtn, UDim.new(1, 0))
-
-    local saveTogglesIndicator = Create("Frame", saveTogglesBtn, {
-        Name = "Indicator",
-        Size = UDim2.new(0, 16, 0, 16),
-        Position = MyLibrary.Save.SaveTogglesEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8),
-        BackgroundColor3 = MyLibrary.Save.SaveTogglesEnabled and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(200, 200, 200),
-        BorderSizePixel = 0
-    })
-    Make("Corner", saveTogglesIndicator, UDim.new(1, 0))
-
-    local saveTogglesActive = MyLibrary.Save.SaveTogglesEnabled
-
-    saveTogglesBtn.MouseButton1Click:Connect(function()
-        saveTogglesActive = not saveTogglesActive
-        MyLibrary.Save.SaveTogglesEnabled = saveTogglesActive
-        SaveConfig()
-        if saveTogglesActive then
-            saveTogglesBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-            saveTogglesIndicator.Position = UDim2.new(1, -18, 0.5, -8)
-            saveTogglesIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        else
-            saveTogglesBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-            saveTogglesIndicator.Position = UDim2.new(0, 2, 0.5, -8)
-            saveTogglesIndicator.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-        end
-    end)
-
-    -- ==================== LOOP DE ANIMAÇÃO DE BORDA ====================
-    RunService.RenderStepped:Connect(function(dt)
-        if not borderAnimationActive then return end
-        if not ScreenGui.Hub then return end
-        local mainStroke = ScreenGui.Hub:FindFirstChildOfClass("UIStroke")
-        if not mainStroke then return end
-
-        local timeElapsed = tick() * 1 -- animSpeed poderia ser configurável, mantemos 1
-        local colorOpt = MyLibrary.Save.BorderColorOption
-        local effectOpt = MyLibrary.Save.BorderEffectOption
-
-        local baseColor
-        if colorOpt == "RGB (Completo)" then
-            baseColor = Color3.fromHSV((timeElapsed % 5) / 5, 1, 1)
-        elseif colorOpt == "Vermelho" then
-            baseColor = Color3.fromRGB(255, 0, 0)
-        elseif colorOpt == "Laranja" then
-            baseColor = Color3.fromRGB(255, 128, 0)
-        elseif colorOpt == "Amarelo" then
-            baseColor = Color3.fromRGB(255, 255, 0)
-        elseif colorOpt == "Verde" then
-            baseColor = Color3.fromRGB(0, 255, 0)
-        elseif colorOpt == "Azul" then
-            baseColor = Color3.fromRGB(0, 0, 255)
-        elseif colorOpt == "Anil" then
-            baseColor = Color3.fromRGB(75, 0, 130)
-        elseif colorOpt == "Violeta" then
-            baseColor = Color3.fromRGB(148, 0, 211)
-        else
-            baseColor = Color3.fromRGB(255, 255, 255)
-        end
-
-        if effectOpt == "Girar Gradiente" then
-            if colorOpt == "RGB (Completo)" then
-                mainStroke.Color = baseColor
-            else
-                local h, s, v = baseColor:ToHSV()
-                local shiftedHue = (h + (math.sin(timeElapsed * 2) * 0.1)) % 1
-                mainStroke.Color = Color3.fromHSV(shiftedHue, s, v)
-            end
-            mainStroke.Thickness = 2
-        elseif effectOpt == "Pulsar Brilho" then
-            mainStroke.Color = baseColor
-            mainStroke.Thickness = math.clamp(2 + math.sin(timeElapsed * 4) * 1.5, 1, 4)
-        elseif effectOpt == "Onda Fluida" then
-            local h, s, v = baseColor:ToHSV()
-            local waveVal = math.clamp(v * (0.5 + 0.5 * math.sin(timeElapsed * 3)), 0.2, 1)
-            mainStroke.Color = Color3.fromHSV(h, s, waveVal)
-            mainStroke.Thickness = 2.5
-        elseif effectOpt == "Neon Strobe" then
-            if math.floor(timeElapsed * 6) % 2 == 0 then
-                mainStroke.Color = baseColor
-                mainStroke.Thickness = 3
-            else
-                mainStroke.Color = Color3.fromRGB(30, 30, 35)
-                mainStroke.Thickness = 1
-            end
-        elseif effectOpt == "Fade Suave" then
-            local h, s, v = baseColor:ToHSV()
-            local fadeFactor = 0.3 + 0.7 * math.abs(math.sin(timeElapsed * 1.5))
-            mainStroke.Color = Color3.fromHSV(h, s, fadeFactor)
-            mainStroke.Thickness = 2
-        end
-    end)
-
-    selectTab("Cores")
-    ConfigUI.Visible = true
-end
-
--- ==================== FUNÇÃO PARA CRIAR JANELA PRINCIPAL ====================
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "redz Library V5"
     local WMiniText = Configs[2] or Configs.SubTitle or "by : redz9999"
 
     Settings.ScriptFile = Configs[3] or Configs.SaveFolder or false
 
-    -- Carrega flags
     local function LoadFile()
         local File = Settings.ScriptFile
         if type(File) ~= "string" then return end
@@ -2365,27 +608,12 @@ function MyLibrary:MakeWindow(Configs)
         Size = UDim2.fromOffset(UISizeX, UISizeY),
         Position = UDim2.new(0.5, -UISizeX/2, 0.5, -UISizeY/2),
         BackgroundTransparency = 0.03,
-        Name = "Hub",
-        Image = MyLibrary.Save.HubImage or "",
-        ImageTransparency = MyLibrary.Save.HubImageTransparency or 0,
+        Name = "Hub"
     }), "Main")
     Make("Gradient", MainFrame, { Rotation = 45 })
     MakeDrag(MainFrame)
 
-    -- Adiciona stroke para bordas animadas
-    local mainStroke = Make("Stroke", MainFrame, { Color = Theme["Color Stroke"], Thickness = 2 })
-
     local MainCorner = Make("Corner", MainFrame)
-
-    -- Ícone do hub (se configurado)
-    local iconLabel = Create("ImageLabel", MainFrame, {
-        Name = "IconLabel",
-        Size = UDim2.fromOffset(20, 20),
-        Position = UDim2.new(0, 10, 0, 5),
-        BackgroundTransparency = 1,
-        Image = MyLibrary.Save.HubIcon or "",
-        Visible = MyLibrary.Save.HubIcon ~= ""
-    })
 
     local Components = Create("Folder", MainFrame, { Name = "Components" })
     local DropdownHolder = Create("Folder", ScreenGui, { Name = "Dropdown" })
@@ -2456,7 +684,6 @@ function MyLibrary:MakeWindow(Configs)
         Name = "Containers"
     })
 
-    -- Controles de redimensionamento
     local ControlSize1 = MakeDrag(Create("ImageButton", MainFrame, {
         Size = UDim2.new(0, 35, 0, 35),
         Position = MainFrame.Size,
@@ -2490,18 +717,17 @@ function MyLibrary:MakeWindow(Configs)
     ConnectSave(ControlSize1, function()
         if not Minimized then
             MyLibrary.Save.UISize = {MainFrame.Size.X.Offset, MainFrame.Size.Y.Offset}
-            SaveConfig()
+            SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
         end
     end)
 
     ConnectSave(ControlSize2, function()
         MyLibrary.Save.TabSize = MainScroll.Size.X.Offset
-        SaveConfig()
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     end)
 
     local ButtonsFolder = Create("Folder", TopBar, { Name = "Buttons" })
 
-    -- Botões da barra superior
     local CloseButton = Create("ImageButton", {
         Size = UDim2.new(0, 14, 0, 14),
         Position = UDim2.new(1, -10, 0.5),
@@ -2518,21 +744,7 @@ function MyLibrary:MakeWindow(Configs)
         Name = "Minimize"
     })
 
-    local ConfigButton = SetProps(CloseButton:Clone(), {
-        Position = UDim2.new(1, -60, 0.5),
-        Image = "rbxassetid://10709751939", -- ícone de engrenagem (substitua se quiser)
-        Name = "Config"
-    })
-
-    SetChildren(ButtonsFolder, { CloseButton, MinimizeButton, ConfigButton })
-
-    ConfigButton.Activated:Connect(function()
-        if not ConfigUI then
-            CreateConfigGUI()
-        else
-            ConfigUI.Visible = not ConfigUI.Visible
-        end
-    end)
+    SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
 
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
@@ -2732,7 +944,7 @@ function MyLibrary:MakeWindow(Configs)
         local TIcon = Configs[2] or Configs.Icon or ""
 
         TIcon = MyLibrary:GetIcon(TIcon)
-        if type(TIcon) ~= "string" or not TIcon:find("rbxassetid://") or TIcon:gsub("rbxassetid://", ""):len() < 6 then
+        if not TIcon:find("rbxassetid://") or TIcon:gsub("rbxassetid://", ""):len() < 6 then
             TIcon = false
         end
 
@@ -2824,7 +1036,6 @@ function MyLibrary:MakeWindow(Configs)
         local Tab = {}
         table.insert(MyLibrary.Tabs, {TabInfo = {Name = TName, Icon = TIcon}, func = Tab, Cont = Container})
         Tab.Cont = Container
-        Tab.TabSelect = TabSelect -- guarda referência para transparência
 
         function Tab:Disable()
             Container.Parent = nil
@@ -2978,12 +1189,7 @@ function MyLibrary:MakeWindow(Configs)
                 if WaitClick then return end
 
                 WaitClick, Default = true, Val
-                if MyLibrary.Save.SaveTogglesEnabled then
-                    SetFlag(Flag, Default)
-                else
-                    -- se não salvar toggles, ainda atualiza o valor em memória, mas não grava
-                    Flags[Flag] = Default
-                end
+                SetFlag(Flag, Default)
                 Funcs:FireCallback(Callback, Default)
                 if Default then
                     CreateTween({Toggle, "Position", UDim2.new(1, 0, 0.5), 0.25})
@@ -3178,11 +1384,7 @@ function MyLibrary:MakeWindow(Configs)
                 end
 
                 local function CallbackSelected()
-                    if MyLibrary.Save.SaveTogglesEnabled then
-                        SetFlag(Flag, MultiSelect and Selected or tostring(Selected))
-                    else
-                        Flags[Flag] = MultiSelect and Selected or tostring(Selected)
-                    end
+                    SetFlag(Flag, MultiSelect and Selected or tostring(Selected))
                     Funcs:FireCallback(Callback, Selected)
                 end
 
@@ -3370,7 +1572,7 @@ function MyLibrary:MakeWindow(Configs)
             return Dropdown
         end
 
-        -- Dropdown de Jogadores (com busca)
+        -- Dropdown de Jogadores (com busca) — também corrigido
         function Tab:AddDropdownPlayer(Configs)
             local DName = Configs[1] or Configs.Name or Configs.Title or "..."
             local DDesc = Configs.Desc or Configs.Description or ""
@@ -3537,11 +1739,7 @@ function MyLibrary:MakeWindow(Configs)
                 Selected = CheckFlag(Flag) and GetFlag(Flag) or OpDefault
 
                 local function CallbackSelected()
-                    if MyLibrary.Save.SaveTogglesEnabled then
-                        SetFlag(Flag, tostring(Selected))
-                    else
-                        Flags[Flag] = tostring(Selected)
-                    end
+                    SetFlag(Flag, tostring(Selected))
                     Funcs:FireCallback(Callback, Selected)
                 end
 
@@ -3709,7 +1907,7 @@ function MyLibrary:MakeWindow(Configs)
             return Dropdown
         end
 
-        -- Dropdown com Busca (genérico)
+        -- Dropdown com Busca (genérico) — corrigido
         function Tab:AddDropdownSearch(Configs)
             local DName = Configs[1] or Configs.Name or Configs.Title or "Dropdown"
             local DDesc = Configs.Desc or Configs.Description or ""
@@ -3889,11 +2087,7 @@ function MyLibrary:MakeWindow(Configs)
                 end
 
                 local function CallbackSelected()
-                    if MyLibrary.Save.SaveTogglesEnabled then
-                        SetFlag(Flag, MultiSelect and Selected or tostring(Selected))
-                    else
-                        Flags[Flag] = MultiSelect and Selected or tostring(Selected)
-                    end
+                    SetFlag(Flag, MultiSelect and Selected or tostring(Selected))
                     Funcs:FireCallback(Callback, Selected)
                 end
 
@@ -4170,11 +2364,7 @@ function MyLibrary:MakeWindow(Configs)
                 end
                 CreateTween({SliderIcon, "Transparency", 0.2, 0.3})
                 Container.ScrollingEnabled = true
-                if MyLibrary.Save.SaveTogglesEnabled then
-                    SetFlag(Flag, Default)
-                else
-                    Flags[Flag] = Default
-                end
+                SetFlag(Flag, Default)
             end)
 
             LabelVal:GetPropertyChangedSignal("Text"):Connect(function()
@@ -4189,11 +2379,7 @@ function MyLibrary:MakeWindow(Configs)
                 if type(NewValue) ~= "number" then return end
                 local MinReal, MaxReal = Min * Increase, Max * Increase
                 local SliderPos = (NewValue - MinReal) / (MaxReal - MinReal)
-                if MyLibrary.Save.SaveTogglesEnabled then
-                    SetFlag(Flag, NewValue)
-                else
-                    Flags[Flag] = NewValue
-                end
+                SetFlag(Flag, NewValue)
                 CreateTween({SliderIcon, "Position", UDim2.fromScale(math.clamp(SliderPos, 0, 1), 0.5), 0.3, true})
             end
             SetSlider(Default)
@@ -4395,25 +2581,6 @@ function MyLibrary:MakeWindow(Configs)
 
     CloseButton.Activated:Connect(Window.CloseBtn)
     MinimizeButton.Activated:Connect(Window.MinimizeBtn)
-    ConfigButton.Activated:Connect(function()
-        if not ConfigUI then
-            CreateConfigGUI()
-        else
-            ConfigUI.Visible = not ConfigUI.Visible
-        end
-    end)
-
-    -- Aplicar configurações iniciais
-    ApplyHubImage()
-    ApplyHubIcon()
-    ApplyFontToAll(MyLibrary.Save.SelectedFont)
-    ApplyTransparencies()
-
-    -- Se bordas animadas estiverem ativas, iniciar animação (já conectada no loop)
-    if MyLibrary.Save.BorderEnabled then
-        borderAnimationActive = true -- definido na criação da ConfigUI? Vamos definir globalmente
-    end
-
     return Window
 end
 
