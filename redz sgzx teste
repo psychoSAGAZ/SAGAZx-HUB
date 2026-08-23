@@ -868,110 +868,67 @@ function Window:SetHubImage(ImageId)
         return
     end
 
-    -- Se for rbxasset://, tenta baixar e converter
-    if ImageId:find("rbxasset://") then
-        task.spawn(function()
-            local success, result = pcall(function()
-                -- Cria pasta de imagens
-                if not isfolder(ImagesFolder) then
-                    makefolder(ImagesFolder)
-                end
+    -- Para rbxassetid:// usa direto
+    if ImageId:find("rbxassetid://") or ImageId == "" then
+        MyLibrary.Save.HubImage = ImageId
+        SaveJson(ConfigFile, MyLibrary.Save)
 
-                -- Extrai ID do asset
-                local assetId = ImageId:match("(%d+)%.[^.]+$") or "image"
-                local fileName = ImagesFolder .. "/" .. assetId .. ".png"
-                
-                -- Baixa a imagem
-                local response = request({
-                    Url = ImageId,
-                    Method = "GET"
-                })
-
-                local body = response and response.Body
-                
-                -- Converte tabela para string
-                if type(body) == "table" then
-                    local bytes = {}
-                    for i, byte in ipairs(body) do
-                        bytes[i] = string.char(byte)
-                    end
-                    body = table.concat(bytes)
-                end
-
-                if body and #body > 0 then
-                    writefile(fileName, body)
-                    
-                    -- CONVERTE PARA ASSET ACEITO
-                    local finalImage
-                    if getcustomasset then
-                        finalImage = getcustomasset(fileName)
-                        print("getcustomasset:", finalImage)
-                    else
-                        finalImage = "rbxassetid://" .. assetId
-                        print("Usando rbxassetid:", finalImage)
-                    end
-                    
-                    MyLibrary.Save.HubImage = finalImage
-                    SaveJson(ConfigFile, MyLibrary.Save)
-
-                    local hub = ScreenGui:FindFirstChild("Hub")
-                    if hub then
-                        hub.Image = finalImage
-                    end
-                end
-            end)
-
-            if not success then
-                warn("Erro:", tostring(result))
-            end
-        end)
+        local hub = ScreenGui:FindFirstChild("Hub")
+        if hub then
+            hub.Image = ImageId
+        end
         return
     end
 
-    -- Para https://
+    -- Para URLs externas
     if ImageId:find("https://") or ImageId:find("http://") then
         task.spawn(function()
             local success, result = pcall(function()
-                if not isfolder(ImagesFolder) then
-                    makefolder(ImagesFolder)
-                end
-
-                local fileName = ImagesFolder .. "/" .. string.format("%08x", ImageId:len()) .. ".png"
-                
                 local response = request({
                     Url = ImageId,
                     Method = "GET"
                 })
 
-                local body = response and response.Body
-                
-                if type(body) == "table" then
-                    local bytes = {}
-                    for i, byte in ipairs(body) do
-                        bytes[i] = string.char(byte)
-                    end
-                    body = table.concat(bytes)
-                end
-
-                if body and #body > 0 then
-                    writefile(fileName, body)
+                if response and response.Body and type(response.Body) == "string" and #response.Body > 0 then
+                    -- Converte para base64
+                    local base64 = game:GetService("HttpService"):JSONEncode(response.Body)
                     
-                    local finalImage
-                    if getcustomasset then
-                        finalImage = getcustomasset(fileName)
-                        print("getcustomasset:", finalImage)
-                    else
-                        finalImage = ImageId
-                        print("Usando URL direta:", finalImage)
-                    end
+                    -- Remove aspas extras
+                    base64 = base64:sub(2, -2)
                     
-                    MyLibrary.Save.HubImage = finalImage
-                    SaveJson(ConfigFile, MyLibrary.Save)
-
+                    -- Cria Data URI
+                    local dataUri = "data:image/png;base64," .. base64
+                    
+                    -- Tenta usar Data URI
                     local hub = ScreenGui:FindFirstChild("Hub")
                     if hub then
-                        hub.Image = finalImage
+                        local success2, result2 = pcall(function()
+                            hub.Image = dataUri
+                        end)
+                        
+                        if success2 then
+                            MyLibrary.Save.HubImage = dataUri
+                            SaveJson(ConfigFile, MyLibrary.Save)
+                            print("Imagem carregada via base64!")
+                        else
+                            warn("Data URI não suportado:", tostring(result2))
+                            print("Tentando caminho local...")
+                            
+                            -- Salva como arquivo
+                            if not isfolder(ImagesFolder) then
+                                makefolder(ImagesFolder)
+                            end
+                            local fileName = ImagesFolder .. "/hub_image.png"
+                            writefile(fileName, response.Body)
+                            
+                            hub.Image = fileName
+                            MyLibrary.Save.HubImage = fileName
+                            SaveJson(ConfigFile, MyLibrary.Save)
+                            print("Imagem salva em:", fileName)
+                        end
                     end
+                else
+                    warn("Falha ao baixar. Body vazio.")
                 end
             end)
 
@@ -982,14 +939,7 @@ function Window:SetHubImage(ImageId)
         return
     end
 
-    -- rbxassetid:// direto
-    MyLibrary.Save.HubImage = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
-
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if hub then
-        hub.Image = ImageId
-    end
+    warn("Link inválido. Use rbxassetid:// ou https://")
 end
 
     function Window:SetToggleKey(KeyCode)
