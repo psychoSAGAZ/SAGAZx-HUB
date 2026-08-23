@@ -868,13 +868,19 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" or ImageId == "" then
-        warn("ImageId inválido. Forneça um rbxassetid:// ou link https:// válido.")
+        warn("ImageId inválido. Forneça um ID ou link https:// válido.")
         return
     end
 
-    local hub = ScreenGui:FindFirstChild("Hub") or ScreenGui:FindFirstChild("Main") -- Ajuste para o nome do seu Frame/ImageLabel
+    -- Se enviar apenas o número (ex: "123456"), converte automaticamente para o formato do Roblox
+    if tonumber(ImageId) then
+        ImageId = "rbxassetid://" .. ImageId
+    end
+
+    -- Busca o elemento do Hub de forma recursiva (procura em subpastas também)
+    local hub = ScreenGui:FindFirstChild("Hub", true) or ScreenGui:FindFirstChild("Main", true)
     if not hub then
-        warn("Elemento do Hub não encontrado no ScreenGui.")
+        warn("Elemento do Hub (Hub ou Main) não encontrado na interface.")
         return
     end
 
@@ -948,6 +954,7 @@ function Window:SetHubImage(ImageId)
         hub.Image = ImageId
     end
 end
+
 
 function Window:SetMinimizeImage(ImageId)
     if type(ImageId) ~= "string" or ImageId == "" then
