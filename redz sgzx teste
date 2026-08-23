@@ -877,66 +877,52 @@ function Window:SetHubImage(ImageId)
         return
     end
 
-    -- Se for rbxasset://, https:// ou http://, baixa e converte
-    if ImageId:find("rbxasset://") or ImageId:find("https://") or ImageId:find("http://") then
-        task.spawn(function()
-            local success, result = pcall(function()
-                local response = request({
-                    Url = ImageId,
-                    Method = "GET"
-                })
+    -- Para rbxasset://, https:// ou http://, baixa a imagem
+    task.spawn(function()
+        local success, imageData = pcall(function()
+            local response = request({
+                Url = ImageId,
+                Method = "GET"
+            })
 
-                if response.StatusCode ~= 200 then
-                    error("Falha ao baixar imagem. Status: " .. tostring(response.StatusCode))
-                end
-
-                return response.Body
-            end)
-
-            if not success then
-                warn("Erro ao baixar imagem:", result)
-                return
+            if response.StatusCode ~= 200 then
+                error("Falha ao baixar imagem. Status: " .. tostring(response.StatusCode))
             end
 
-            local imageData = result
-
-            -- Salva a imagem localmente
-            local tempFile = "temp_image.png"
-            local writeSuccess = pcall(writefile, tempFile, imageData)
-
-            if not writeSuccess then
-                warn("Não foi possível salvar a imagem temporária. Verifique se o executor suporta writefile.")
-                return
-            end
-
-            -- Faz upload para o Roblox usando assetupload
-            local uploadSuccess, assetId = pcall(function()
-                local Players = game:GetService("Players")
-                local asset = Players.LocalPlayer:CreateImageFromFile(tempFile)
-                return asset
-            end)
-
-            if not uploadSuccess then
-                warn("Falha ao fazer upload da imagem. O executor pode não suportar essa função.")
-                return
-            end
-
-            local finalId = tostring(assetId)
-
-            -- Salva o ID final
-            MyLibrary.Save.HubImage = finalId
-            SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-
-            -- Aplica no Hub
-            local hub = ScreenGui:FindFirstChild("Hub")
-            if hub then
-                hub.Image = finalId
-            end
+            return response.Body
         end)
-        return
-    end
 
-    warn("Link de imagem inválido. Use rbxassetid://, rbxasset://, https:// ou http://.")
+        if not success then
+            warn("Erro ao baixar imagem:", imageData)
+            return
+        end
+
+        -- Cria um nome de arquivo temporário único
+        local fileName = "hub_temp_" .. math.random(10000, 99999) .. ".png"
+
+        -- Salva a imagem localmente
+        local writeSuccess = pcall(writefile, fileName, imageData)
+
+        if not writeSuccess then
+            warn("Não foi possível salvar a imagem temporária.")
+            return
+        end
+
+        -- Usa o caminho do arquivo local
+        local hub = ScreenGui:FindFirstChild("Hub")
+        if hub then
+            hub.Image = fileName
+        end
+
+        -- Salva o caminho no arquivo da lib
+        MyLibrary.Save.HubImage = fileName
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+        -- Opcional: remove o arquivo após carregar (comentado para manter)
+        -- task.delay(5, function()
+        --     pcall(delfile, fileName)
+        -- end)
+    end)
 end
     
     function Window:SetToggleKey(KeyCode)
