@@ -659,7 +659,7 @@ function MyLibrary:SetTheme(NewTheme)
     MyLibrary.Save.Theme = NewTheme
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     Theme = MyLibrary.Themes[NewTheme]
-    ApplyCustomColorsToTheme(Theme)
+    MyLibrary.Save.CustomColors = {}
 
     Connection:FireConnection("ThemeChanged", NewTheme)
 
