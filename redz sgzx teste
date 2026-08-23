@@ -1087,31 +1087,33 @@ end)
     end
 
 function Window:AddMinimizeButton(Configs)
-local Button = MakeDrag(Create("ImageButton", ScreenGui, {
-    Size = UDim2.fromOffset(35, 35),
-    Position = UDim2.fromScale(0.15, 0.15),
-    BackgroundTransparency = 1,
-    AutoButtonColor = false,
-    Name = "MinimizeButton"
-}))
+    local Button = MakeDrag(Create("ImageButton", ScreenGui, {
+        Size = UDim2.fromOffset(35, 35),
+        Position = UDim2.fromScale(0.15, 0.15),
+        BackgroundTransparency = 1,
+        AutoButtonColor = false,
+        Name = "MinimizeButton"
+    }))
 
--- Aplica imagem salva (converte se necessário)
-MyLibrary:LoadSavedImage("MinimizeImage", Button)
-
-        local Stroke, Corner
-        if Configs.Corner then
-            Corner = Make("Corner", Button)
-            SetProps(Corner, Configs.Corner)
-        end
-        if Configs.Stroke then
-            Stroke = Make("Stroke", Button)
-            SetProps(Stroke, Configs.Stroke)
-        end
-        SetProps(Button, Configs.Button)
-
-        Button.Activated:Connect(Window.Minimize)
-        return { Stroke = Stroke, Corner = Corner, Button = Button }
+    local Stroke, Corner
+    if Configs.Corner then
+        Corner = Make("Corner", Button)
+        SetProps(Corner, Configs.Corner)
     end
+    if Configs.Stroke then
+        Stroke = Make("Stroke", Button)
+        SetProps(Stroke, Configs.Stroke)
+    end
+    if Configs.Button then
+        SetProps(Button, Configs.Button)
+    end
+
+    -- Aplica imagem salva DEPOIS do SetProps (para sobrescrever qualquer padrão)
+    MyLibrary:LoadSavedImage("MinimizeImage", Button)
+
+    Button.Activated:Connect(Window.Minimize)
+    return { Stroke = Stroke, Corner = Corner, Button = Button }
+end
 
     function Window:Set(Val1, Val2)
         if type(Val1) == "string" and type(Val2) == "string" then
