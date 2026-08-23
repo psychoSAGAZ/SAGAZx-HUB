@@ -862,15 +862,6 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
     
-    function Window:SetMinimizeImage(ImageId)
-    if type(ImageId) ~= "string" or (ImageId ~= "" and not ImageId:find("rbxassetid://")) then
-        warn("ImageId inválido. Use uma string com rbxassetid://.")
-        return
-    end
-
-    MyLibrary.Save.MinimizeImage = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
-
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" or ImageId == "" then
         warn("ImageId inválido. Forneça um rbxassetid:// ou link https:// válido.")
