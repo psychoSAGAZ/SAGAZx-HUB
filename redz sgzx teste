@@ -420,7 +420,7 @@ local function ApplyCustomColorsToTheme(targetTheme)
     end
 end
 
-
+local Theme = MyLibrary.Themes[MyLibrary.Save.Theme]
 ApplyCustomColorsToTheme(Theme)
 
 local function AddEle(Name, Func)
