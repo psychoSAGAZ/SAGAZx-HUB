@@ -1104,12 +1104,31 @@ function Window:AddMinimizeButton(Configs)
         Stroke = Make("Stroke", Button)
         SetProps(Stroke, Configs.Stroke)
     end
+
+    -- Aplica as propriedades do botão, mas guarda a imagem separadamente
+    local ButtonImage = nil
     if Configs.Button then
+        ButtonImage = Configs.Button.Image
+        Configs.Button.Image = nil  -- Remove temporariamente para não aplicar ainda
         SetProps(Button, Configs.Button)
+        Configs.Button.Image = ButtonImage  -- Restaura
     end
 
-    -- Aplica imagem salva DEPOIS do SetProps (para sobrescrever qualquer padrão)
-    MyLibrary:LoadSavedImage("MinimizeImage", Button)
+    -- Se houver imagem no Configs.Button, processa com download se necessário
+    if ButtonImage and ButtonImage ~= "" then
+        -- Se for link HTTP(S), baixa e salva como Imagebutton.png
+        if ButtonImage:find("https://") or ButtonImage:find("http://") then
+            MyLibrary:ProcessImage(ButtonImage, "MinimizeImage", Button, "Imagebutton.png")
+        else
+            -- Se for rbxassetid:// ou outro, aplica direto e salva
+            MyLibrary.Save.MinimizeImage = ButtonImage
+            SaveJson(ConfigFile, MyLibrary.Save)
+            Button.Image = ButtonImage
+        end
+    else
+        -- Se não houver imagem no Configs.Button, tenta carregar a salva
+        MyLibrary:LoadSavedImage("MinimizeImage", Button)
+    end
 
     Button.Activated:Connect(Window.Minimize)
     return { Stroke = Stroke, Corner = Corner, Button = Button }
