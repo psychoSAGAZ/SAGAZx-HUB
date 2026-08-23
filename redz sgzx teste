@@ -37,7 +37,7 @@ Save = {
     CustomColors = {},
     ToggleKey = "RightShift",
     HubImage = "",
-    MinimizeIcon = "rbxassetid://10734896206"
+    MinimizeImage = "rbxassetid://10734896206"  -- Imagem padrão do botão
 },
     Settings = {},
     Connection = {},
@@ -129,8 +129,8 @@ local function Save(file)
             if rawget(decode, "HubImage") and type(decode["HubImage"]) == "string" then
                 MyLibrary.Save.HubImage = decode["HubImage"]
             end
-            if rawget(decode, "MinimizeIcon") and type(decode["MinimizeIcon"]) == "string" then
-                MyLibrary.Save.MinimizeIcon = decode["MinimizeIcon"]
+            if rawget(decode, "MinimizeImage") and type(decode["MinimizeImage"]) == "string" then
+                MyLibrary.Save.MinimizeImage = decode["MinimizeImage"]
             end
         end
     end
@@ -855,9 +855,9 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
         Name = "Close"
     })
 
-local MinimizeButton = SetProps(CloseButton:Clone(), {
+    local MinimizeButton = SetProps(CloseButton:Clone(), {
     Position = UDim2.new(1, -35, 0.5),
-    Image = MyLibrary.Save.MinimizeIcon or "rbxassetid://10734896206",
+    Image = MyLibrary.Save.MinimizeImage or "rbxassetid://10734896206",
     Name = "Minimize"
 })
 
@@ -865,6 +865,21 @@ local MinimizeButton = SetProps(CloseButton:Clone(), {
 
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
+    
+    function Window:SetMinimizeImage(ImageId)
+    if type(ImageId) ~= "string" or (ImageId ~= "" and not ImageId:find("rbxassetid://")) then
+        warn("ImageId inválido. Use uma string com rbxassetid://.")
+        return
+    end
+
+    MyLibrary.Save.MinimizeImage = ImageId
+    SaveJson(ConfigFile, MyLibrary.Save)
+
+    local minimizeButton = MainFrame:FindFirstChild("Components"):FindFirstChild("Top Bar"):FindFirstChild("Buttons"):FindFirstChild("Minimize")
+    if minimizeButton then
+        minimizeButton.Image = ImageId
+    end
+end
     
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" then
@@ -884,32 +899,6 @@ function Window:SetHubImage(ImageId)
     local hub = ScreenGui:FindFirstChild("Hub")
     if hub then
         hub.Image = ImageId
-    end
-end
-
-function Window:SetMinimizeIcon(ImageId)
-    if type(ImageId) ~= "string" then
-        warn("ImageId inválido. Use uma string com rbxassetid:// ou deixe vazio para restaurar o padrão.")
-        return
-    end
-
-    -- Se vazio, restaura o ícone padrão
-    if ImageId == "" then
-        ImageId = "rbxassetid://10734896206"
-    end
-
-    -- Aceita apenas rbxassetid://
-    if not ImageId:find("rbxassetid://") then
-        warn("Use apenas rbxassetid:// para imagens do Roblox.")
-        return
-    end
-
-    MyLibrary.Save.MinimizeIcon = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
-
-    -- Atualiza o botão
-    if MinimizeButton then
-        MinimizeButton.Image = ImageId
     end
 end
 
