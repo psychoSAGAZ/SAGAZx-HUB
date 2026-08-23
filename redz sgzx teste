@@ -420,7 +420,7 @@ local function ApplyCustomColorsToTheme(targetTheme)
     end
 end
 
-local Theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+
 ApplyCustomColorsToTheme(Theme)
 
 local function AddEle(Name, Func)
@@ -657,13 +657,13 @@ function MyLibrary:SetTheme(NewTheme)
     if not VerifyTheme(NewTheme) then return end
 
     MyLibrary.Save.Theme = NewTheme
-    MyLibrary.Save.CustomColors = {}
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    MyLibrary.Save.CustomColors = {}   -- descarta customizações
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)   -- salva já limpo
+
     Theme = MyLibrary.Themes[NewTheme]
 
     Connection:FireConnection("ThemeChanged", NewTheme)
 
-    -- Loop com pcall para evitar parar se algum elemento falhar
     for _, Val in ipairs(MyLibrary.Instances) do
         local ok, err = pcall(function()
             if Val.Type == "Gradient" then
