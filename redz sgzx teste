@@ -1105,30 +1105,29 @@ function Window:AddMinimizeButton(Configs)
         SetProps(Stroke, Configs.Stroke)
     end
 
-    -- Aplica as propriedades do botão, mas guarda a imagem separadamente
-    local ButtonImage = nil
-    if Configs.Button then
-        ButtonImage = Configs.Button.Image
-        Configs.Button.Image = nil  -- Remove temporariamente para não aplicar ainda
-        SetProps(Button, Configs.Button)
-        Configs.Button.Image = ButtonImage  -- Restaura
+    -- Verifica se Configs.Button.Image é um link http(s)
+    local buttonImage = Configs.Button and Configs.Button.Image
+    if buttonImage and type(buttonImage) == "string" and (buttonImage:find("https://") or buttonImage:find("http://")) then
+        -- Remove a Image do Configs.Button para não aplicar o link direto
+        local buttonProps = {}
+        for k, v in pairs(Configs.Button) do
+            if k ~= "Image" then
+                buttonProps[k] = v
+            end
+        end
+        SetProps(Button, buttonProps)
+
+        -- Baixa e aplica a imagem com nome fixo "ImagebuttonOfc"
+        MyLibrary:ProcessImage(buttonImage, "MinimizeImage", Button, "ImagebuttonOfc.png")
+    else
+        -- Aplica normalmente (com rbxassetid ou sem link)
+        if Configs.Button then
+            SetProps(Button, Configs.Button)
+        end
     end
 
-    -- Se houver imagem no Configs.Button, processa com download se necessário
-    if ButtonImage and ButtonImage ~= "" then
-        -- Se for link HTTP(S), baixa e salva como Imagebutton.png
-        if ButtonImage:find("https://") or ButtonImage:find("http://") then
-            MyLibrary:ProcessImage(ButtonImage, "MinimizeImage", Button, "Imagebutton.png")
-        else
-            -- Se for rbxassetid:// ou outro, aplica direto e salva
-            MyLibrary.Save.MinimizeImage = ButtonImage
-            SaveJson(ConfigFile, MyLibrary.Save)
-            Button.Image = ButtonImage
-        end
-    else
-        -- Se não houver imagem no Configs.Button, tenta carregar a salva
-        MyLibrary:LoadSavedImage("MinimizeImage", Button)
-    end
+    -- Aplica imagem salva DEPOIS (para sobrescrever qualquer padrão)
+    MyLibrary:LoadSavedImage("MinimizeImage", Button)
 
     Button.Activated:Connect(Window.Minimize)
     return { Stroke = Stroke, Corner = Corner, Button = Button }
