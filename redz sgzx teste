@@ -691,7 +691,7 @@ function MyLibrary:SetScale(NewScale)
     UIScale, ScreenGui.Scale.Scale = NewScale, NewScale
 end
 
-function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance)
+function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
     if type(ImageId) ~= "string" or ImageId == "" then
         warn("ImageId inválido.")
         return
@@ -724,31 +724,16 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance)
 
         task.spawn(function()
             local success, result = pcall(function()
-                -- Gera nome de arquivo único
-                local fileName = ImagesFolder .. "/" .. ImageId:gsub("[%W]", ""):sub(-40) .. ".png"
+                -- Usa o nome fixo fornecido
+                local fullPath = ImagesFolder .. "/" .. fileName
 
                 -- Cria pasta se não existir
                 if not isfolder(ImagesFolder) then
                     makefolder(ImagesFolder)
                 end
 
-                -- Verifica se já foi baixado
-                if isfile and isfile(fileName) then
-                    print("Imagem encontrada localmente!")
-                    local assetPath = getAssetFunc(fileName)
-                    
-                    -- Salva o NOME DO ARQUIVO, não o caminho temporário
-                    MyLibrary.Save[saveKey] = fileName
-                    SaveJson(ConfigFile, MyLibrary.Save)
-
-                    if targetInstance then
-                        targetInstance.Image = assetPath
-                    end
-                    return
-                end
-
-                -- Baixa a imagem
-                print("Baixando imagem...")
+                -- Baixa a imagem (sempre sobrescreve)
+                print("Baixando imagem (" .. fileName .. ")...")
                 local response = requestFunc({
                     Url = ImageId,
                     Method = "GET",
@@ -758,17 +743,17 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance)
                 })
 
                 if response and response.Body then
-                    writefile(fileName, response.Body)
-                    local assetPath = getAssetFunc(fileName)
+                    writefile(fullPath, response.Body)
+                    local assetPath = getAssetFunc(fullPath)
                     
-                    -- Salva o NOME DO ARQUIVO
-                    MyLibrary.Save[saveKey] = fileName
+                    -- Salva o NOME DO ARQUIVO (não o caminho temporário)
+                    MyLibrary.Save[saveKey] = fullPath
                     SaveJson(ConfigFile, MyLibrary.Save)
 
                     if targetInstance then
                         targetInstance.Image = assetPath
                     end
-                    print("Imagem baixada e aplicada!")
+                    print("Imagem aplicada com sucesso!")
                 else
                     warn("Falha ao baixar imagem.")
                 end
@@ -808,8 +793,14 @@ function MyLibrary:LoadSavedImage(saveKey, targetInstance)
 
     local getAssetFunc = getcustomasset or getsynasset
 
-    -- Se for rbxassetid:// ou http(s), aplica direto
-    if savedImage:find("rbxassetid://") or savedImage:find("https://") or savedImage:find("http://") then
+    -- Se for rbxassetid://, aplica direto
+    if savedImage:find("rbxassetid://") then
+        targetInstance.Image = savedImage
+        return
+    end
+
+    -- Se for http(s)://, aplica direto (Roblox carrega sozinho)
+    if savedImage:find("https://") or savedImage:find("http://") then
         targetInstance.Image = savedImage
         return
     end
@@ -818,6 +809,8 @@ function MyLibrary:LoadSavedImage(saveKey, targetInstance)
     if isfile and isfile(savedImage) and getAssetFunc then
         local assetPath = getAssetFunc(savedImage)
         targetInstance.Image = assetPath
+    else
+        warn("Arquivo de imagem não encontrado:", tostring(savedImage))
     end
 end
 
@@ -1002,7 +995,7 @@ function Window:SetHubImage(ImageId)
         warn("Hub não encontrado.")
         return
     end
-    MyLibrary:ProcessImage(ImageId, "HubImage", hub)
+    MyLibrary:ProcessImage(ImageId, "HubImage", hub, "ImagemHub.png")
 end
 
 
@@ -1012,7 +1005,7 @@ function Window:SetMinimizeImage(ImageId)
         warn("Botão de minimizar não encontrado.")
         return
     end
-    MyLibrary:ProcessImage(ImageId, "MinimizeImage", minimizeBtn)
+    MyLibrary:ProcessImage(ImageId, "MinimizeImage", minimizeBtn, "Imagebutton.png")
 end
 
 
