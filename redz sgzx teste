@@ -36,8 +36,7 @@ Save = {
     Theme = "Purple",
     CustomColors = {},
     ToggleKey = "RightShift",
-    HubImage = "",
-    MinimizeImage = "rbxassetid://10734896206"  -- Imagem padrão do botão
+    HubImage = ""
 },
     Settings = {},
     Connection = {},
@@ -128,9 +127,6 @@ local function Save(file)
             end
             if rawget(decode, "HubImage") and type(decode["HubImage"]) == "string" then
                 MyLibrary.Save.HubImage = decode["HubImage"]
-            end
-            if rawget(decode, "MinimizeImage") and type(decode["MinimizeImage"]) == "string" then
-                MyLibrary.Save.MinimizeImage = decode["MinimizeImage"]
             end
         end
     end
@@ -855,11 +851,11 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
         Name = "Close"
     })
 
-    local MinimizeButton = SetProps(CloseButton:Clone(), {
-    Position = UDim2.new(1, -35, 0.5),
-    Image = MyLibrary.Save.MinimizeImage or "rbxassetid://10734896206",
-    Name = "Minimize"
-})
+	local MinimizeButton = SetProps(CloseButton:Clone(), {
+		Position = UDim2.new(1, -35, 0.5),
+		Image = "rbxassetid://10734896206",
+		Name = "Minimize"
+	})
 
     SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
 
@@ -875,93 +871,85 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     MyLibrary.Save.MinimizeImage = ImageId
     SaveJson(ConfigFile, MyLibrary.Save)
 
-    local minimizeButton = MainFrame:FindFirstChild("Components"):FindFirstChild("Top Bar"):FindFirstChild("Buttons"):FindFirstChild("Minimize")
-    if minimizeButton then
-        minimizeButton.Image = ImageId
-    end
-end
-    
 function Window:SetHubImage(ImageId)
-    if type(ImageId) ~= "string" then
-        warn("ImageId inválido. Use uma string com rbxassetid://, https:// ou rbxasset://.")
+    if type(ImageId) ~= "string" or ImageId == "" then
+        warn("ImageId inválido. Forneça um rbxassetid:// ou link https:// válido.")
         return
     end
 
-    -- Se for rbxasset:// (formato não suportado diretamente), tenta baixar
-    if ImageId:find("rbxasset://") then
+    local hub = ScreenGui:FindFirstChild("Hub") or ScreenGui:FindFirstChild("Main") -- Ajuste para o nome do seu Frame/ImageLabel
+    if not hub then
+        warn("Elemento do Hub não encontrado no ScreenGui.")
+        return
+    end
+
+    -- CASO 1: É um link da Internet (https:// ou http://)
+    if ImageId:find("https://") or ImageId:find("http://") then
         task.spawn(function()
             local requestFunc = request or http_request or (syn and syn.request)
             local getAssetFunc = getcustomasset or getsynasset
 
             if not requestFunc or not getAssetFunc then
-                warn("Seu executor não suporta download de imagens.")
+                warn("Seu executor não suporta o download/conversão de imagens via HTTPS.")
                 return
             end
 
             local success, result = pcall(function()
-                -- Gera um nome único baseado no link
-                local fileName = ImageId:gsub("[/:%?#%.]", "_")  -- Substitui caracteres inválidos
-                fileName = fileName:sub(1, 100) .. ".png"  -- Limita tamanho e adiciona extensão
+                -- Gera um nome de arquivo limpo e único baseado no link
+                local fileName = "hub_img_" .. ImageId:gsub("[%W]", ""):sub(-30) .. ".png"
 
-                -- Verifica se o arquivo já existe
+                -- 1. Verifica se já foi baixado anteriormente no dispositivo
                 if isfile and isfile(fileName) then
-                    print("Imagem encontrada localmente!")
+                    print("Imagem do Hub carregada do armazenamento local!")
                     local assetPath = getAssetFunc(fileName)
                     
-                    -- Atualiza o Hub
                     MyLibrary.Save.HubImage = assetPath
-                    SaveJson(ConfigFile, MyLibrary.Save)
+                    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
 
-                    local hub = ScreenGui:FindFirstChild("Hub")
-                    if hub then
+                    if hub:IsA("ImageLabel") or hub:IsA("ImageButton") then
                         hub.Image = assetPath
                     end
                     return
                 end
 
-                -- Baixa a imagem
-                print("Baixando imagem...")
+                -- 2. Baixa a imagem da internet
+                print("Baixando imagem do Hub...")
                 local response = requestFunc({
                     Url = ImageId,
-                    Method = "GET"
+                    Method = "GET",
+                    Headers = {
+                        ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                    }
                 })
 
                 if response and response.Body then
                     writefile(fileName, response.Body)
                     local assetPath = getAssetFunc(fileName)
                     
-                    -- Atualiza o Hub
                     MyLibrary.Save.HubImage = assetPath
-                    SaveJson(ConfigFile, MyLibrary.Save)
+                    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
 
-                    local hub = ScreenGui:FindFirstChild("Hub")
-                    if hub then
+                    if hub:IsA("ImageLabel") or hub:IsA("ImageButton") then
                         hub.Image = assetPath
                     end
-                    print("Imagem baixada e carregada com sucesso!")
+                    print("Imagem do Hub baixada e aplicada com sucesso!")
                 else
-                    warn("Falha ao baixar imagem:", tostring(response and response.StatusMessage or "sem resposta"))
+                    warn("Falha ao baixar imagem do servidor.")
                 end
             end)
 
             if not success then
-                warn("Erro ao baixar imagem:", tostring(result))
+                warn("Erro interno ao processar a imagem:", tostring(result))
             end
         end)
         return
     end
 
-    -- Aceita: rbxassetid://, https://, http://, ou caminho local (getcustomasset)
-    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("https://") or ImageId:find("http://") or ImageId:find("/")) then
-        warn("Link de imagem inválido. Use rbxassetid://, https:// ou caminho local.")
-        return
-    end
-
+    -- CASO 2: É um Asset ID nativo do Roblox (rbxassetid://) ou caminho getcustomasset local já processado
     MyLibrary.Save.HubImage = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
+    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
 
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if hub then
+    if hub:IsA("ImageLabel") or hub:IsA("ImageButton") then
         hub.Image = ImageId
     end
 end
