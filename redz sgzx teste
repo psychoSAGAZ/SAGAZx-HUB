@@ -657,9 +657,9 @@ function MyLibrary:SetTheme(NewTheme)
     if not VerifyTheme(NewTheme) then return end
 
     MyLibrary.Save.Theme = NewTheme
+    MyLibrary.Save.CustomColors = {}
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     Theme = MyLibrary.Themes[NewTheme]
-    MyLibrary.Save.CustomColors = {}
 
     Connection:FireConnection("ThemeChanged", NewTheme)
 
