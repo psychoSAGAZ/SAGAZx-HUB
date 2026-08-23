@@ -55,7 +55,7 @@ Save = {
     TabSize = 160,
     Theme = "Purple",
     CustomColors = {},
-    ToggleKey = "RightShift"  -- Tecla padrão
+    ToggleKey = "RightShift"
 },
     Settings = {},
     Connection = {},
@@ -133,22 +133,17 @@ local SetProps, SetChildren, InsertTheme, Create do
 
 local function Save(file)
     if readfile and isfile and isfile(file) then
-        local ok, decoded = pcall(function()
-            return HttpService:JSONDecode(readfile(file))
-        end)
-
-        if not ok or type(decoded) ~= "table" then
-            return
-        end
-
-        if rawget(decoded, "UISize") then MyLibrary.Save["UISize"] = decoded["UISize"] end
-        if rawget(decoded, "TabSize") then MyLibrary.Save["TabSize"] = decoded["TabSize"] end
-        if rawget(decoded, "Theme") and VerifyTheme(decoded["Theme"]) then MyLibrary.Save["Theme"] = decoded["Theme"] end
-        if rawget(decoded, "CustomColors") and type(decoded["CustomColors"]) == "table" then
-            MyLibrary.Save.CustomColors = decoded["CustomColors"]
-        end
-        if rawget(decoded, "ToggleKey") and type(decoded["ToggleKey"]) == "string" then
-            MyLibrary.Save.ToggleKey = decoded["ToggleKey"]
+        local decode = HttpService:JSONDecode(readfile(file))
+        if type(decode) == "table" then
+            if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
+            if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
+            if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
+            if rawget(decode, "CustomColors") and type(decode["CustomColors"]) == "table" then
+                MyLibrary.Save.CustomColors = decode["CustomColors"]
+            end
+            if rawget(decode, "ToggleKey") and type(decode["ToggleKey"]) == "string" then
+                MyLibrary.Save.ToggleKey = decode["ToggleKey"]
+            end
         end
     end
 end
@@ -702,7 +697,6 @@ function MyLibrary:SetScale(NewScale)
     UIScale, ScreenGui.Scale.Scale = NewScale, NewScale
 end
 
--- ========== ADICIONE AQUI (Passo 3) ==========
 function MyLibrary:SetToggleKey(KeyCode)
     if type(KeyCode) == "string" then
         KeyCode = Enum.KeyCode[KeyCode]
@@ -715,26 +709,33 @@ function MyLibrary:SetToggleKey(KeyCode)
 
     MyLibrary.Save.ToggleKey = KeyCode.Name
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-    
-    -- Reconecta o listener com a nova tecla
+
+    -- Reconecta o listener
     if MyLibrary._ToggleConnection then
         MyLibrary._ToggleConnection:Disconnect()
     end
     MyLibrary._ToggleConnection = UserInputService.InputBegan:Connect(function(Input, GPE)
         if GPE then return end
         if Input.KeyCode == KeyCode then
-            MyLibrary._ToggleHub()
+            local hub = ScreenGui:FindFirstChild("Hub")
+            if hub then
+                hub.Visible = not hub.Visible
+            end
         end
     end)
 end
 
--- ========== ADICIONE AQUI (Passo 4) ==========
-function MyLibrary:_ToggleHub()
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if hub then
-        hub.Visible = not hub.Visible
+-- Inicializa a hotkey padrão
+local DefaultKey = Enum.KeyCode[MyLibrary.Save.ToggleKey] or Enum.KeyCode.RightShift
+MyLibrary._ToggleConnection = UserInputService.InputBegan:Connect(function(Input, GPE)
+    if GPE then return end
+    if Input.KeyCode == DefaultKey then
+        local hub = ScreenGui:FindFirstChild("Hub")
+        if hub then
+            hub.Visible = not hub.Visible
+        end
     end
-end
+end)
 
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "redz Library V5"
@@ -2733,22 +2734,8 @@ function MyLibrary:MakeWindow(Configs)
         return Tab
     end
 
-        CloseButton.Activated:Connect(Window.CloseBtn)
+    CloseButton.Activated:Connect(Window.CloseBtn)
     MinimizeButton.Activated:Connect(Window.MinimizeBtn)
-
-    -- Configurar hotkey
-    if MyLibrary._ToggleConnection then
-        MyLibrary._ToggleConnection:Disconnect()
-    end
-
-    local ToggleKey = Enum.KeyCode[MyLibrary.Save.ToggleKey] or Enum.KeyCode.RightShift
-    MyLibrary._ToggleConnection = UserInputService.InputBegan:Connect(function(Input, GPE)
-        if GPE then return end
-        if Input.KeyCode == ToggleKey then
-            MyLibrary._ToggleHub()
-        end
-    end)
-
     return Window
 end
 
