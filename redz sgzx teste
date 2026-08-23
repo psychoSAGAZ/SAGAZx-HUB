@@ -36,7 +36,8 @@ Save = {
     Theme = "Purple",
     CustomColors = {},
     ToggleKey = "RightShift",
-    HubImage = ""  -- ID da imagem (vazio = sem imagem)
+    HubImage = "",
+    MinimizeIcon = "rbxassetid://10734896206"
 },
     Settings = {},
     Connection = {},
@@ -127,6 +128,9 @@ local function Save(file)
             end
             if rawget(decode, "HubImage") and type(decode["HubImage"]) == "string" then
                 MyLibrary.Save.HubImage = decode["HubImage"]
+            end
+            if rawget(decode, "MinimizeIcon") and type(decode["MinimizeIcon"]) == "string" then
+                MyLibrary.Save.MinimizeIcon = decode["MinimizeIcon"]
             end
         end
     end
@@ -851,11 +855,11 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
         Name = "Close"
     })
 
-    local MinimizeButton = SetProps(CloseButton:Clone(), {
-        Position = UDim2.new(1, -35, 0.5),
-        Image = "rbxassetid://10734896206",
-        Name = "Minimize"
-    })
+local MinimizeButton = SetProps(CloseButton:Clone(), {
+    Position = UDim2.new(1, -35, 0.5),
+    Image = MyLibrary.Save.MinimizeIcon or "rbxassetid://10734896206",
+    Name = "Minimize"
+})
 
     SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
 
@@ -864,82 +868,49 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" then
-        warn("ImageId inválido.")
+        warn("ImageId inválido. Use uma string com rbxassetid:// ou deixe vazio para remover.")
         return
     end
 
-    -- Para rbxassetid:// usa direto
-    if ImageId:find("rbxassetid://") or ImageId == "" then
-        MyLibrary.Save.HubImage = ImageId
-        SaveJson(ConfigFile, MyLibrary.Save)
-
-        local hub = ScreenGui:FindFirstChild("Hub")
-        if hub then
-            hub.Image = ImageId
-        end
+    -- Aceita apenas rbxassetid:// ou vazio para remover
+    if ImageId ~= "" and not ImageId:find("rbxassetid://") then
+        warn("Use apenas rbxassetid:// para imagens do Roblox.")
         return
     end
 
-    -- Para URLs externas
-    if ImageId:find("https://") or ImageId:find("http://") then
-        task.spawn(function()
-            local success, result = pcall(function()
-                local response = request({
-                    Url = ImageId,
-                    Method = "GET"
-                })
+    MyLibrary.Save.HubImage = ImageId
+    SaveJson(ConfigFile, MyLibrary.Save)
 
-                if response and response.Body and type(response.Body) == "string" and #response.Body > 0 then
-                    -- Converte para base64
-                    local base64 = game:GetService("HttpService"):JSONEncode(response.Body)
-                    
-                    -- Remove aspas extras
-                    base64 = base64:sub(2, -2)
-                    
-                    -- Cria Data URI
-                    local dataUri = "data:image/png;base64," .. base64
-                    
-                    -- Tenta usar Data URI
-                    local hub = ScreenGui:FindFirstChild("Hub")
-                    if hub then
-                        local success2, result2 = pcall(function()
-                            hub.Image = dataUri
-                        end)
-                        
-                        if success2 then
-                            MyLibrary.Save.HubImage = dataUri
-                            SaveJson(ConfigFile, MyLibrary.Save)
-                            print("Imagem carregada via base64!")
-                        else
-                            warn("Data URI não suportado:", tostring(result2))
-                            print("Tentando caminho local...")
-                            
-                            -- Salva como arquivo
-                            if not isfolder(ImagesFolder) then
-                                makefolder(ImagesFolder)
-                            end
-                            local fileName = ImagesFolder .. "/hub_image.png"
-                            writefile(fileName, response.Body)
-                            
-                            hub.Image = fileName
-                            MyLibrary.Save.HubImage = fileName
-                            SaveJson(ConfigFile, MyLibrary.Save)
-                            print("Imagem salva em:", fileName)
-                        end
-                    end
-                else
-                    warn("Falha ao baixar. Body vazio.")
-                end
-            end)
+    local hub = ScreenGui:FindFirstChild("Hub")
+    if hub then
+        hub.Image = ImageId
+    end
+end
 
-            if not success then
-                warn("Erro:", tostring(result))
-            end
-        end)
+function Window:SetMinimizeIcon(ImageId)
+    if type(ImageId) ~= "string" then
+        warn("ImageId inválido. Use uma string com rbxassetid:// ou deixe vazio para restaurar o padrão.")
         return
     end
 
-    warn("Link inválido. Use rbxassetid:// ou https://")
+    -- Se vazio, restaura o ícone padrão
+    if ImageId == "" then
+        ImageId = "rbxassetid://10734896206"
+    end
+
+    -- Aceita apenas rbxassetid://
+    if not ImageId:find("rbxassetid://") then
+        warn("Use apenas rbxassetid:// para imagens do Roblox.")
+        return
+    end
+
+    MyLibrary.Save.MinimizeIcon = ImageId
+    SaveJson(ConfigFile, MyLibrary.Save)
+
+    -- Atualiza o botão
+    if MinimizeButton then
+        MinimizeButton.Image = ImageId
+    end
 end
 
     function Window:SetToggleKey(KeyCode)
