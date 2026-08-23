@@ -950,47 +950,60 @@ function Window:SetHubImage(ImageId)
 end
 
 function Window:SetMinimizeImage(ImageId)
-    if type(ImageId) ~= "string" then
-        warn("ImageId inválido. Use uma string com rbxassetid://, https:// ou rbxasset://.")
+    if type(ImageId) ~= "string" or ImageId == "" then
+        warn("ImageId inválido. Forneça um ID ou link válido.")
         return
     end
 
-    -- Se for rbxasset:// (formato não suportado diretamente), tenta baixar
-    if ImageId:find("rbxasset://") then
+    -- Se enviar apenas o número (ex: "123456"), converte para o formato do Roblox
+    if tonumber(ImageId) then
+        ImageId = "rbxassetid://" .. ImageId
+    end
+
+    -- Busca o botão no ScreenGui (ou dentro da pasta da RedzLib)
+    local minimizeBtn = ScreenGui:FindFirstChild("MinimizeButton", true) or ScreenGui:FindFirstChild("Minimize", true)
+    if not minimizeBtn then
+        warn("O botão de minimizar não foi encontrado na interface.")
+        return
+    end
+
+    -- CASO 1: É um link da Internet (https:// ou http://)
+    if ImageId:find("https://") or ImageId:find("http://") then
         task.spawn(function()
             local requestFunc = request or http_request or (syn and syn.request)
             local getAssetFunc = getcustomasset or getsynasset
 
             if not requestFunc or not getAssetFunc then
-                warn("Seu executor não suporta download de imagens.")
+                warn("Seu executor não suporta download de imagens externas.")
                 return
             end
 
             local success, result = pcall(function()
-                -- Gera um nome único baseado no link
-                local fileName = ImageId:gsub("[/:%?#%.]", "_")
-                fileName = fileName:sub(1, 100) .. ".png"
+                -- Nome limpo baseado no link da imagem
+                local fileName = "min_img_" .. ImageId:gsub("[%W]", ""):sub(-30) .. ".png"
 
-                -- Verifica se o arquivo já existe
+                -- 1. Verifica se já está salvo no armazenamento interno do celular
                 if isfile and isfile(fileName) then
-                    print("Imagem encontrada localmente!")
+                    print("Ícone de minimizar carregado da memória local!")
                     local assetPath = getAssetFunc(fileName)
                     
                     MyLibrary.Save.MinimizeImage = assetPath
-                    SaveJson(ConfigFile, MyLibrary.Save)
+                    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
 
-                    local minimizeBtn = ScreenGui:FindFirstChild("MinimizeButton")
-                    if minimizeBtn then
+                    if minimizeBtn:IsA("ImageButton") or minimizeBtn:IsA("ImageLabel") then
                         minimizeBtn.Image = assetPath
                     end
                     return
                 end
 
-                -- Baixa a imagem
-                print("Baixando imagem...")
+                -- 2. Baixa a imagem se for a primeira vez
+                print("Baixando ícone de minimizar...")
                 local response = requestFunc({
                     Url = ImageId,
-                    Method = "GET"
+                    Method = "GET",
+                    Headers = {
+                        ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                    }
                 })
 
                 if response and response.Body then
@@ -998,39 +1011,33 @@ function Window:SetMinimizeImage(ImageId)
                     local assetPath = getAssetFunc(fileName)
                     
                     MyLibrary.Save.MinimizeImage = assetPath
-                    SaveJson(ConfigFile, MyLibrary.Save)
+                    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
 
-                    local minimizeBtn = ScreenGui:FindFirstChild("MinimizeButton")
-                    if minimizeBtn then
+                    if minimizeBtn:IsA("ImageButton") or minimizeBtn:IsA("ImageLabel") then
                         minimizeBtn.Image = assetPath
                     end
-                    print("Imagem baixada e carregada com sucesso!")
+                    print("Ícone de minimizar atualizado com sucesso!")
                 else
-                    warn("Falha ao baixar imagem:", tostring(response and response.StatusMessage or "sem resposta"))
+                    warn("Falha ao baixar ícone de minimizar.")
                 end
             end)
 
             if not success then
-                warn("Erro ao baixar imagem:", tostring(result))
+                warn("Erro ao processar imagem de minimizar:", tostring(result))
             end
         end)
         return
     end
 
-    -- Aceita: rbxassetid://, https://, http://, ou caminho local
-    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("https://") or ImageId:find("http://") or ImageId:find("/")) then
-        warn("Link de imagem inválido. Use rbxassetid://, https:// ou caminho local.")
-        return
-    end
-
+    -- CASO 2: É rbxassetid:// ou caminho getcustomasset local já baixado
     MyLibrary.Save.MinimizeImage = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
+    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
 
-    local minimizeBtn = ScreenGui:FindFirstChild("MinimizeButton")
-    if minimizeBtn then
+    if minimizeBtn:IsA("ImageButton") or minimizeBtn:IsA("ImageLabel") then
         minimizeBtn.Image = ImageId
     end
 end
+
 
     function Window:SetToggleKey(KeyCode)
     if type(KeyCode) == "string" then
