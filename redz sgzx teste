@@ -883,13 +883,77 @@ end
     
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" then
-        warn("ImageId inválido. Use uma string com rbxassetid:// ou deixe vazio para remover.")
+        warn("ImageId inválido. Use uma string com rbxassetid://, https:// ou rbxasset://.")
         return
     end
 
-    -- Aceita apenas rbxassetid:// ou vazio para remover
-    if ImageId ~= "" and not ImageId:find("rbxassetid://") then
-        warn("Use apenas rbxassetid:// para imagens do Roblox.")
+    -- Se for rbxasset:// (formato não suportado diretamente), tenta baixar
+    if ImageId:find("rbxasset://") then
+        task.spawn(function()
+            local requestFunc = request or http_request or (syn and syn.request)
+            local getAssetFunc = getcustomasset or getsynasset
+
+            if not requestFunc or not getAssetFunc then
+                warn("Seu executor não suporta download de imagens.")
+                return
+            end
+
+            local success, result = pcall(function()
+                -- Gera um nome único baseado no link
+                local fileName = ImageId:gsub("[/:%?#%.]", "_")  -- Substitui caracteres inválidos
+                fileName = fileName:sub(1, 100) .. ".png"  -- Limita tamanho e adiciona extensão
+
+                -- Verifica se o arquivo já existe
+                if isfile and isfile(fileName) then
+                    print("Imagem encontrada localmente!")
+                    local assetPath = getAssetFunc(fileName)
+                    
+                    -- Atualiza o Hub
+                    MyLibrary.Save.HubImage = assetPath
+                    SaveJson(ConfigFile, MyLibrary.Save)
+
+                    local hub = ScreenGui:FindFirstChild("Hub")
+                    if hub then
+                        hub.Image = assetPath
+                    end
+                    return
+                end
+
+                -- Baixa a imagem
+                print("Baixando imagem...")
+                local response = requestFunc({
+                    Url = ImageId,
+                    Method = "GET"
+                })
+
+                if response and response.Body then
+                    writefile(fileName, response.Body)
+                    local assetPath = getAssetFunc(fileName)
+                    
+                    -- Atualiza o Hub
+                    MyLibrary.Save.HubImage = assetPath
+                    SaveJson(ConfigFile, MyLibrary.Save)
+
+                    local hub = ScreenGui:FindFirstChild("Hub")
+                    if hub then
+                        hub.Image = assetPath
+                    end
+                    print("Imagem baixada e carregada com sucesso!")
+                else
+                    warn("Falha ao baixar imagem:", tostring(response and response.StatusMessage or "sem resposta"))
+                end
+            end)
+
+            if not success then
+                warn("Erro ao baixar imagem:", tostring(result))
+            end
+        end)
+        return
+    end
+
+    -- Aceita: rbxassetid://, https://, http://, ou caminho local (getcustomasset)
+    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("https://") or ImageId:find("http://") or ImageId:find("/")) then
+        warn("Link de imagem inválido. Use rbxassetid://, https:// ou caminho local.")
         return
     end
 
