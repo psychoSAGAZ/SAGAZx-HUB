@@ -864,24 +864,24 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" then
-        warn("ImageId inválido. Use uma string com rbxassetid://, https:// ou rbxasset://.")
+        warn("ImageId inválido.")
         return
     end
 
-    -- Se for rbxasset://, tenta baixar a imagem
+    -- Se for rbxasset://, tenta baixar e converter
     if ImageId:find("rbxasset://") then
         task.spawn(function()
             local success, result = pcall(function()
-                -- Cria pasta de imagens se não existir
+                -- Cria pasta de imagens
                 if not isfolder(ImagesFolder) then
                     makefolder(ImagesFolder)
                 end
 
-                -- Nome do arquivo baseado no ID
+                -- Extrai ID do asset
                 local assetId = ImageId:match("(%d+)%.[^.]+$") or "image"
                 local fileName = ImagesFolder .. "/" .. assetId .. ".png"
                 
-                -- Baixa a imagem usando request
+                -- Baixa a imagem
                 local response = request({
                     Url = ImageId,
                     Method = "GET"
@@ -889,7 +889,7 @@ function Window:SetHubImage(ImageId)
 
                 local body = response and response.Body
                 
-                -- Converte tabela de bytes para string se necessário
+                -- Converte tabela para string
                 if type(body) == "table" then
                     local bytes = {}
                     for i, byte in ipairs(body) do
@@ -901,40 +901,41 @@ function Window:SetHubImage(ImageId)
                 if body and #body > 0 then
                     writefile(fileName, body)
                     
-                    -- USA getcustomasset() para obter link aceito pelo Roblox
-                    local customAsset = getcustomasset and getcustomasset(fileName) or fileName
+                    -- CONVERTE PARA ASSET ACEITO
+                    local finalImage
+                    if getcustomasset then
+                        finalImage = getcustomasset(fileName)
+                        print("getcustomasset:", finalImage)
+                    else
+                        finalImage = "rbxassetid://" .. assetId
+                        print("Usando rbxassetid:", finalImage)
+                    end
                     
-                    -- Atualiza o Hub com o link customizado
-                    MyLibrary.Save.HubImage = customAsset
+                    MyLibrary.Save.HubImage = finalImage
                     SaveJson(ConfigFile, MyLibrary.Save)
 
                     local hub = ScreenGui:FindFirstChild("Hub")
                     if hub then
-                        hub.Image = customAsset
-                        print("Imagem aplicada:", customAsset)
+                        hub.Image = finalImage
                     end
-                else
-                    warn("Falha ao baixar imagem.")
                 end
             end)
 
             if not success then
-                warn("Erro ao baixar imagem:", tostring(result))
+                warn("Erro:", tostring(result))
             end
         end)
         return
     end
 
-    -- Para https:// e http:// também baixa
+    -- Para https://
     if ImageId:find("https://") or ImageId:find("http://") then
         task.spawn(function()
             local success, result = pcall(function()
-                -- Cria pasta de imagens se não existir
                 if not isfolder(ImagesFolder) then
                     makefolder(ImagesFolder)
                 end
 
-                -- Nome do arquivo baseado no hash
                 local fileName = ImagesFolder .. "/" .. string.format("%08x", ImageId:len()) .. ".png"
                 
                 local response = request({
@@ -955,34 +956,33 @@ function Window:SetHubImage(ImageId)
                 if body and #body > 0 then
                     writefile(fileName, body)
                     
-                    local customAsset = getcustomasset and getcustomasset(fileName) or fileName
+                    local finalImage
+                    if getcustomasset then
+                        finalImage = getcustomasset(fileName)
+                        print("getcustomasset:", finalImage)
+                    else
+                        finalImage = ImageId
+                        print("Usando URL direta:", finalImage)
+                    end
                     
-                    MyLibrary.Save.HubImage = customAsset
+                    MyLibrary.Save.HubImage = finalImage
                     SaveJson(ConfigFile, MyLibrary.Save)
 
                     local hub = ScreenGui:FindFirstChild("Hub")
                     if hub then
-                        hub.Image = customAsset
-                        print("Imagem aplicada:", customAsset)
+                        hub.Image = finalImage
                     end
-                else
-                    warn("Falha ao baixar imagem.")
                 end
             end)
 
             if not success then
-                warn("Erro ao baixar imagem:", tostring(result))
+                warn("Erro:", tostring(result))
             end
         end)
         return
     end
 
-    -- Aceita: rbxassetid:// ou caminho local
-    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("/")) then
-        warn("Link de imagem inválido. Use rbxassetid://, https:// ou caminho local.")
-        return
-    end
-
+    -- rbxassetid:// direto
     MyLibrary.Save.HubImage = ImageId
     SaveJson(ConfigFile, MyLibrary.Save)
 
