@@ -887,20 +887,34 @@ function Window:SetHubImage(ImageId)
                     Method = "GET"
                 })
 
-                if response and response.Body then
-                    writefile(fileName, response.Body)
+                local body = response and response.Body
+                
+                -- Converte tabela de bytes para string se necessário
+                if type(body) == "table" then
+                    local bytes = {}
+                    for i, byte in ipairs(body) do
+                        bytes[i] = string.char(byte)
+                    end
+                    body = table.concat(bytes)
+                end
+
+                if body and #body > 0 then
+                    writefile(fileName, body)
                     
-                    -- Atualiza o Hub com o caminho local
-                    MyLibrary.Save.HubImage = fileName
+                    -- USA getcustomasset() para obter link aceito pelo Roblox
+                    local customAsset = getcustomasset and getcustomasset(fileName) or fileName
+                    
+                    -- Atualiza o Hub com o link customizado
+                    MyLibrary.Save.HubImage = customAsset
                     SaveJson(ConfigFile, MyLibrary.Save)
 
                     local hub = ScreenGui:FindFirstChild("Hub")
                     if hub then
-                        hub.Image = fileName
-                        print("Imagem baixada com sucesso:", fileName)
+                        hub.Image = customAsset
+                        print("Imagem aplicada:", customAsset)
                     end
                 else
-                    warn("Falha ao baixar imagem. Response:", tostring(response))
+                    warn("Falha ao baixar imagem.")
                 end
             end)
 
@@ -928,19 +942,31 @@ function Window:SetHubImage(ImageId)
                     Method = "GET"
                 })
 
-                if response and response.Body then
-                    writefile(fileName, response.Body)
+                local body = response and response.Body
+                
+                if type(body) == "table" then
+                    local bytes = {}
+                    for i, byte in ipairs(body) do
+                        bytes[i] = string.char(byte)
+                    end
+                    body = table.concat(bytes)
+                end
+
+                if body and #body > 0 then
+                    writefile(fileName, body)
                     
-                    MyLibrary.Save.HubImage = fileName
+                    local customAsset = getcustomasset and getcustomasset(fileName) or fileName
+                    
+                    MyLibrary.Save.HubImage = customAsset
                     SaveJson(ConfigFile, MyLibrary.Save)
 
                     local hub = ScreenGui:FindFirstChild("Hub")
                     if hub then
-                        hub.Image = fileName
-                        print("Imagem baixada com sucesso:", fileName)
+                        hub.Image = customAsset
+                        print("Imagem aplicada:", customAsset)
                     end
                 else
-                    warn("Falha ao baixar imagem. Verifique o link.")
+                    warn("Falha ao baixar imagem.")
                 end
             end)
 
