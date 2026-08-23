@@ -868,8 +868,8 @@ function Window:SetHubImage(ImageId)
         return
     end
 
-    -- Se for rbxasset:// ou https://, tenta baixar e salvar localmente
-    if ImageId:find("rbxasset://") or ImageId:find("https://") or ImageId:find("http://") then
+    -- Se for rbxasset://, tenta baixar a imagem
+    if ImageId:find("rbxasset://") then
         task.spawn(function()
             local success, result = pcall(function()
                 -- Cria pasta de imagens se não existir
@@ -877,11 +877,11 @@ function Window:SetHubImage(ImageId)
                     makefolder(ImagesFolder)
                 end
 
-                -- Nome do arquivo baseado no hash do link
-                local hash = ImageId:gsub("[^%w]", "")
-                local fileName = ImagesFolder .. "/" .. hash .. ".png"
+                -- Nome do arquivo baseado no ID
+                local assetId = ImageId:match("(%d+)%.[^.]+$") or "image"
+                local fileName = ImagesFolder .. "/" .. assetId .. ".png"
                 
-                -- Tenta baixar a imagem
+                -- Baixa a imagem usando request
                 local response = request({
                     Url = ImageId,
                     Method = "GET"
@@ -897,9 +897,50 @@ function Window:SetHubImage(ImageId)
                     local hub = ScreenGui:FindFirstChild("Hub")
                     if hub then
                         hub.Image = fileName
+                        print("Imagem baixada com sucesso:", fileName)
                     end
                 else
-                    warn("Falha ao baixar imagem. Verifique se o link é acessível.")
+                    warn("Falha ao baixar imagem. Response:", tostring(response))
+                end
+            end)
+
+            if not success then
+                warn("Erro ao baixar imagem:", tostring(result))
+            end
+        end)
+        return
+    end
+
+    -- Para https:// e http:// também baixa
+    if ImageId:find("https://") or ImageId:find("http://") then
+        task.spawn(function()
+            local success, result = pcall(function()
+                -- Cria pasta de imagens se não existir
+                if not isfolder(ImagesFolder) then
+                    makefolder(ImagesFolder)
+                end
+
+                -- Nome do arquivo baseado no hash
+                local fileName = ImagesFolder .. "/" .. string.format("%08x", ImageId:len()) .. ".png"
+                
+                local response = request({
+                    Url = ImageId,
+                    Method = "GET"
+                })
+
+                if response and response.Body then
+                    writefile(fileName, response.Body)
+                    
+                    MyLibrary.Save.HubImage = fileName
+                    SaveJson(ConfigFile, MyLibrary.Save)
+
+                    local hub = ScreenGui:FindFirstChild("Hub")
+                    if hub then
+                        hub.Image = fileName
+                        print("Imagem baixada com sucesso:", fileName)
+                    end
+                else
+                    warn("Falha ao baixar imagem. Verifique o link.")
                 end
             end)
 
