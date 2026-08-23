@@ -10,6 +10,7 @@ local PlayerMouse = Player:GetMouse()
 local LibFolder = "SAGAZx HUB"
 local ConfigFile = LibFolder .. "/SAGAZx HUB lib.json"
 local ImagesFolder = LibFolder .. "/Images"
+local FlagsFolder = LibFolder .. "/Flags"
 
 local MyLibrary = {
     Themes = {
@@ -692,7 +693,12 @@ function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "redz Library V5"
     local WMiniText = Configs[2] or Configs.SubTitle or "by : redz9999"
 
-    Settings.ScriptFile = Configs[3] or Configs.SaveFolder or false
+Settings.ScriptFile = Configs[3] or Configs.SaveFolder or false
+
+-- Se tiver SaveFolder, coloca dentro da pasta Flags
+if Settings.ScriptFile and type(Settings.ScriptFile) == "string" then
+    Settings.ScriptFile = FlagsFolder .. "/" .. Settings.ScriptFile .. ".json"
+end
 
     local function LoadFile()
         local File = Settings.ScriptFile
@@ -858,24 +864,55 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" then
-        warn("ImageId inválido. Use uma string com rbxassetid:// ou https://.")
+        warn("ImageId inválido. Use uma string com rbxassetid://, https:// ou rbxasset://.")
         return
     end
 
-    -- Se for rbxasset://, tenta converter para https:// (alguns executores suportam)
-    if ImageId:find("rbxasset://") then
-        -- Extrai o hash e o ID
-        local assetId = ImageId:match("rbxasset://[^/]+/(%d+)")
-        if assetId then
-            -- Converte para formato aceito (você precisa hospedar a imagem em algum lugar)
-            warn("rbxasset:// não é suportado diretamente. Use https:// ou rbxassetid://")
-            return
-        end
+    -- Se for rbxasset:// ou https://, tenta baixar e salvar localmente
+    if ImageId:find("rbxasset://") or ImageId:find("https://") or ImageId:find("http://") then
+        task.spawn(function()
+            local success, result = pcall(function()
+                -- Cria pasta de imagens se não existir
+                if not isfolder(ImagesFolder) then
+                    makefolder(ImagesFolder)
+                end
+
+                -- Nome do arquivo baseado no hash do link
+                local hash = ImageId:gsub("[^%w]", "")
+                local fileName = ImagesFolder .. "/" .. hash .. ".png"
+                
+                -- Tenta baixar a imagem
+                local response = request({
+                    Url = ImageId,
+                    Method = "GET"
+                })
+
+                if response and response.Body then
+                    writefile(fileName, response.Body)
+                    
+                    -- Atualiza o Hub com o caminho local
+                    MyLibrary.Save.HubImage = fileName
+                    SaveJson(ConfigFile, MyLibrary.Save)
+
+                    local hub = ScreenGui:FindFirstChild("Hub")
+                    if hub then
+                        hub.Image = fileName
+                    end
+                else
+                    warn("Falha ao baixar imagem. Verifique se o link é acessível.")
+                end
+            end)
+
+            if not success then
+                warn("Erro ao baixar imagem:", tostring(result))
+            end
+        end)
+        return
     end
 
-    -- Aceita: rbxassetid://, https://, http://
-    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("https://") or ImageId:find("http://")) then
-        warn("Link de imagem inválido. Use rbxassetid:// ou https://.")
+    -- Aceita: rbxassetid:// ou caminho local
+    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("/")) then
+        warn("Link de imagem inválido. Use rbxassetid://, https:// ou caminho local.")
         return
     end
 
