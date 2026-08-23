@@ -858,54 +858,24 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" then
-        warn("ImageId inválido. Use uma string com rbxassetid://, https:// ou rbxasset://.")
+        warn("ImageId inválido. Use uma string com rbxassetid:// ou https://.")
         return
     end
 
-    -- Se for rbxasset:// (formato não suportado diretamente), tenta baixar
+    -- Se for rbxasset://, tenta converter para https:// (alguns executores suportam)
     if ImageId:find("rbxasset://") then
-        task.spawn(function()
-            local success, result = pcall(function()
-                -- Cria pasta de imagens se não existir
-                if not isfolder(ImagesFolder) then
-                    makefolder(ImagesFolder)
-                end
-
-                -- Nome do arquivo baseado no hash do link
-                local fileName = ImagesFolder .. "/" .. string.format("%08x", ImageId:len()) .. ".png"
-                
-                -- Baixa a imagem
-                local response = request({
-                    Url = ImageId,
-                    Method = "GET"
-                })
-
-                if response and response.StatusCode == 200 and response.Body then
-                    writefile(fileName, response.Body)
-                    
-                    -- Atualiza o Hub com o caminho local
-                    MyLibrary.Save.HubImage = fileName
-                    SaveJson(ConfigFile, MyLibrary.Save)
-
-                    local hub = ScreenGui:FindFirstChild("Hub")
-                    if hub then
-                        hub.Image = fileName
-                    end
-                else
-                    warn("Falha ao baixar imagem:", tostring(response and response.StatusMessage or "erro desconhecido"))
-                end
-            end)
-
-            if not success then
-                warn("Erro ao baixar imagem:", tostring(result))
-            end
-        end)
-        return
+        -- Extrai o hash e o ID
+        local assetId = ImageId:match("rbxasset://[^/]+/(%d+)")
+        if assetId then
+            -- Converte para formato aceito (você precisa hospedar a imagem em algum lugar)
+            warn("rbxasset:// não é suportado diretamente. Use https:// ou rbxassetid://")
+            return
+        end
     end
 
-    -- Aceita: rbxassetid://, https://, http://, ou caminho local
-    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("https://") or ImageId:find("http://") or ImageId:find("/")) then
-        warn("Link de imagem inválido. Use rbxassetid://, https:// ou caminho local.")
+    -- Aceita: rbxassetid://, https://, http://
+    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("https://") or ImageId:find("http://")) then
+        warn("Link de imagem inválido. Use rbxassetid:// ou https://.")
         return
     end
 
