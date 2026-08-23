@@ -849,23 +849,94 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" then
-        warn("ImageId inválido. Use uma string com rbxassetid:// ou https://.")
+        warn("ImageId inválido. Use uma string com rbxassetid://, rbxasset://, https:// ou http://.")
         return
     end
 
-    -- Aceita: rbxassetid://, rbxasset://, https://, http://
-    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("rbxasset://") or ImageId:find("https://") or ImageId:find("http://")) then
-        warn("Link de imagem inválido. Use rbxassetid://, rbxasset:// ou https://.")
+    -- Se estiver vazio, remove a imagem
+    if ImageId == "" then
+        MyLibrary.Save.HubImage = ""
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+        local hub = ScreenGui:FindFirstChild("Hub")
+        if hub then
+            hub.Image = ""
+        end
         return
     end
 
-    MyLibrary.Save.HubImage = ImageId
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    -- Se for rbxassetid://, aplica diretamente
+    if ImageId:find("rbxassetid://") then
+        MyLibrary.Save.HubImage = ImageId
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
 
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if hub then
-        hub.Image = ImageId
+        local hub = ScreenGui:FindFirstChild("Hub")
+        if hub then
+            hub.Image = ImageId
+        end
+        return
     end
+
+    -- Se for rbxasset://, https:// ou http://, baixa e converte
+    if ImageId:find("rbxasset://") or ImageId:find("https://") or ImageId:find("http://") then
+        task.spawn(function()
+            local success, result = pcall(function()
+                local response = request({
+                    Url = ImageId,
+                    Method = "GET"
+                })
+
+                if response.StatusCode ~= 200 then
+                    error("Falha ao baixar imagem. Status: " .. tostring(response.StatusCode))
+                end
+
+                return response.Body
+            end)
+
+            if not success then
+                warn("Erro ao baixar imagem:", result)
+                return
+            end
+
+            local imageData = result
+
+            -- Salva a imagem localmente
+            local tempFile = "temp_image.png"
+            local writeSuccess = pcall(writefile, tempFile, imageData)
+
+            if not writeSuccess then
+                warn("Não foi possível salvar a imagem temporária. Verifique se o executor suporta writefile.")
+                return
+            end
+
+            -- Faz upload para o Roblox usando assetupload
+            local uploadSuccess, assetId = pcall(function()
+                local Players = game:GetService("Players")
+                local asset = Players.LocalPlayer:CreateImageFromFile(tempFile)
+                return asset
+            end)
+
+            if not uploadSuccess then
+                warn("Falha ao fazer upload da imagem. O executor pode não suportar essa função.")
+                return
+            end
+
+            local finalId = tostring(assetId)
+
+            -- Salva o ID final
+            MyLibrary.Save.HubImage = finalId
+            SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+            -- Aplica no Hub
+            local hub = ScreenGui:FindFirstChild("Hub")
+            if hub then
+                hub.Image = finalId
+            end
+        end)
+        return
+    end
+
+    warn("Link de imagem inválido. Use rbxassetid://, rbxasset://, https:// ou http://.")
 end
     
     function Window:SetToggleKey(KeyCode)
