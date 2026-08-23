@@ -50,11 +50,13 @@ local MyLibrary = {
     Info = {
         Version = "1.1.0"
     },
-    Save = {
+Save = {
     UISize = {550, 380},
     TabSize = 160,
     Theme = "Purple",
-    CustomColors = {}
+    CustomColors = {},
+    HubImage = "",               -- imagem do hub (string vazia = nenhuma)
+    MinimizeButtonImage = ""     -- ícone do botão externo (string vazia = padrão)
 },
     Settings = {},
     Connection = {},
@@ -140,6 +142,8 @@ local function Save(file)
             if rawget(decode, "CustomColors") and type(decode["CustomColors"]) == "table" then
                 MyLibrary.Save.CustomColors = decode["CustomColors"]
             end
+            if rawget(decode, "HubImage") then MyLibrary.Save["HubImage"] = decode["HubImage"] end
+            if rawget(decode, "MinimizeButtonImage") then MyLibrary.Save["MinimizeButtonImage"] = decode["MinimizeButtonImage"] end
         end
     end
 end
@@ -657,13 +661,13 @@ function MyLibrary:SetTheme(NewTheme)
     if not VerifyTheme(NewTheme) then return end
 
     MyLibrary.Save.Theme = NewTheme
-    MyLibrary.Save.CustomColors = {}   -- descarta customizações
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)   -- salva já limpo
-
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     Theme = MyLibrary.Themes[NewTheme]
+    ApplyCustomColorsToTheme(Theme)
 
     Connection:FireConnection("ThemeChanged", NewTheme)
 
+    -- Loop com pcall para evitar parar se algum elemento falhar
     for _, Val in ipairs(MyLibrary.Instances) do
         local ok, err = pcall(function()
             if Val.Type == "Gradient" then
@@ -859,6 +863,54 @@ function MyLibrary:MakeWindow(Configs)
 
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
+    
+    -- Carrega imagem do Hub salva
+if MyLibrary.Save.HubImage and MyLibrary.Save.HubImage ~= "" then
+    Window.HubImage = Create("ImageLabel", MainFrame, {
+        Name = "HubImage",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        Image = MyLibrary.Save.HubImage,
+        ZIndex = 2
+    })
+end
+
+function Window:SetHubImage(ImageId)
+    if type(ImageId) ~= "string" or ImageId == "" then
+        if self.HubImage then
+            self.HubImage:Destroy()
+            self.HubImage = nil
+        end
+        MyLibrary.Save.HubImage = ""
+    else
+        if not self.HubImage then
+            self.HubImage = Create("ImageLabel", MainFrame, {
+                Name = "HubImage",
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 1, 0),
+                Position = UDim2.new(0, 0, 0, 0),
+                ZIndex = 2
+            })
+        end
+        self.HubImage.Image = ImageId
+        MyLibrary.Save.HubImage = ImageId
+    end
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    return self.HubImage
+end
+
+function Window:SetMinimizeButtonImage(ImageId)
+    if type(ImageId) ~= "string" then
+        ImageId = ""
+    end
+    MyLibrary.Save.MinimizeButtonImage = ImageId
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    if self.MinimizeButtonRef and self.MinimizeButtonRef.Button then
+        self.MinimizeButtonRef.Button.Image = ImageId
+    end
+    return self.MinimizeButtonRef
+end
 
     function Window:CloseBtn()
         local Dialog = Window:Dialog({
@@ -897,28 +949,36 @@ function MyLibrary:MakeWindow(Configs)
         MainFrame.Visible = not MainFrame.Visible
     end
 
-    function Window:AddMinimizeButton(Configs)
-        local Button = MakeDrag(Create("ImageButton", ScreenGui, {
-            Size = UDim2.fromOffset(35, 35),
-            Position = UDim2.fromScale(0.15, 0.15),
-            BackgroundTransparency = 1,
-            AutoButtonColor = false
-        }))
+function Window:AddMinimizeButton(Configs)
+    local Button = MakeDrag(Create("ImageButton", ScreenGui, {
+        Size = UDim2.fromOffset(35, 35),
+        Position = UDim2.fromScale(0.15, 0.15),
+        BackgroundTransparency = 1,
+        AutoButtonColor = false
+    }))
 
-        local Stroke, Corner
-        if Configs.Corner then
-            Corner = Make("Corner", Button)
-            SetProps(Corner, Configs.Corner)
-        end
-        if Configs.Stroke then
-            Stroke = Make("Stroke", Button)
-            SetProps(Stroke, Configs.Stroke)
-        end
-        SetProps(Button, Configs.Button)
-
-        Button.Activated:Connect(Window.Minimize)
-        return { Stroke = Stroke, Corner = Corner, Button = Button }
+    local Stroke, Corner
+    if Configs.Corner then
+        Corner = Make("Corner", Button)
+        SetProps(Corner, Configs.Corner)
     end
+    if Configs.Stroke then
+        Stroke = Make("Stroke", Button)
+        SetProps(Stroke, Configs.Stroke)
+    end
+    SetProps(Button, Configs.Button)
+
+    -- Aplica imagem salva (se houver)
+    if MyLibrary.Save.MinimizeButtonImage and MyLibrary.Save.MinimizeButtonImage ~= "" then
+        Button.Image = MyLibrary.Save.MinimizeButtonImage
+    end
+
+    Button.Activated:Connect(Window.Minimize)
+
+    Window.MinimizeButtonRef = { Stroke = Stroke, Corner = Corner, Button = Button }
+
+    return Window.MinimizeButtonRef
+end
 
     function Window:Set(Val1, Val2)
         if type(Val1) == "string" and type(Val2) == "string" then
