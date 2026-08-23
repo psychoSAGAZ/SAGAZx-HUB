@@ -7,6 +7,9 @@ local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local PlayerMouse = Player:GetMouse()
+local LibFolder = "SAGAZx HUB"
+local ConfigFile = LibFolder .. "/SAGAZx HUB lib.json"
+local ImagesFolder = LibFolder .. "/Images"
 
 local MyLibrary = {
     Themes = {
@@ -128,7 +131,7 @@ local function Save(file)
     end
 end
 
-    pcall(Save, "SAGAZx HUB lib.json")
+    pcall(Save, ConfigFile)
 end
 
 local function Color3ToHex(c)
@@ -390,6 +393,12 @@ end
 
 local function SaveJson(FileName, save)
     if writefile then
+        -- Extrai o diretório do arquivo
+        local folder = FileName:match("^(.*)/[^/]+$")
+        if folder and not isfolder(folder) then
+            makefolder(folder)
+        end
+        
         local json = HttpService:JSONEncode(save)
         writefile(FileName, json)
     end
@@ -612,7 +621,7 @@ function MyLibrary:SetThemeColor(key, value)
         currentTheme[key] = value
     end
 
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    SaveJson(ConfigFile, MyLibrary.Save)
     Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
 
     -- Atualiza os elementos já criados
@@ -641,7 +650,7 @@ function MyLibrary:SetTheme(NewTheme)
     if not VerifyTheme(NewTheme) then return end
 
     MyLibrary.Save.Theme = NewTheme
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    SaveJson(ConfigFile, MyLibrary.Save)
     Theme = MyLibrary.Themes[NewTheme]
     ApplyCustomColorsToTheme(Theme)
 
@@ -815,13 +824,13 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     ConnectSave(ControlSize1, function()
         if not Minimized then
             MyLibrary.Save.UISize = {MainFrame.Size.X.Offset, MainFrame.Size.Y.Offset}
-            SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+            SaveJson(ConfigFile, MyLibrary.Save)
         end
     end)
 
     ConnectSave(ControlSize2, function()
         MyLibrary.Save.TabSize = MainScroll.Size.X.Offset
-        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+        SaveJson(ConfigFile, MyLibrary.Save)
     end)
 
     local ButtonsFolder = Create("Folder", TopBar, { Name = "Buttons" })
@@ -849,66 +858,66 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     
 function Window:SetHubImage(ImageId)
     if type(ImageId) ~= "string" then
-        warn("ImageId inválido.")
+        warn("ImageId inválido. Use uma string com rbxassetid://, https:// ou rbxasset://.")
         return
     end
 
-    -- Se estiver vazio, remove a imagem
-    if ImageId == "" then
-        MyLibrary.Save.HubImage = ""
-        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    -- Se for rbxasset:// (formato não suportado diretamente), tenta baixar
+    if ImageId:find("rbxasset://") then
+        task.spawn(function()
+            local success, result = pcall(function()
+                -- Cria pasta de imagens se não existir
+                if not isfolder(ImagesFolder) then
+                    makefolder(ImagesFolder)
+                end
 
-        local hub = ScreenGui:FindFirstChild("Hub")
-        if hub then
-            hub.Image = ""
-        end
-        return
-    end
+                -- Nome do arquivo baseado no hash do link
+                local fileName = ImagesFolder .. "/" .. string.format("%08x", ImageId:len()) .. ".png"
+                
+                -- Baixa a imagem
+                local response = request({
+                    Url = ImageId,
+                    Method = "GET"
+                })
 
-    -- Se for rbxassetid://, aplica diretamente
-    if ImageId:find("rbxassetid://") then
-        MyLibrary.Save.HubImage = ImageId
-        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+                if response and response.StatusCode == 200 and response.Body then
+                    writefile(fileName, response.Body)
+                    
+                    -- Atualiza o Hub com o caminho local
+                    MyLibrary.Save.HubImage = fileName
+                    SaveJson(ConfigFile, MyLibrary.Save)
 
-        local hub = ScreenGui:FindFirstChild("Hub")
-        if hub then
-            hub.Image = ImageId
-        end
-        return
-    end
+                    local hub = ScreenGui:FindFirstChild("Hub")
+                    if hub then
+                        hub.Image = fileName
+                    end
+                else
+                    warn("Falha ao baixar imagem:", tostring(response and response.StatusMessage or "erro desconhecido"))
+                end
+            end)
 
-    -- Baixa a imagem para arquivo local
-    task.spawn(function()
-        local success, result = pcall(function()
-            local response = request({
-                Url = ImageId,
-                Method = "GET"
-            })
-            return response.Body
-        end)
-
-        if not success then
-            warn("Erro ao baixar imagem:", result)
-            return
-        end
-
-        local fileName = "hub_image_" .. math.random(10000, 99999) .. ".png"
-        local writeSuccess = pcall(writefile, fileName, result)
-
-        if writeSuccess then
-            MyLibrary.Save.HubImage = fileName
-            SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-
-            local hub = ScreenGui:FindFirstChild("Hub")
-            if hub then
-                hub.Image = fileName
+            if not success then
+                warn("Erro ao baixar imagem:", tostring(result))
             end
-        else
-            warn("Não foi possível salvar a imagem.")
-        end
-    end)
+        end)
+        return
+    end
+
+    -- Aceita: rbxassetid://, https://, http://, ou caminho local
+    if ImageId ~= "" and not (ImageId:find("rbxassetid://") or ImageId:find("https://") or ImageId:find("http://") or ImageId:find("/")) then
+        warn("Link de imagem inválido. Use rbxassetid://, https:// ou caminho local.")
+        return
+    end
+
+    MyLibrary.Save.HubImage = ImageId
+    SaveJson(ConfigFile, MyLibrary.Save)
+
+    local hub = ScreenGui:FindFirstChild("Hub")
+    if hub then
+        hub.Image = ImageId
+    end
 end
-    
+
     function Window:SetToggleKey(KeyCode)
     if type(KeyCode) == "string" then
         KeyCode = Enum.KeyCode[KeyCode]
@@ -920,7 +929,7 @@ end
     end
 
     MyLibrary.Save.ToggleKey = KeyCode.Name
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    SaveJson(ConfigFile, MyLibrary.Save)
 
     -- Reconecta o listener
     if MyLibrary._ToggleConnection then
