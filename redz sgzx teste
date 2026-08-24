@@ -988,9 +988,12 @@ MyLibrary:LoadSavedImage("HubImage", MainFrame)
 		Name = "Minimize"
 	})
 
-    SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
-    
-    -- Botão arrastável de minimizar (criado diretamente na lib)
+SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
+
+local Minimized, SaveSize, WaitClick
+local Window, FirstTab = {}, false
+
+-- Botão arrastável de minimizar (criado diretamente na lib)
 local MinimizeDragButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Size = UDim2.fromOffset(35, 35),
     Position = UDim2.fromScale(0.15, 0.15),
@@ -1013,10 +1016,9 @@ if MyLibrary.Save.DefaultMinimizeImage:find("https://") or MyLibrary.Save.Defaul
     end
 end
 
-MinimizeDragButton.Activated:Connect(Window.Minimize)
-
-    local Minimized, SaveSize, WaitClick
-    local Window, FirstTab = {}, false
+MinimizeDragButton.Activated:Connect(function()
+    Window.Minimize()
+end)
     
 function Window:SetHubImage(ImageId)
     local hub = ScreenGui:FindFirstChild("Hub", true)
