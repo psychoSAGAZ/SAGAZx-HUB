@@ -748,16 +748,28 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
 
                 if response and response.Body then
                     writefile(fullPath, response.Body)
-                    local assetPath = getAssetFunc(fullPath)
                     
-                    -- Salva o NOME DO ARQUIVO (não o caminho temporário)
-                    MyLibrary.Save[saveKey] = fullPath
-                    SaveJson(ConfigFile, MyLibrary.Save)
+                    -- Aguarda um frame para garantir que o arquivo foi escrito
+                    task.wait(0.1)
+                    
+                    -- Verifica se o arquivo existe
+                    if isfile(fullPath) then
+                        local assetPath = getAssetFunc(fullPath)
+                        
+                        -- Salva o NOME DO ARQUIVO (não o caminho temporário)
+                        MyLibrary.Save[saveKey] = fullPath
+                        SaveJson(ConfigFile, MyLibrary.Save)
 
-                    if targetInstance then
-                        targetInstance.Image = assetPath
+                        if targetInstance then
+                            -- Força atualização da imagem
+                            targetInstance.Image = ""
+                            task.wait(0.05)
+                            targetInstance.Image = assetPath
+                        end
+                        print("Imagem aplicada com sucesso!")
+                    else
+                        warn("Arquivo não foi salvo corretamente.")
                     end
-                    print("Imagem aplicada com sucesso!")
                 else
                     warn("Falha ao baixar imagem.")
                 end
@@ -776,6 +788,8 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
         MyLibrary.Save[saveKey] = ImageId
         SaveJson(ConfigFile, MyLibrary.Save)
         if targetInstance then
+            targetInstance.Image = ""
+            task.wait(0.05)
             targetInstance.Image = assetPath
         end
         return
@@ -812,6 +826,10 @@ function MyLibrary:LoadSavedImage(saveKey, targetInstance)
     -- Se for caminho local, converte com getcustomasset
     if isfile and isfile(savedImage) and getAssetFunc then
         local assetPath = getAssetFunc(savedImage)
+        
+        -- Força atualização
+        targetInstance.Image = ""
+        task.wait(0.05)
         targetInstance.Image = assetPath
     else
         warn("Arquivo de imagem não encontrado:", tostring(savedImage))
