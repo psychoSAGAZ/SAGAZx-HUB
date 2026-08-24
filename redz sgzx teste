@@ -691,132 +691,72 @@ function MyLibrary:SetScale(NewScale)
     UIScale, ScreenGui.Scale.Scale = NewScale, NewScale
 end
 
-function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
-    if type(ImageId) ~= "string" or ImageId == "" then
-        warn("ImageId inválido.")
-        return false
-    end
+task.spawn(function()
+    local success, result = pcall(function()
+        -- Usa o nome fixo fornecido
+        local fullPath = ImagesFolder .. "/" .. fileName
 
-    local requestFunc = request or http_request or (syn and syn.request)
-    local getAssetFunc = getcustomasset or getsynasset
-
-    -- Se for número, converte para rbxassetid://
-    if tonumber(ImageId) then
-        ImageId = "rbxassetid://" .. ImageId
-    end
-
-    -- Se for rbxassetid://, aplica direto
-    if ImageId:find("rbxassetid://") then
-        MyLibrary.Save[saveKey] = ImageId
-        SaveJson(ConfigFile, MyLibrary.Save)
-        if targetInstance then
-            targetInstance.Image = ImageId
-        end
-        return true
-    end
-
-    -- Se for link http(s)://
-    if ImageId:find("https://") or ImageId:find("http://") then
-        if not requestFunc or not getAssetFunc then
-            warn("Seu executor não suporta download de imagens.")
-            return false
+        -- Cria pasta se não existir
+        if not isfolder(ImagesFolder) then
+            makefolder(ImagesFolder)
         end
 
-        task.spawn(function()
-            local success, result = pcall(function()
-                local fullPath = ImagesFolder .. "/" .. fileName
+        -- Baixa a imagem (sempre sobrescreve)
+        print("Baixando imagem (" .. fileName .. ")...")
+        local response = requestFunc({
+            Url = ImageId,
+            Method = "GET",
+            Headers = {
+                ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+            }
+        })
 
-                if not isfolder(ImagesFolder) then
-                    makefolder(ImagesFolder)
-                end
+        if response and response.Body and response.StatusCode == 200 then
+            writefile(fullPath, response.Body)
+            local assetPath = getAssetFunc(fullPath)
+            
+            -- Salva o NOME DO ARQUIVO (não o caminho temporário)
+            MyLibrary.Save[saveKey] = fullPath
+            SaveJson(ConfigFile, MyLibrary.Save)
 
-                print("Baixando imagem (" .. fileName .. ")...")
-                local response = requestFunc({
-                    Url = ImageId,
-                    Method = "GET",
-                    Headers = {
-                        ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                    }
-                })
-
-                if response and response.Body then
-                    writefile(fullPath, response.Body)
-                    local assetPath = getAssetFunc(fullPath)
-                    
-                    MyLibrary.Save[saveKey] = fullPath
-                    SaveJson(ConfigFile, MyLibrary.Save)
-
-                    if targetInstance then
-                        targetInstance.Image = assetPath
-                    end
-                    print("Imagem aplicada com sucesso!")
-                    return true
-                else
-                    warn("Falha ao baixar imagem. Restaurando padrão...")
-                    
-                    -- Se falhar, tenta restaurar a imagem padrão
-                    if saveKey == "MinimizeImage" and MyLibrary._DefaultMinimizeImage then
-                        MyLibrary.Save.MinimizeImage = ""
-                        SaveJson(ConfigFile, MyLibrary.Save)
-                        
-                        if MyLibrary._DefaultMinimizeImage:find("https://") or MyLibrary._DefaultMinimizeImage:find("http://") then
-                            -- Se o padrão também for link, tenta baixar
-                            local defaultResponse = requestFunc({
-                                Url = MyLibrary._DefaultMinimizeImage,
-                                Method = "GET",
-                                Headers = {
-                                    ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                                }
-                            })
-                            
-                            if defaultResponse and defaultResponse.Body then
-                                writefile(fullPath, defaultResponse.Body)
-                                local defaultAssetPath = getAssetFunc(fullPath)
-                                
-                                MyLibrary.Save.MinimizeImage = fullPath
-                                SaveJson(ConfigFile, MyLibrary.Save)
-                                
-                                if targetInstance then
-                                    targetInstance.Image = defaultAssetPath
-                                end
-                            end
-                        else
-                            -- Se o padrão for rbxassetid://, aplica direto
-                            if targetInstance then
-                                targetInstance.Image = MyLibrary._DefaultMinimizeImage
-                            end
-                        end
-                    end
-                    return false
-                end
-            end)
-
-            if not success then
-                warn("Erro ao processar imagem:", tostring(result))
+            if targetInstance then
+                targetInstance.Image = assetPath
             end
-        end)
-        return true
-    end
-
-    -- Se for caminho local
-    if isfile and isfile(ImageId) and getAssetFunc then
-        local assetPath = getAssetFunc(ImageId)
-        MyLibrary.Save[saveKey] = ImageId
-        SaveJson(ConfigFile, MyLibrary.Save)
-        if targetInstance then
-            targetInstance.Image = assetPath
+            print("Imagem aplicada com sucesso!")
+        else
+            warn("Falha ao baixar imagem. Status: " .. tostring(response and response.StatusCode))
+            
+            -- Se falhar, restaura a imagem padrão (para MinimizeImage)
+            if saveKey == "MinimizeImage" and MyLibrary._DefaultMinimizeImage then
+                MyLibrary.Save.MinimizeImage = ""
+                SaveJson(ConfigFile, MyLibrary.Save)
+                
+                if targetInstance then
+                    if MyLibrary._DefaultMinimizeImage:find("https://") or MyLibrary._DefaultMinimizeImage:find("http://") then
+                        -- Tenta baixar a imagem padrão
+                        MyLibrary:ProcessImage(MyLibrary._DefaultMinimizeImage, "MinimizeImage", targetInstance, "ImagebuttonOfc.png")
+                    else
+                        targetInstance.Image = MyLibrary._DefaultMinimizeImage
+                    end
+                end
+            end
         end
-        return true
-    end
+    end)
 
-    -- Fallback
-    MyLibrary.Save[saveKey] = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
-    if targetInstance then
-        targetInstance.Image = ImageId
+    if not success then
+        warn("Erro ao processar imagem:", tostring(result))
+        
+        -- Se falhar, restaura a imagem padrão
+        if saveKey == "MinimizeImage" and MyLibrary._DefaultMinimizeImage then
+            MyLibrary.Save.MinimizeImage = ""
+            SaveJson(ConfigFile, MyLibrary.Save)
+            
+            if targetInstance then
+                targetInstance.Image = MyLibrary._DefaultMinimizeImage
+            end
+        end
     end
-    return true
-end
+end)
 
 function MyLibrary:LoadSavedImage(saveKey, targetInstance)
     local savedImage = MyLibrary.Save[saveKey]
@@ -1039,37 +979,33 @@ function Window:SetMinimizeImage(ImageId)
         return
     end
 
-    local requestFunc = request or http_request or (syn and syn.request)
-    local getAssetFunc = getcustomasset or getsynasset
-
-    -- Se for vazio, restaura a imagem padrão
+    -- Se for vazio ou inválido, restaura a imagem padrão
     if type(ImageId) ~= "string" or ImageId == "" then
         MyLibrary.Save.MinimizeImage = ""
         SaveJson(ConfigFile, MyLibrary.Save)
         
-        -- Restaura a imagem padrão
+        -- Restaura a imagem padrão (se existir)
         if MyLibrary._DefaultMinimizeImage then
-            -- Se a imagem padrão for um link, processa novamente
+            -- Se a imagem padrão for um link, processa e baixa
             if MyLibrary._DefaultMinimizeImage:find("https://") or MyLibrary._DefaultMinimizeImage:find("http://") then
                 MyLibrary:ProcessImage(MyLibrary._DefaultMinimizeImage, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png")
             else
-                -- Se for rbxassetid://, aplica direto
                 minimizeBtn.Image = MyLibrary._DefaultMinimizeImage
             end
         end
         return
     end
 
-    -- Validação melhorada
+    -- Verifica se é um ID ou link válido
     local isValid = false
     
-    -- Verifica se é número (converte para rbxassetid://)
-    if tonumber(ImageId) then
+    -- Verifica se é rbxassetid:// válido
+    if ImageId:find("rbxassetid://") then
         isValid = true
     end
     
-    -- Verifica se é rbxassetid://
-    if ImageId:find("rbxassetid://") then
+    -- Verifica se é número (converte para rbxassetid://)
+    if tonumber(ImageId) then
         isValid = true
     end
     
@@ -1077,10 +1013,10 @@ function Window:SetMinimizeImage(ImageId)
     if ImageId:find("https://") or ImageId:find("http://") then
         isValid = true
     end
-
+    
     -- Se for inválido, restaura a imagem padrão
     if not isValid then
-        warn("Link de imagem inválido. Restaurando imagem padrão...")
+        warn("Link ou ID inválido. Restaurando imagem padrão.")
         MyLibrary.Save.MinimizeImage = ""
         SaveJson(ConfigFile, MyLibrary.Save)
         
