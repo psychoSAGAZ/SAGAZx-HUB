@@ -999,26 +999,25 @@ local MinimizeDragButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Position = UDim2.fromScale(0.15, 0.15),
     BackgroundTransparency = 0,
     AutoButtonColor = false,
-    Name = "MinimizeButton"
+    Name = "MinimizeButton",
+    Image = ""
 }))
 
 Make("Corner", MinimizeDragButton, UDim.new(0, 8))
 
--- Se houver imagem salva, carrega do arquivo
-if MyLibrary.Save.MinimizeImage and MyLibrary.Save.MinimizeImage ~= "" then
-    MyLibrary:LoadSavedImage("MinimizeImage", MinimizeDragButton)
-else
-    -- Se não houver imagem salva, usa a imagem padrão da lib
-    local defaultImage = MyLibrary.Save.DefaultMinimizeImage or ""
+-- Aplica imagem salva (se houver)
+MyLibrary:LoadSavedImage("MinimizeImage", MinimizeDragButton)
+
+-- Se não houver imagem salva, usa a padrão
+if not MyLibrary.Save.MinimizeImage or MyLibrary.Save.MinimizeImage == "" then
+    local defaultImage = MyLibrary.Save.DefaultMinimizeImage
     
+    -- Se for link, processa e aplica
     if defaultImage:find("https://") or defaultImage:find("http://") then
-        -- Link: baixa e aplica imediatamente
         MyLibrary:ProcessImage(defaultImage, "MinimizeImage", MinimizeDragButton, "ImagebuttonOfc.png")
     else
-        -- rbxassetid:// ou outro: aplica direto
+        -- Se for rbxassetid, aplica direto
         MinimizeDragButton.Image = defaultImage
-        MyLibrary.Save.MinimizeImage = defaultImage
-        SaveJson(ConfigFile, MyLibrary.Save)
     end
 end
 
@@ -1043,13 +1042,15 @@ function Window:SetMinimizeImage(ImageId)
         return
     end
 
-    -- Se for vazio, restaura a imagem padrão
+    -- Se for vazio ou inválido, restaura a imagem padrão da lib
     if type(ImageId) ~= "string" or ImageId == "" then
         MyLibrary.Save.MinimizeImage = ""
         SaveJson(ConfigFile, MyLibrary.Save)
         
-        local defaultImage = MyLibrary.Save.DefaultMinimizeImage or ""
+        -- Restaura a imagem padrão definida na lib
+        local defaultImage = MyLibrary.Save.DefaultMinimizeImage
         
+        -- Se o padrão for link, processa
         if defaultImage:find("https://") or defaultImage:find("http://") then
             MyLibrary:ProcessImage(defaultImage, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png")
         else
@@ -1058,8 +1059,15 @@ function Window:SetMinimizeImage(ImageId)
         return
     end
 
-    -- Processa a nova imagem (suporta rbxassetid://, https://, caminho local)
+    -- Para aplicar imediatamente, chama ProcessImage e força atualização
     MyLibrary:ProcessImage(ImageId, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png")
+    
+    -- Fallback: se for rbxassetid, aplica direto
+    if ImageId:find("rbxassetid://") then
+        minimizeBtn.Image = ImageId
+        MyLibrary.Save.MinimizeImage = ImageId
+        SaveJson(ConfigFile, MyLibrary.Save)
+    end
 end
 
 
