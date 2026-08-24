@@ -38,7 +38,7 @@ Save = {
     ToggleKey = "RightShift",
     HubImage = "",
     MinimizeImage = "",
-    DefaultMinimizeImage = "rbxassetid://8605022675186"  -- Imagem padrão do botão
+    DefaultMinimizeImage = "https://a.storyblok.com/f/178900/2500x1406/20c0029781/black-clover-new.png/m/1200x0/filters:quality(95)format(webp)"  -- Imagem padrão do botão
 },
     Settings = {},
     Connection = {},
