@@ -691,9 +691,18 @@ function MyLibrary:SetScale(NewScale)
     UIScale, ScreenGui.Scale.Scale = NewScale, NewScale
 end
 
-function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
+function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName, defaultImage)
     if type(ImageId) ~= "string" or ImageId == "" then
         warn("ImageId inválido.")
+        
+        -- Restaura a imagem padrão
+        if defaultImage then
+            MyLibrary.Save[saveKey] = ""
+            SaveJson(ConfigFile, MyLibrary.Save)
+            if targetInstance then
+                targetInstance.Image = defaultImage
+            end
+        end
         return
     end
 
@@ -719,6 +728,15 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
     if ImageId:find("https://") or ImageId:find("http://") then
         if not requestFunc or not getAssetFunc then
             warn("Seu executor não suporta download de imagens.")
+            
+            -- Restaura a imagem padrão
+            if defaultImage then
+                MyLibrary.Save[saveKey] = ""
+                SaveJson(ConfigFile, MyLibrary.Save)
+                if targetInstance then
+                    targetInstance.Image = defaultImage
+                end
+            end
             return
         end
 
@@ -755,12 +773,30 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
                     end
                     print("Imagem aplicada com sucesso!")
                 else
-                    warn("Falha ao baixar imagem.")
+                    warn("Falha ao baixar imagem. Restaurando padrão...")
+                    
+                    -- Restaura a imagem padrão
+                    if defaultImage then
+                        MyLibrary.Save[saveKey] = ""
+                        SaveJson(ConfigFile, MyLibrary.Save)
+                        if targetInstance then
+                            targetInstance.Image = defaultImage
+                        end
+                    end
                 end
             end)
 
             if not success then
                 warn("Erro ao processar imagem:", tostring(result))
+                
+                -- Restaura a imagem padrão
+                if defaultImage then
+                    MyLibrary.Save[saveKey] = ""
+                    SaveJson(ConfigFile, MyLibrary.Save)
+                    if targetInstance then
+                        targetInstance.Image = defaultImage
+                    end
+                end
             end
         end)
         return
@@ -995,7 +1031,9 @@ function Window:SetHubImage(ImageId)
         warn("Hub não encontrado.")
         return
     end
-    MyLibrary:ProcessImage(ImageId, "HubImage", hub, "ImagemHub.png")
+
+    -- Passa "" como fallback (sem imagem padrão)
+    MyLibrary:ProcessImage(ImageId, "HubImage", hub, "ImagemHub.png", nil)
 end
 
 
@@ -1018,7 +1056,8 @@ function Window:SetMinimizeImage(ImageId)
         return
     end
 
-    MyLibrary:ProcessImage(ImageId, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png")
+    -- Passa a imagem padrão como fallback
+    MyLibrary:ProcessImage(ImageId, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png", MyLibrary._DefaultMinimizeImage)
 end
 
 
