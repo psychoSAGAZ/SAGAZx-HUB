@@ -748,28 +748,16 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
 
                 if response and response.Body then
                     writefile(fullPath, response.Body)
+                    local assetPath = getAssetFunc(fullPath)
                     
-                    -- Aguarda um frame para garantir que o arquivo foi escrito
-                    task.wait(0.1)
-                    
-                    -- Verifica se o arquivo existe
-                    if isfile(fullPath) then
-                        local assetPath = getAssetFunc(fullPath)
-                        
-                        -- Salva o NOME DO ARQUIVO (não o caminho temporário)
-                        MyLibrary.Save[saveKey] = fullPath
-                        SaveJson(ConfigFile, MyLibrary.Save)
+                    -- Salva o NOME DO ARQUIVO (não o caminho temporário)
+                    MyLibrary.Save[saveKey] = fullPath
+                    SaveJson(ConfigFile, MyLibrary.Save)
 
-                        if targetInstance then
-                            -- Força atualização da imagem
-                            targetInstance.Image = ""
-                            task.wait(0.05)
-                            targetInstance.Image = assetPath
-                        end
-                        print("Imagem aplicada com sucesso!")
-                    else
-                        warn("Arquivo não foi salvo corretamente.")
+                    if targetInstance then
+                        targetInstance.Image = assetPath
                     end
+                    print("Imagem aplicada com sucesso!")
                 else
                     warn("Falha ao baixar imagem.")
                 end
@@ -788,8 +776,6 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
         MyLibrary.Save[saveKey] = ImageId
         SaveJson(ConfigFile, MyLibrary.Save)
         if targetInstance then
-            targetInstance.Image = ""
-            task.wait(0.05)
             targetInstance.Image = assetPath
         end
         return
@@ -826,10 +812,6 @@ function MyLibrary:LoadSavedImage(saveKey, targetInstance)
     -- Se for caminho local, converte com getcustomasset
     if isfile and isfile(savedImage) and getAssetFunc then
         local assetPath = getAssetFunc(savedImage)
-        
-        -- Força atualização
-        targetInstance.Image = ""
-        task.wait(0.05)
         targetInstance.Image = assetPath
     else
         warn("Arquivo de imagem não encontrado:", tostring(savedImage))
@@ -1017,20 +999,26 @@ local MinimizeDragButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Position = UDim2.fromScale(0.15, 0.15),
     BackgroundTransparency = 0,
     AutoButtonColor = false,
-    Name = "MinimizeButton",
-    Image = MyLibrary.Save.DefaultMinimizeImage or ""
+    Name = "MinimizeButton"
 }))
 
 Make("Corner", MinimizeDragButton, UDim.new(0, 8))
 
--- Aplica imagem salva (se houver)
-MyLibrary:LoadSavedImage("MinimizeImage", MinimizeDragButton)
-
--- Se a imagem padrão for link http(s), processa e salva
-if MyLibrary.Save.DefaultMinimizeImage:find("https://") or MyLibrary.Save.DefaultMinimizeImage:find("http://") then
-    -- Só processa se não houver imagem salva anteriormente
-    if not MyLibrary.Save.MinimizeImage or MyLibrary.Save.MinimizeImage == "" then
-        MyLibrary:ProcessImage(MyLibrary.Save.DefaultMinimizeImage, "MinimizeImage", MinimizeDragButton, "ImagebuttonOfc.png")
+-- Se houver imagem salva, carrega do arquivo
+if MyLibrary.Save.MinimizeImage and MyLibrary.Save.MinimizeImage ~= "" then
+    MyLibrary:LoadSavedImage("MinimizeImage", MinimizeDragButton)
+else
+    -- Se não houver imagem salva, usa a imagem padrão da lib
+    local defaultImage = MyLibrary.Save.DefaultMinimizeImage or ""
+    
+    if defaultImage:find("https://") or defaultImage:find("http://") then
+        -- Link: baixa e aplica imediatamente
+        MyLibrary:ProcessImage(defaultImage, "MinimizeImage", MinimizeDragButton, "ImagebuttonOfc.png")
+    else
+        -- rbxassetid:// ou outro: aplica direto
+        MinimizeDragButton.Image = defaultImage
+        MyLibrary.Save.MinimizeImage = defaultImage
+        SaveJson(ConfigFile, MyLibrary.Save)
     end
 end
 
@@ -1055,15 +1043,13 @@ function Window:SetMinimizeImage(ImageId)
         return
     end
 
-    -- Se for vazio ou inválido, restaura a imagem padrão da lib
+    -- Se for vazio, restaura a imagem padrão
     if type(ImageId) ~= "string" or ImageId == "" then
         MyLibrary.Save.MinimizeImage = ""
         SaveJson(ConfigFile, MyLibrary.Save)
         
-        -- Restaura a imagem padrão definida na lib
-        local defaultImage = MyLibrary.Save.DefaultMinimizeImage
+        local defaultImage = MyLibrary.Save.DefaultMinimizeImage or ""
         
-        -- Se o padrão for link, processa
         if defaultImage:find("https://") or defaultImage:find("http://") then
             MyLibrary:ProcessImage(defaultImage, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png")
         else
@@ -1072,6 +1058,7 @@ function Window:SetMinimizeImage(ImageId)
         return
     end
 
+    -- Processa a nova imagem (suporta rbxassetid://, https://, caminho local)
     MyLibrary:ProcessImage(ImageId, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png")
 end
 
