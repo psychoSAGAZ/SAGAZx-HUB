@@ -1005,7 +1005,20 @@ function Window:SetMinimizeImage(ImageId)
         warn("Botão de minimizar não encontrado.")
         return
     end
-    MyLibrary:ProcessImage(ImageId, "MinimizeImage", minimizeBtn, "Imagebutton.png")
+
+    -- Se for vazio ou inválido, restaura a imagem padrão
+    if type(ImageId) ~= "string" or ImageId == "" then
+        MyLibrary.Save.MinimizeImage = ""
+        SaveJson(ConfigFile, MyLibrary.Save)
+        
+        -- Restaura a imagem padrão (se existir)
+        if MyLibrary._DefaultMinimizeImage then
+            minimizeBtn.Image = MyLibrary._DefaultMinimizeImage
+        end
+        return
+    end
+
+    MyLibrary:ProcessImage(ImageId, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png")
 end
 
 
@@ -1104,30 +1117,29 @@ function Window:AddMinimizeButton(Configs)
         Stroke = Make("Stroke", Button)
         SetProps(Stroke, Configs.Stroke)
     end
-
-    -- Verifica se Configs.Button.Image é um link http(s)
-    local buttonImage = Configs.Button and Configs.Button.Image
-    if buttonImage and type(buttonImage) == "string" and (buttonImage:find("https://") or buttonImage:find("http://")) then
-        -- Remove a Image do Configs.Button para não aplicar o link direto
-        local buttonProps = {}
-        for k, v in pairs(Configs.Button) do
-            if k ~= "Image" then
-                buttonProps[k] = v
-            end
-        end
-        SetProps(Button, buttonProps)
-
-        -- Baixa e aplica a imagem com nome fixo "ImagebuttonOfc"
-        MyLibrary:ProcessImage(buttonImage, "MinimizeImage", Button, "ImagebuttonOfc.png")
-    else
-        -- Aplica normalmente (com rbxassetid ou sem link)
-        if Configs.Button then
-            SetProps(Button, Configs.Button)
-        end
+    if Configs.Button then
+        SetProps(Button, Configs.Button)
     end
 
-    -- Aplica imagem salva DEPOIS (para sobrescrever qualquer padrão)
+    -- Salva a imagem padrão como referência
+    if Configs.Button and Configs.Button.Image then
+        MyLibrary._DefaultMinimizeImage = Configs.Button.Image
+    end
+
+    -- Aplica imagem salva DEPOIS do SetProps (para sobrescrever qualquer padrão)
     MyLibrary:LoadSavedImage("MinimizeImage", Button)
+
+    -- Se tiver imagem padrão no Configs.Button e for link http(s)
+    if Configs.Button and Configs.Button.Image then
+        local defaultImage = Configs.Button.Image
+        
+        if type(defaultImage) == "string" and (defaultImage:find("https://") or defaultImage:find("http://")) then
+            -- Só processa se não houver imagem salva anteriormente
+            if not MyLibrary.Save.MinimizeImage or MyLibrary.Save.MinimizeImage == "" then
+                MyLibrary:ProcessImage(defaultImage, "MinimizeImage", Button, "ImagebuttonOfc.png")
+            end
+        end
+    end
 
     Button.Activated:Connect(Window.Minimize)
     return { Stroke = Stroke, Corner = Corner, Button = Button }
