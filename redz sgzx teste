@@ -704,100 +704,90 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
     local requestFunc = request or http_request or (syn and syn.request)
     local getAssetFunc = getcustomasset or getsynasset
 
-    -- Garante que existe uma pasta padrão para salvar as imagens se não foi declarada
-    local folderName = "RedzImages"
-    if pcall(function() if not isfolder(folderName) then makefolder(folderName) end end) then
-        -- Pasta criada ou já existe com sucesso
-    else
-        folderName = "" -- Fallback se a pasta falhar: salva na raiz
-    end
-
-    local fullPath = folderName ~= "" and (folderName .. "/" .. fileName) or fileName
-
     -- Se for número, converte para rbxassetid://
     if tonumber(ImageId) then
         ImageId = "rbxassetid://" .. ImageId
     end
 
-    -- Se for rbxassetid:// ou link http direto sem precisar baixar
+    -- Se for rbxassetid://, aplica direto
     if ImageId:find("rbxassetid://") then
         MyLibrary.Save[saveKey] = ImageId
-        pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
-        if targetInstance and (targetInstance:IsA("ImageLabel") or targetInstance:IsA("ImageButton")) then
-            targetInstance.Image = ""
-            task.wait()
+        SaveJson(ConfigFile, MyLibrary.Save)
+        if targetInstance then
             targetInstance.Image = ImageId
         end
         return
     end
 
-    -- Se for link http(s):// da internet
+    -- Se for link http(s)://
     if ImageId:find("https://") or ImageId:find("http://") then
         if not requestFunc or not getAssetFunc then
-            warn("Seu executor não suporta download de imagens (request/getcustomasset ausentes).")
+            warn("Seu executor não suporta download de imagens.")
             return
         end
 
         task.spawn(function()
-            print("Baixando imagem (" .. fileName ..")...")
-            local success, response = pcall(function()
-                return requestFunc({
+            local success, result = pcall(function()
+                -- Usa o nome fixo fornecido
+                local fullPath = ImagesFolder .. "/" .. fileName
+
+                -- Cria pasta se não existir
+                if not isfolder(ImagesFolder) then
+                    makefolder(ImagesFolder)
+                end
+
+                -- Baixa a imagem (sempre sobrescreve)
+                print("Baixando imagem (" .. fileName .. ")...")
+                local response = requestFunc({
                     Url = ImageId,
                     Method = "GET",
                     Headers = {
                         ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
                     }
                 })
+
+                if response and response.Body then
+                    writefile(fullPath, response.Body)
+                    local assetPath = getAssetFunc(fullPath)
+                    
+                    -- Salva o NOME DO ARQUIVO (não o caminho temporário)
+                    MyLibrary.Save[saveKey] = fullPath
+                    SaveJson(ConfigFile, MyLibrary.Save)
+
+                    if targetInstance then
+                        targetInstance.Image = assetPath
+                    end
+                    print("Imagem aplicada com sucesso!")
+                else
+                    warn("Falha ao baixar imagem.")
+                end
             end)
 
-            if success and response and response.Body then
-                local writeSuccess = pcall(function()
-                    writefile(fullPath, response.Body)
-                end)
-
-                if writeSuccess then
-                    -- Aguarda o executor registrar o arquivo no sistema
-                    task.wait(0.3)
-                    
-                    local assetPath = getAssetFunc(fullPath)
-                    if not assetPath then
-                        warn("getcustomasset retornou nil para o arquivo:", fullPath)
-                        return
-                    end
-
-                    MyLibrary.Save[saveKey] = fullPath
-                    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
-
-                    if targetInstance and (targetInstance:IsA("ImageLabel") or targetInstance:IsA("ImageButton")) then
-                        targetInstance.Image = ""
-                        task.wait()
-                        targetInstance.Image = assetPath
-                        print("Imagem baixada e aplicada com sucesso!")
-                    end
-                else
-                    warn("Falha ao salvar o arquivo com writefile em:", fullPath)
-                end
-            else
-                warn("Falha na requisição HTTP para baixar a imagem.")
+            if not success then
+                warn("Erro ao processar imagem:", tostring(result))
             end
         end)
         return
     end
 
-    -- Se já for um caminho local salvo anteriormente
+    -- Se for caminho local (já processado anteriormente)
     if isfile and isfile(ImageId) and getAssetFunc then
         local assetPath = getAssetFunc(ImageId)
         MyLibrary.Save[saveKey] = ImageId
-        pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
-        if targetInstance and (targetInstance:IsA("ImageLabel") or targetInstance:IsA("ImageButton")) then
-            targetInstance.Image = ""
-            task.wait()
+        SaveJson(ConfigFile, MyLibrary.Save)
+        if targetInstance then
             targetInstance.Image = assetPath
         end
         return
     end
-end
 
+    -- Fallback: aplica direto
+    MyLibrary.Save[saveKey] = ImageId
+    SaveJson(ConfigFile, MyLibrary.Save)
+    if targetInstance then
+        targetInstance.Image = ImageId
+    end
+end
 
 function MyLibrary:LoadSavedImage(saveKey, targetInstance)
     local savedImage = MyLibrary.Save[saveKey]
