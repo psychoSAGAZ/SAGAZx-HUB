@@ -714,8 +714,6 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
         MyLibrary.Save[saveKey] = ImageId
         SaveJson(ConfigFile, MyLibrary.Save)
         if targetInstance then
-            targetInstance.Image = ""
-            task.wait()
             targetInstance.Image = ImageId
         end
         return
@@ -723,66 +721,56 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
 
     -- Se for link http(s)://
     if ImageId:find("https://") or ImageId:find("http://") then
-        if not requestFunc or not getAssetFunc then
-            warn("Seu executor não suporta download de imagens.")
-            return
+        -- APLICA A IMAGEM DIRETAMENTE DO LINK (funciona imediatamente)
+        if targetInstance then
+            targetInstance.Image = ImageId
         end
+        
+        -- Salva o link como referência imediata
+        MyLibrary.Save[saveKey] = ImageId
+        SaveJson(ConfigFile, MyLibrary.Save)
 
-        task.spawn(function()
-            local success, result = pcall(function()
-                local fullPath = ImagesFolder .. "/" .. fileName
+        -- Tenta baixar em segundo plano (para persistência futura)
+        if requestFunc then
+            task.spawn(function()
+                local success, result = pcall(function()
+                    local fullPath = ImagesFolder .. "/" .. fileName
 
-                if not isfolder(ImagesFolder) then
-                    makefolder(ImagesFolder)
-                end
-
-                print("Baixando imagem (" .. fileName .. ")...")
-                local response = requestFunc({
-                    Url = ImageId,
-                    Method = "GET",
-                    Headers = {
-                        ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                    }
-                })
-
-                if response and response.Body then
-                    writefile(fullPath, response.Body)
-                    
-                    -- Aguarda o arquivo ser reconhecido
-                    task.wait(0.5)
-                    
-                    local assetPath = getAssetFunc(fullPath)
-                    
-                    MyLibrary.Save[saveKey] = fullPath
-                    SaveJson(ConfigFile, MyLibrary.Save)
-
-                    if targetInstance then
-                        -- Força atualização da imagem
-                        targetInstance.Image = ""
-                        task.wait()
-                        targetInstance.Image = assetPath
+                    if not isfolder(ImagesFolder) then
+                        makefolder(ImagesFolder)
                     end
-                    print("Imagem aplicada com sucesso!")
-                else
-                    warn("Falha ao baixar imagem.")
+
+                    local response = requestFunc({
+                        Url = ImageId,
+                        Method = "GET",
+                        Headers = {
+                            ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                        }
+                    })
+
+                    if response and response.Body then
+                        writefile(fullPath, response.Body)
+                        
+                        -- Salva o caminho local para uso futuro
+                        MyLibrary.Save[saveKey] = fullPath
+                        SaveJson(ConfigFile, MyLibrary.Save)
+                        print("Imagem baixada para uso futuro:", fileName)
+                    end
+                end)
+
+                if not success then
+                    warn("Erro ao baixar imagem em background:", tostring(result))
                 end
             end)
+        end
 
-            if not success then
-                warn("Erro ao processar imagem:", tostring(result))
-            end
-        end)
         return
     end
 
     -- Se for caminho local (já processado anteriormente)
     if isfile and isfile(ImageId) and getAssetFunc then
         local assetPath = getAssetFunc(ImageId)
-        MyLibrary.Save[saveKey] = ImageId
-        SaveJson(ConfigFile, MyLibrary.Save)
         if targetInstance then
-            targetInstance.Image = ""
-            task.wait()
             targetInstance.Image = assetPath
         end
         return
@@ -792,8 +780,6 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
     MyLibrary.Save[saveKey] = ImageId
     SaveJson(ConfigFile, MyLibrary.Save)
     if targetInstance then
-        targetInstance.Image = ""
-        task.wait()
         targetInstance.Image = ImageId
     end
 end
@@ -806,39 +792,16 @@ function MyLibrary:LoadSavedImage(saveKey, targetInstance)
 
     local getAssetFunc = getcustomasset or getsynasset
 
-    -- Se for rbxassetid://, aplica direto
-    if savedImage:find("rbxassetid://") then
-        task.spawn(function()
-            task.wait(0.1)
-            targetInstance.Image = ""
-            task.wait()
-            targetInstance.Image = savedImage
-        end)
+    -- Se for rbxassetid:// ou http(s)://, aplica direto (funciona imediatamente)
+    if savedImage:find("rbxassetid://") or savedImage:find("https://") or savedImage:find("http://") then
+        targetInstance.Image = savedImage
         return
     end
 
-    -- Se for http(s)://, aplica direto
-    if savedImage:find("https://") or savedImage:find("http://") then
-        task.spawn(function()
-            task.wait(0.1)
-            targetInstance.Image = ""
-            task.wait()
-            targetInstance.Image = savedImage
-        end)
-        return
-    end
-
-    -- Se for caminho local, converte com getcustomasset
+    -- Se for caminho local, usa getcustomasset
     if isfile and isfile(savedImage) and getAssetFunc then
-        task.spawn(function()
-            task.wait(0.1)
-            local assetPath = getAssetFunc(savedImage)
-            targetInstance.Image = ""
-            task.wait()
-            targetInstance.Image = assetPath
-        end)
-    else
-        warn("Arquivo de imagem não encontrado:", tostring(savedImage))
+        local assetPath = getAssetFunc(savedImage)
+        targetInstance.Image = assetPath
     end
 end
 
@@ -1032,11 +995,18 @@ Make("Corner", MinimizeDragButton, UDim.new(0, 8))
 -- Aplica imagem salva (se houver)
 MyLibrary:LoadSavedImage("MinimizeImage", MinimizeDragButton)
 
--- Se a imagem padrão for link http(s), processa e salva
+-- Se a imagem padrão for link http(s), aplica direto e baixa em background
 if MyLibrary.Save.DefaultMinimizeImage:find("https://") or MyLibrary.Save.DefaultMinimizeImage:find("http://") then
-    -- Só processa se não houver imagem salva anteriormente
     if not MyLibrary.Save.MinimizeImage or MyLibrary.Save.MinimizeImage == "" then
-        MyLibrary:ProcessImage(MyLibrary.Save.DefaultMinimizeImage, "MinimizeImage", MinimizeDragButton, "ImagebuttonOfc.png")
+        -- Aplica o link diretamente (funciona imediatamente)
+        MinimizeDragButton.Image = MyLibrary.Save.DefaultMinimizeImage
+        
+        -- Salva o link
+        MyLibrary.Save.MinimizeImage = MyLibrary.Save.DefaultMinimizeImage
+        SaveJson(ConfigFile, MyLibrary.Save)
+        
+        -- Baixa em background
+        MyLibrary:ProcessImage(MyLibrary.Save.DefaultMinimizeImage, "MinimizeImage", nil, "ImagebuttonOfc.png")
     end
 end
 
