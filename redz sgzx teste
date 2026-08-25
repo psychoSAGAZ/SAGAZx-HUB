@@ -38,7 +38,7 @@ Save = {
     ToggleKey = "RightShift",
     HubImage = "",
     MinimizeImage = "",
-    DefaultMinimizeImage = "86050226751861"  -- Imagem padrão do botão
+    DefaultMinimizeImage = "https://a.storyblok.com/f/178900/2500x1406/20c0029781/black-clover-new.png/m/1200x0/filters:quality(95)format(webp)"  -- Imagem padrão do botão
 },
     Settings = {},
     Connection = {},
@@ -714,6 +714,8 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
         MyLibrary.Save[saveKey] = ImageId
         SaveJson(ConfigFile, MyLibrary.Save)
         if targetInstance then
+            targetInstance.Image = ""
+            task.wait()
             targetInstance.Image = ImageId
         end
         return
@@ -728,15 +730,12 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
 
         task.spawn(function()
             local success, result = pcall(function()
-                -- Usa o nome fixo fornecido
                 local fullPath = ImagesFolder .. "/" .. fileName
 
-                -- Cria pasta se não existir
                 if not isfolder(ImagesFolder) then
                     makefolder(ImagesFolder)
                 end
 
-                -- Baixa a imagem (sempre sobrescreve)
                 print("Baixando imagem (" .. fileName .. ")...")
                 local response = requestFunc({
                     Url = ImageId,
@@ -748,13 +747,19 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
 
                 if response and response.Body then
                     writefile(fullPath, response.Body)
+                    
+                    -- Aguarda o arquivo ser reconhecido
+                    task.wait(0.5)
+                    
                     local assetPath = getAssetFunc(fullPath)
                     
-                    -- Salva o NOME DO ARQUIVO (não o caminho temporário)
                     MyLibrary.Save[saveKey] = fullPath
                     SaveJson(ConfigFile, MyLibrary.Save)
 
                     if targetInstance then
+                        -- Força atualização da imagem
+                        targetInstance.Image = ""
+                        task.wait()
                         targetInstance.Image = assetPath
                     end
                     print("Imagem aplicada com sucesso!")
@@ -776,6 +781,8 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
         MyLibrary.Save[saveKey] = ImageId
         SaveJson(ConfigFile, MyLibrary.Save)
         if targetInstance then
+            targetInstance.Image = ""
+            task.wait()
             targetInstance.Image = assetPath
         end
         return
@@ -785,6 +792,8 @@ function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
     MyLibrary.Save[saveKey] = ImageId
     SaveJson(ConfigFile, MyLibrary.Save)
     if targetInstance then
+        targetInstance.Image = ""
+        task.wait()
         targetInstance.Image = ImageId
     end
 end
@@ -799,20 +808,35 @@ function MyLibrary:LoadSavedImage(saveKey, targetInstance)
 
     -- Se for rbxassetid://, aplica direto
     if savedImage:find("rbxassetid://") then
-        targetInstance.Image = savedImage
+        task.spawn(function()
+            task.wait(0.1)
+            targetInstance.Image = ""
+            task.wait()
+            targetInstance.Image = savedImage
+        end)
         return
     end
 
-    -- Se for http(s)://, aplica direto (Roblox carrega sozinho)
+    -- Se for http(s)://, aplica direto
     if savedImage:find("https://") or savedImage:find("http://") then
-        targetInstance.Image = savedImage
+        task.spawn(function()
+            task.wait(0.1)
+            targetInstance.Image = ""
+            task.wait()
+            targetInstance.Image = savedImage
+        end)
         return
     end
 
     -- Se for caminho local, converte com getcustomasset
     if isfile and isfile(savedImage) and getAssetFunc then
-        local assetPath = getAssetFunc(savedImage)
-        targetInstance.Image = assetPath
+        task.spawn(function()
+            task.wait(0.1)
+            local assetPath = getAssetFunc(savedImage)
+            targetInstance.Image = ""
+            task.wait()
+            targetInstance.Image = assetPath
+        end)
     else
         warn("Arquivo de imagem não encontrado:", tostring(savedImage))
     end
