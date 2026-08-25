@@ -38,7 +38,7 @@ Save = {
     ToggleKey = "RightShift",
     HubImage = "",
     MinimizeImage = "",
-    DefaultMinimizeImage = "https://a.storyblok.com/f/178900/2500x1406/20c0029781/black-clover-new.png/m/1200x0/filters:quality(95)format(webp)"  -- Imagem padrão do botão
+    MinimizeImagePadrao = "rbxassetid://10734896206"
 },
     Settings = {},
     Connection = {},
@@ -133,8 +133,8 @@ local function Save(file)
             if rawget(decode, "MinimizeImage") and type(decode["MinimizeImage"]) == "string" then
                 MyLibrary.Save.MinimizeImage = decode["MinimizeImage"]
             end
-            if rawget(decode, "DefaultMinimizeImage") and type(decode["DefaultMinimizeImage"]) == "string" then
-                MyLibrary.Save.DefaultMinimizeImage = decode["DefaultMinimizeImage"]
+            if rawget(decode, "MinimizeImagePadrao") and type(decode["MinimizeImagePadrao"]) == "string" then
+                MyLibrary.Save.MinimizeImagePadrao = decode["MinimizeImagePadrao"]
             end
         end
     end
@@ -695,126 +695,13 @@ function MyLibrary:SetScale(NewScale)
     UIScale, ScreenGui.Scale.Scale = NewScale, NewScale
 end
 
-function MyLibrary:ProcessImage(ImageId, saveKey, targetInstance, fileName)
-    if type(ImageId) ~= "string" or ImageId == "" then
-        warn("ImageId inválido.")
-        return
-    end
 
-    local requestFunc = request or http_request or (syn and syn.request)
-    local getAssetFunc = getcustomasset or getsynasset
-
-    -- Se for número, converte para rbxassetid://
-    if tonumber(ImageId) then
-        ImageId = "rbxassetid://" .. ImageId
-    end
-
-    -- Se for rbxassetid://, aplica direto
-    if ImageId:find("rbxassetid://") then
-        MyLibrary.Save[saveKey] = ImageId
-        SaveJson(ConfigFile, MyLibrary.Save)
-        if targetInstance then
-            targetInstance.Image = ImageId
-        end
-        return
-    end
-
-    -- Se for link http(s)://
-    if ImageId:find("https://") or ImageId:find("http://") then
-        -- APLICA A IMAGEM DIRETAMENTE DO LINK (funciona imediatamente)
-        if targetInstance then
-            targetInstance.Image = ImageId
-        end
-        
-        -- Salva o link como referência imediata
-        MyLibrary.Save[saveKey] = ImageId
-        SaveJson(ConfigFile, MyLibrary.Save)
-
-        -- Tenta baixar em segundo plano (para persistência futura)
-        if requestFunc then
-            task.spawn(function()
-                local success, result = pcall(function()
-                    local fullPath = ImagesFolder .. "/" .. fileName
-
-                    if not isfolder(ImagesFolder) then
-                        makefolder(ImagesFolder)
-                    end
-
-                    local response = requestFunc({
-                        Url = ImageId,
-                        Method = "GET",
-                        Headers = {
-                            ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                        }
-                    })
-
-                    if response and response.Body then
-                        writefile(fullPath, response.Body)
-                        
-                        -- Salva o caminho local para uso futuro
-                        MyLibrary.Save[saveKey] = fullPath
-                        SaveJson(ConfigFile, MyLibrary.Save)
-                        print("Imagem baixada para uso futuro:", fileName)
-                    end
-                end)
-
-                if not success then
-                    warn("Erro ao baixar imagem em background:", tostring(result))
-                end
-            end)
-        end
-
-        return
-    end
-
-    -- Se for caminho local (já processado anteriormente)
-    if isfile and isfile(ImageId) and getAssetFunc then
-        local assetPath = getAssetFunc(ImageId)
-        if targetInstance then
-            targetInstance.Image = assetPath
-        end
-        return
-    end
-
-    -- Fallback: aplica direto
-    MyLibrary.Save[saveKey] = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
-    if targetInstance then
-        targetInstance.Image = ImageId
-    end
-end
-
-function MyLibrary:LoadSavedImage(saveKey, targetInstance)
-    local savedImage = MyLibrary.Save[saveKey]
-    if not savedImage or savedImage == "" then
-        return
-    end
-
-    local getAssetFunc = getcustomasset or getsynasset
-
-    -- Se for rbxassetid:// ou http(s)://, aplica direto (funciona imediatamente)
-    if savedImage:find("rbxassetid://") or savedImage:find("https://") or savedImage:find("http://") then
-        targetInstance.Image = savedImage
-        return
-    end
-
-    -- Se for caminho local, usa getcustomasset
-    if isfile and isfile(savedImage) and getAssetFunc then
-        local assetPath = getAssetFunc(savedImage)
-        targetInstance.Image = assetPath
-    end
-end
 
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "redz Library V5"
     local WMiniText = Configs[2] or Configs.SubTitle or "by : redz9999"
 
-Settings.ScriptFile = Configs[3] or Configs.SaveFolder or false
-
--- Se tiver SaveFolder, coloca dentro da pasta Flags
-if Settings.ScriptFile and type(Settings.ScriptFile) == "string" then
-    Settings.ScriptFile = FlagsFolder .. "/" .. Settings.ScriptFile .. ".json"
-end
+    Settings.ScriptFile = Configs[3] or Configs.SaveFolder or false
 
     local function LoadFile()
         local File = Settings.ScriptFile
@@ -836,11 +723,9 @@ local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     Size = UDim2.fromOffset(UISizeX, UISizeY),
     Position = UDim2.new(0.5, -UISizeX/2, 0.5, -UISizeY/2),
     BackgroundTransparency = 0.03,
+    Image = MyLibrary.Save.HubImage or "",  -- <<< ADICIONE ESTA LINHA
     Name = "Hub"
 }), "Main")
-
--- Aplica imagem salva (converte se necessário)
-MyLibrary:LoadSavedImage("HubImage", MainFrame)
 
     MakeDrag(MainFrame)
 
@@ -959,99 +844,195 @@ MyLibrary:LoadSavedImage("HubImage", MainFrame)
 
     local ButtonsFolder = Create("Folder", TopBar, { Name = "Buttons" })
 
-    local CloseButton = Create("ImageButton", {
-        Size = UDim2.new(0, 14, 0, 14),
-        Position = UDim2.new(1, -10, 0.5),
-        AnchorPoint = Vector2.new(1, 0.5),
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://10747384394",
-        AutoButtonColor = false,
-        Name = "Close"
-    })
+local CloseButton = Create("ImageButton", {
+    Size = UDim2.new(0, 14, 0, 14),
+    Position = UDim2.new(1, -10, 0.5),
+    AnchorPoint = Vector2.new(1, 0.5),
+    BackgroundTransparency = 1,
+    Image = "rbxassetid://10747384394",
+    AutoButtonColor = false,
+    Name = "Close"
+})
 
-	local MinimizeButton = SetProps(CloseButton:Clone(), {
-		Position = UDim2.new(1, -35, 0.5),
-		Image = "rbxassetid://10734896206",
-		Name = "Minimize"
-	})
+local MinimizeButton = Create("ImageButton", {
+    Size = UDim2.new(0, 14, 0, 14),
+    Position = UDim2.new(1, -35, 0.5),
+    AnchorPoint = Vector2.new(1, 0.5),
+    BackgroundTransparency = 1,
+    Image = MyLibrary.Save.MinimizeImage or MyLibrary.Save.MinimizeImagePadrao or "rbxassetid://10734896206",
+    AutoButtonColor = false,
+    Name = "Minimize"
+})
+
+-- Aplica imagem salva do botão minimizar
+if MyLibrary.Save.MinimizeImage and MyLibrary.Save.MinimizeImage ~= "" then
+    MinimizeButton.Image = MyLibrary.Save.MinimizeImage
+end
 
 SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
 
-local Minimized, SaveSize, WaitClick
-local Window, FirstTab = {}, false
+    SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
 
--- Botão arrastável de minimizar (criado diretamente na lib)
-local MinimizeDragButton = MakeDrag(Create("ImageButton", ScreenGui, {
-    Size = UDim2.fromOffset(35, 35),
-    Position = UDim2.fromScale(0.15, 0.15),
-    BackgroundTransparency = 0,
-    AutoButtonColor = false,
-    Name = "MinimizeButton",
-    Image = MyLibrary.Save.DefaultMinimizeImage or ""
-}))
-
-Make("Corner", MinimizeDragButton, UDim.new(0, 8))
-
--- Aplica imagem salva (se houver)
-MyLibrary:LoadSavedImage("MinimizeImage", MinimizeDragButton)
-
--- Se a imagem padrão for link http(s), aplica direto e baixa em background
-if MyLibrary.Save.DefaultMinimizeImage:find("https://") or MyLibrary.Save.DefaultMinimizeImage:find("http://") then
-    if not MyLibrary.Save.MinimizeImage or MyLibrary.Save.MinimizeImage == "" then
-        -- Aplica o link diretamente (funciona imediatamente)
-        MinimizeDragButton.Image = MyLibrary.Save.DefaultMinimizeImage
-        
-        -- Salva o link
-        MyLibrary.Save.MinimizeImage = MyLibrary.Save.DefaultMinimizeImage
-        SaveJson(ConfigFile, MyLibrary.Save)
-        
-        -- Baixa em background
-        MyLibrary:ProcessImage(MyLibrary.Save.DefaultMinimizeImage, "MinimizeImage", nil, "ImagebuttonOfc.png")
-    end
-end
-
-MinimizeDragButton.Activated:Connect(function()
-    Window.Minimize()
-end)
+    local Minimized, SaveSize, WaitClick
+    local Window, FirstTab = {}, false
     
 function Window:SetHubImage(ImageId)
-    local hub = ScreenGui:FindFirstChild("Hub", true)
-    if not hub then
-        warn("Hub não encontrado.")
+    if type(ImageId) ~= "string" or ImageId == "" then
+        warn("ImageId inválido. Forneça um rbxassetid:// ou link https:// válido.")
         return
     end
-    MyLibrary:ProcessImage(ImageId, "HubImage", hub, "ImagemHub.png")
-end
 
+    local hub = ScreenGui:FindFirstChild("Hub") or ScreenGui:FindFirstChild("Main") -- Ajuste para o nome do seu Frame/ImageLabel
+    if not hub then
+        warn("Elemento do Hub não encontrado no ScreenGui.")
+        return
+    end
+
+    -- CASO 1: É um link da Internet (https:// ou http://)
+    if ImageId:find("https://") or ImageId:find("http://") then
+        task.spawn(function()
+            local requestFunc = request or http_request or (syn and syn.request)
+            local getAssetFunc = getcustomasset or getsynasset
+
+            if not requestFunc or not getAssetFunc then
+                warn("Seu executor não suporta o download/conversão de imagens via HTTPS.")
+                return
+            end
+
+            local success, result = pcall(function()
+                -- Gera um nome de arquivo limpo e único baseado no link
+                local fileName = "hub_img_" .. ImageId:gsub("[%W]", ""):sub(-30) .. ".png"
+
+                -- 1. Verifica se já foi baixado anteriormente no dispositivo
+                if isfile and isfile(fileName) then
+                    print("Imagem do Hub carregada do armazenamento local!")
+                    local assetPath = getAssetFunc(fileName)
+                    
+                    MyLibrary.Save.HubImage = assetPath
+                    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
+
+                    if hub:IsA("ImageLabel") or hub:IsA("ImageButton") then
+                        hub.Image = assetPath
+                    end
+                    return
+                end
+
+                -- 2. Baixa a imagem da internet
+                print("Baixando imagem do Hub...")
+                local response = requestFunc({
+                    Url = ImageId,
+                    Method = "GET",
+                    Headers = {
+                        ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                    }
+                })
+
+                if response and response.Body then
+                    writefile(fileName, response.Body)
+                    local assetPath = getAssetFunc(fileName)
+                    
+                    MyLibrary.Save.HubImage = assetPath
+                    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
+
+                    if hub:IsA("ImageLabel") or hub:IsA("ImageButton") then
+                        hub.Image = assetPath
+                    end
+                    print("Imagem do Hub baixada e aplicada com sucesso!")
+                else
+                    warn("Falha ao baixar imagem do servidor.")
+                end
+            end)
+
+            if not success then
+                warn("Erro interno ao processar a imagem:", tostring(result))
+            end
+        end)
+        return
+    end
+
+    -- CASO 2: É um Asset ID nativo do Roblox (rbxassetid://) ou caminho getcustomasset local já processado
+    MyLibrary.Save.HubImage = ImageId
+    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
+
+    if hub:IsA("ImageLabel") or hub:IsA("ImageButton") then
+        hub.Image = ImageId
+    end
+end
 
 function Window:SetMinimizeImage(ImageId)
-    local minimizeBtn = ScreenGui:FindFirstChild("MinimizeButton", true)
-    if not minimizeBtn then
-        warn("Botão de minimizar não encontrado.")
+    if type(ImageId) ~= "string" then
+        warn("ImageId inválido.")
         return
     end
 
-    -- Se for vazio ou inválido, restaura a imagem padrão da lib
-    if type(ImageId) ~= "string" or ImageId == "" then
+    -- Se for vazio, restaura a imagem padrão
+    if ImageId == "" then
         MyLibrary.Save.MinimizeImage = ""
         SaveJson(ConfigFile, MyLibrary.Save)
-        
-        -- Restaura a imagem padrão definida na lib
-        local defaultImage = MyLibrary.Save.DefaultMinimizeImage
-        
-        -- Se o padrão for link, processa
-        if defaultImage:find("https://") or defaultImage:find("http://") then
-            MyLibrary:ProcessImage(defaultImage, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png")
-        else
-            minimizeBtn.Image = defaultImage
-        end
+        MinimizeButton.Image = MyLibrary.Save.MinimizeImagePadrao or "rbxassetid://10734896206"
         return
     end
 
-    MyLibrary:ProcessImage(ImageId, "MinimizeImage", minimizeBtn, "ImagebuttonOfc.png")
+    -- Se for link HTTPS, baixa e converte
+    if ImageId:find("https://") or ImageId:find("http://") then
+        task.spawn(function()
+            local requestFunc = request or http_request or (syn and syn.request)
+            local getAssetFunc = getcustomasset or getsynasset
+
+            if not requestFunc or not getAssetFunc then
+                warn("Seu executor não suporta download de imagens.")
+                MinimizeButton.Image = MyLibrary.Save.MinimizeImagePadrao or "rbxassetid://10734896206"
+                return
+            end
+
+            local success, result = pcall(function()
+                local fileName = "Imagebutton.png"
+
+                -- Se já existe, usa direto
+                if isfile and isfile(fileName) then
+                    local assetPath = getAssetFunc(fileName)
+                    MyLibrary.Save.MinimizeImage = assetPath
+                    SaveJson(ConfigFile, MyLibrary.Save)
+                    MinimizeButton.Image = assetPath
+                    return
+                end
+
+                -- Baixa a imagem
+                local response = requestFunc({
+                    Url = ImageId,
+                    Method = "GET"
+                })
+
+                if response and response.Body then
+                    writefile(fileName, response.Body)
+                    local assetPath = getAssetFunc(fileName)
+                    MyLibrary.Save.MinimizeImage = assetPath
+                    SaveJson(ConfigFile, MyLibrary.Save)
+                    MinimizeButton.Image = assetPath
+                else
+                    MinimizeButton.Image = MyLibrary.Save.MinimizeImagePadrao or "rbxassetid://10734896206"
+                end
+            end)
+
+            if not success then
+                MinimizeButton.Image = MyLibrary.Save.MinimizeImagePadrao or "rbxassetid://10734896206"
+            end
+        end)
+        return
+    end
+
+    -- Se for rbxassetid:// válido
+    if ImageId:find("rbxassetid://") then
+        MyLibrary.Save.MinimizeImage = ImageId
+        SaveJson(ConfigFile, MyLibrary.Save)
+        MinimizeButton.Image = ImageId
+        return
+    end
+
+    -- Se nada funcionar, usa a imagem padrão
+    MinimizeButton.Image = MyLibrary.Save.MinimizeImagePadrao or "rbxassetid://10734896206"
 end
-
-
+    
     function Window:SetToggleKey(KeyCode)
     if type(KeyCode) == "string" then
         KeyCode = Enum.KeyCode[KeyCode]
