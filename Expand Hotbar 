@@ -106,19 +106,6 @@ SG:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false);
 end);
 end);
 
-task.defer(function()
-    local mainGuiHandler = Plr:WaitForChild("PlayerGui"):WaitForChild("MainGUIHandler", 10)
-    if mainGuiHandler then
-        local quickChatButton = mainGuiHandler:WaitForChild("QuickChatButton", 5)
-        if quickChatButton then
-            local frame = quickChatButton:WaitForChild("Frame", 5)
-            if frame and frame:IsA("GuiObject") then
-                frame.Position = UDim2.new(0, 250, 0, -23)
-            end
-        end
-    end
-end)
-
 local IsOnMobile = (function()
 local platform = UIS:GetPlatform();
 if platform == Enum.Platform.IOS or platform == Enum.Platform.Android or platform == Enum.Platform.AndroidTV or platform == Enum.Platform.Chromecast or platform == Enum.Platform.MetaOS then
