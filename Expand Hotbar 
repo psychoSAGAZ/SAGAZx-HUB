@@ -815,13 +815,8 @@ Size = UDim2.new(0, qbW, 0, h),
 BackgroundTransparency = targetTransparency 
 });
 
-if BackpackButton then
-    if exp and not BackpackButton.isSelected then
-        BackpackButton:select()
-    elseif not exp and BackpackButton.isSelected then
-        BackpackButton:deselect()
-    end
-end
+updateInventoryButtonVisual()
+
 end;
 
 local function qreq()
@@ -861,24 +856,123 @@ btn20.MouseButton1Click:Connect(function()
 end)
 
 -- =============================================================================
---  INTEGRA��O COM BOT�O TOPBAR
+-- INTEGRAÇÃO COM BOTÃO NO MENU NINE_DOT (CoreGui)
 -- =============================================================================
-local Icon = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Lib%20TopBar"
-))()
+local CoreGui = game:GetService("CoreGui")
+local inventoryButton -- referência ao botão injetado
 
-BackpackButton = Icon.new()
-    :setLabel("")
-    :setImage("rbxassetid://135273755533681", "Deselected")
-    :setImage("rbxassetid://6031094678", "Selected")
+local function updateInventoryButtonVisual()
+    if not inventoryButton then return end
+    local stroke = inventoryButton:FindFirstChild("UIStroke")
+    if stroke then
+        stroke.Color = exp and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(255, 255, 255)
+        stroke.Transparency = exp and 0.3 or 0.7
+    end
+end
 
-BackpackButton:bindEvent("selected", function()
-    setInventoryState(true)
+local function injectUI(mainCanvas)
+    if mainCanvas:FindFirstChild("backpack_Export") then
+        inventoryButton = mainCanvas:FindFirstChild("backpack_Export")
+        updateInventoryButtonVisual()
+        return
+    end
+
+    local rootButton = Instance.new("TextButton")
+    rootButton.Name = "backpack_Export"
+    rootButton.Size = UDim2.new(1, 0, 0, 50)
+    rootButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    rootButton.BackgroundTransparency = 0.95
+    rootButton.BorderSizePixel = 0
+    rootButton.Text = ""
+    rootButton.AutoButtonColor = false
+    rootButton.Parent = mainCanvas
+
+    local uiStroke = Instance.new("UIStroke")
+    uiStroke.Color = Color3.fromRGB(255, 255, 255)
+    uiStroke.Transparency = 0.7
+    uiStroke.Thickness = 1
+    uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    uiStroke.Parent = rootButton
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = rootButton
+
+    local rowLabel = Instance.new("Frame")
+    rowLabel.Name = "RowLabel"
+    rowLabel.Size = UDim2.new(1, 0, 1, 0)
+    rowLabel.BackgroundTransparency = 1
+    rowLabel.Parent = rootButton
+
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.FillDirection = Enum.FillDirection.Horizontal
+    listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    listLayout.Padding = UDim.new(0, 10)
+    listLayout.Parent = rowLabel
+
+    local iconHost = Instance.new("Frame")
+    iconHost.Size = UDim2.new(0, 44, 0, 44)
+    iconHost.BackgroundTransparency = 1
+    iconHost.Parent = rowLabel
+
+    local iconFrame = Instance.new("Frame")
+    iconFrame.Size = UDim2.new(1, 0, 1, 0)
+    iconFrame.BackgroundTransparency = 1
+    iconFrame.Parent = iconHost
+
+    local iconLabel = Instance.new("TextLabel")
+    iconLabel.Size = UDim2.new(1, 0, 1, 0)
+    iconLabel.BackgroundTransparency = 1
+    iconLabel.Text = "🎒"
+    iconLabel.TextColor3 = Color3.fromRGB(247, 247, 248)
+    iconLabel.TextSize = 24
+    iconLabel.Font = Enum.Font.SourceSansBold
+    iconLabel.Parent = iconFrame
+
+    local labelHost = Instance.new("Frame")
+    labelHost.Size = UDim2.new(0, 150, 1, 0)
+    labelHost.BackgroundTransparency = 1
+    labelHost.Parent = rowLabel
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = "Inventário"
+    textLabel.TextColor3 = Color3.fromRGB(247, 247, 248)
+    textLabel.TextSize = 20
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.Parent = labelHost
+
+    rootButton.MouseButton1Click:Connect(function()
+        setInventoryState(not exp)
+        updateInventoryButtonVisual()
+    end)
+
+    inventoryButton = rootButton
+    updateInventoryButtonVisual()
+end
+
+local function checkNineDot(nineDot)
+    task.spawn(function()
+        local scrollingFrame = nineDot:WaitForChild("ScrollingFrame", 5)
+        local mainCanvas = scrollingFrame and scrollingFrame:WaitForChild("MainCanvas", 5)
+        if mainCanvas then
+            injectUI(mainCanvas)
+        end
+    end)
+end
+
+CoreGui.DescendantAdded:Connect(function(descendant)
+    if descendant.Name == "nine_dot" then
+        checkNineDot(descendant)
+    end
 end)
 
-BackpackButton:bindEvent("deselected", function()
-    setInventoryState(false)
-end)
+local existingNineDot = CoreGui:FindFirstChild("nine_dot", true)
+if existingNineDot then
+    checkNineDot(existingNineDot)
+end
 -- =============================================================================
 
 UIS.InputBegan:Connect(function(i, gp)
@@ -979,3 +1073,4 @@ for _, t in c:GetChildren() do if t:IsA("Tool") then anyTool = t; break end end
 if sel ~= anyTool then sel = anyTool; qreq() end
 end;
 end);
+ 
