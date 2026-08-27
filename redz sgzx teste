@@ -719,21 +719,11 @@ function MyLibrary:MakeWindow(Configs)
     LoadFile()
 
     local UISizeX, UISizeY = unpack(MyLibrary.Save.UISize)
-local function GetLocalImage(path)
-    if path and path ~= "" and isfile and isfile(path) then
-        local getAssetFunc = getcustomasset or getsynasset
-        if getAssetFunc then
-            return getAssetFunc(path)
-        end
-    end
-    return path or ""
-end
-
 local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
     Size = UDim2.fromOffset(UISizeX, UISizeY),
     Position = UDim2.new(0.5, -UISizeX/2, 0.5, -UISizeY/2),
     BackgroundTransparency = 0.03,
-    Image = GetLocalImage(MyLibrary.Save.HubImage),
+    Image = MyLibrary.Save.HubImage or "",  -- <<< ADICIONE ESTA LINHA
     Name = "Hub"
 }), "Main")
 
@@ -881,7 +871,7 @@ local MinimizeButtonExternal = MakeDrag(Create("ImageButton", ScreenGui, {
     Position = UDim2.fromScale(0.15, 0.15),
     BackgroundTransparency = 0,
     AutoButtonColor = false,
-    Image = GetLocalImage(MyLibrary.Save.MinimizeImage) ~= MyLibrary.Save.MinimizeImage and GetLocalImage(MyLibrary.Save.MinimizeImage) or MyLibrary.Save.MinimizeImagePadrao,
+    Image = MyLibrary.Save.MinimizeImage or MyLibrary.Save.MinimizeImagePadrao,
     Name = "MinimizeButtonExternal"
 }))
 Make("Corner", MinimizeButtonExternal, UDim.new(0, 8))
@@ -897,60 +887,81 @@ function Window:SetHubImage(ImageId)
         return
     end
 
-    local hub = ScreenGui:FindFirstChild("Hub")
+    local hub = ScreenGui:FindFirstChild("Hub") or ScreenGui:FindFirstChild("Main") -- Ajuste para o nome do seu Frame/ImageLabel
     if not hub then
-        warn("Elemento do Hub não encontrado.")
+        warn("Elemento do Hub não encontrado no ScreenGui.")
         return
     end
 
-    -- CASO 1: Link da Internet (https:// ou http://)
+    -- CASO 1: É um link da Internet (https:// ou http://)
     if ImageId:find("https://") or ImageId:find("http://") then
         task.spawn(function()
             local requestFunc = request or http_request or (syn and syn.request)
             local getAssetFunc = getcustomasset or getsynasset
 
             if not requestFunc or not getAssetFunc then
-                warn("Seu executor não suporta download de imagens.")
+                warn("Seu executor não suporta o download/conversão de imagens via HTTPS.")
                 return
             end
 
-            local fileName = ImagesFolder .. "/ImagemHub.png"
+            local success, result = pcall(function()
+                -- Gera um nome de arquivo limpo e único baseado no link
+                local fileName = "hub_img_" .. ImageId:gsub("[%W]", ""):sub(-30) .. ".png"
 
-            -- Verifica se já existe
-            if isfile and isfile(fileName) then
-                local assetPath = getAssetFunc(fileName)
-                MyLibrary.Save.HubImage = fileName -- Salva caminho relativo
-                SaveJson(ConfigFile, MyLibrary.Save)
-                hub.Image = assetPath
-                return
-            end
+                -- 1. Verifica se já foi baixado anteriormente no dispositivo
+                if isfile and isfile(fileName) then
+                    print("Imagem do Hub carregada do armazenamento local!")
+                    local assetPath = getAssetFunc(fileName)
+                    
+                    MyLibrary.Save.HubImage = assetPath
+                    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
 
-            -- Baixa
-            local response = requestFunc({
-                Url = ImageId,
-                Method = "GET"
-            })
-
-            if response and response.Body then
-                if not isfolder(ImagesFolder) then
-                    makefolder(ImagesFolder)
+                    if hub:IsA("ImageLabel") or hub:IsA("ImageButton") then
+                        hub.Image = assetPath
+                    end
+                    return
                 end
-                writefile(fileName, response.Body)
-                local assetPath = getAssetFunc(fileName)
-                MyLibrary.Save.HubImage = fileName -- Salva caminho relativo
-                SaveJson(ConfigFile, MyLibrary.Save)
-                hub.Image = assetPath
-            else
-                warn("Falha ao baixar imagem.")
+
+                -- 2. Baixa a imagem da internet
+                print("Baixando imagem do Hub...")
+                local response = requestFunc({
+                    Url = ImageId,
+                    Method = "GET",
+                    Headers = {
+                        ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+                    }
+                })
+
+                if response and response.Body then
+                    writefile(fileName, response.Body)
+                    local assetPath = getAssetFunc(fileName)
+                    
+                    MyLibrary.Save.HubImage = assetPath
+                    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
+
+                    if hub:IsA("ImageLabel") or hub:IsA("ImageButton") then
+                        hub.Image = assetPath
+                    end
+                    print("Imagem do Hub baixada e aplicada com sucesso!")
+                else
+                    warn("Falha ao baixar imagem do servidor.")
+                end
+            end)
+
+            if not success then
+                warn("Erro interno ao processar a imagem:", tostring(result))
             end
         end)
         return
     end
 
-    -- CASO 2: rbxassetid:// ou caminho local já processado
+    -- CASO 2: É um Asset ID nativo do Roblox (rbxassetid://) ou caminho getcustomasset local já processado
     MyLibrary.Save.HubImage = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
-    hub.Image = GetLocalImage(ImageId)
+    pcall(function() SaveJson(ConfigFile, MyLibrary.Save) end)
+
+    if hub:IsA("ImageLabel") or hub:IsA("ImageButton") then
+        hub.Image = ImageId
+    end
 end
 
 function Window:SetMinimizeImage(ImageId)
@@ -972,21 +983,24 @@ function Window:SetMinimizeImage(ImageId)
             local getAssetFunc = getcustomasset or getsynasset
 
             if not requestFunc or not getAssetFunc then
-                warn("Executor não suporta download.")
+                warn("Executor não suporta download de imagens.")
+                -- Usa imagem padrão
                 button.Image = MyLibrary.Save.MinimizeImagePadrao
                 return
             end
 
             local fileName = ImagesFolder .. "/ImageButton.png"
 
+            -- Se já existe, usa direto
             if isfile and isfile(fileName) then
                 local assetPath = getAssetFunc(fileName)
-                MyLibrary.Save.MinimizeImage = fileName
+                MyLibrary.Save.MinimizeImage = assetPath
                 SaveJson(ConfigFile, MyLibrary.Save)
                 button.Image = assetPath
                 return
             end
 
+            -- Baixa a imagem
             local response = requestFunc({
                 Url = ImageId,
                 Method = "GET"
@@ -998,11 +1012,12 @@ function Window:SetMinimizeImage(ImageId)
                 end
                 writefile(fileName, response.Body)
                 local assetPath = getAssetFunc(fileName)
-                MyLibrary.Save.MinimizeImage = fileName
+                
+                MyLibrary.Save.MinimizeImage = assetPath
                 SaveJson(ConfigFile, MyLibrary.Save)
                 button.Image = assetPath
             else
-                warn("Falha ao baixar. Usando padrão.")
+                warn("Falha ao baixar. Usando imagem padrão.")
                 button.Image = MyLibrary.Save.MinimizeImagePadrao
             end
         end)
@@ -1011,6 +1026,7 @@ function Window:SetMinimizeImage(ImageId)
 
     -- Se for rbxassetid:// ou caminho local
     if ImageId == "" then
+        -- Usa a imagem padrão definida na lib
         button.Image = MyLibrary.Save.MinimizeImagePadrao
         MyLibrary.Save.MinimizeImage = ""
     else
@@ -1019,6 +1035,24 @@ function Window:SetMinimizeImage(ImageId)
     end
 
     SaveJson(ConfigFile, MyLibrary.Save)
+end
+
+function Window:SetMinimizeImagePadrao(ImageId)
+    if type(ImageId) ~= "string" or ImageId == "" then
+        warn("ImageId padrão inválido.")
+        return
+    end
+
+    MyLibrary.Save.MinimizeImagePadrao = ImageId
+    SaveJson(ConfigFile, MyLibrary.Save)
+
+    -- Se não há imagem customizada, atualiza o botão
+    if not MyLibrary.Save.MinimizeImage or MyLibrary.Save.MinimizeImage == "" then
+        local button = ScreenGui:FindFirstChild("MinimizeButtonExternal")
+        if button then
+            button.Image = ImageId
+        end
+    end
 end
     
     function Window:SetToggleKey(KeyCode)
