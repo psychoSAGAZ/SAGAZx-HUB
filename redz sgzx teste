@@ -7,13 +7,33 @@ local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local PlayerMouse = Player:GetMouse()
-local LibFolder = "SAGAZx HUB"
-local ConfigFile = LibFolder .. "/SAGAZx HUB lib.json"
-local ImagesFolder = LibFolder .. "/Images"
-local FlagsFolder = LibFolder .. "/Flags"
 
 local MyLibrary = {
     Themes = {
+        Darker = {
+            ["Color Hub 1"] = ColorSequence.new({
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(40, 40, 40)),
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(30, 30, 30)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(20, 20, 20))
+            }),
+            ["Color Hub 2"] = Color3.fromRGB(18, 18, 18),
+            ["Color Stroke"] = Color3.fromRGB(35, 35, 35),
+            ["Color Theme"] = Color3.fromRGB(0, 170, 255),
+            ["Color Text"] = Color3.fromRGB(240, 240, 240),
+            ["Color Dark Text"] = Color3.fromRGB(150, 150, 150)
+        },
+        Dark = {
+            ["Color Hub 1"] = ColorSequence.new({
+                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(40, 40, 40)),
+                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(47.5, 47.5, 47.5)),
+                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(40, 40, 40))
+            }),
+            ["Color Hub 2"] = Color3.fromRGB(45, 45, 45),
+            ["Color Stroke"] = Color3.fromRGB(65, 65, 65),
+            ["Color Theme"] = Color3.fromRGB(65, 150, 255),
+            ["Color Text"] = Color3.fromRGB(245, 245, 245),
+            ["Color Dark Text"] = Color3.fromRGB(190, 190, 190)
+        },
 		Purple = {
 			["Color Hub 1"] = ColorSequence.new({
 				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(27.5, 25, 30)),
@@ -35,11 +55,7 @@ Save = {
     TabSize = 160,
     Theme = "Purple",
     CustomColors = {},
-    ToggleKey = "RightShift",
-    HubImage = "",
-    MinimizeImage = "",
-    MinimizeImagePadrao = "rbxassetid://86050226751861",  -- Imagem padrão do botão minimizar
-    HubImagePadrao = "rbxassetid://0"  -- Imagem padrão do Hub (adicione esta linha)
+    ToggleKey = "RightShift"
 },
     Settings = {},
     Connection = {},
@@ -58,6 +74,50 @@ Save = {
         }
     end)()
 }
+
+-- Criar pasta da biblioteca (coloque isso logo após a definição da tabela MyLibrary)
+local LibFolder = "SAGAZx HUB Lib"
+pcall(function()
+    if makefolder then
+        makefolder(LibFolder)
+    end
+end)
+
+-- Função auxiliar para montar caminho completo
+local function GetFullPath(fileName)
+    if type(fileName) ~= "string" then
+        return fileName
+    end
+    -- Se já tiver barra, considera como caminho absoluto/relativo do executor
+    if fileName:find("/") or fileName:find("\\") then
+        return fileName
+    end
+    -- Caso contrário, coloca dentro da pasta da lib
+    return LibFolder .. "/" .. fileName
+end
+
+-- Função Save modificada
+local function Save(file)
+    local path = GetFullPath(file)
+    if readfile and isfile and isfile(path) then
+        local ok, decoded = pcall(function()
+            return HttpService:JSONDecode(readfile(path))
+        end)
+        if not ok or type(decoded) ~= "table" then
+            return
+        end
+
+        if rawget(decoded, "UISize") then MyLibrary.Save["UISize"] = decoded["UISize"] end
+        if rawget(decoded, "TabSize") then MyLibrary.Save["TabSize"] = decoded["TabSize"] end
+        if rawget(decoded, "Theme") and VerifyTheme(decoded["Theme"]) then MyLibrary.Save["Theme"] = decoded["Theme"] end
+        if rawget(decoded, "CustomColors") and type(decoded["CustomColors"]) == "table" then
+            MyLibrary.Save.CustomColors = decoded["CustomColors"]
+        end
+        if rawget(decoded, "ToggleKey") and type(decoded["ToggleKey"]) == "string" then
+            MyLibrary.Save.ToggleKey = decoded["ToggleKey"]
+        end
+    end
+end
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
 local UIScale = ViewportSize.Y / 450
@@ -128,20 +188,11 @@ local function Save(file)
             if rawget(decode, "ToggleKey") and type(decode["ToggleKey"]) == "string" then
                 MyLibrary.Save.ToggleKey = decode["ToggleKey"]
             end
-            if rawget(decode, "HubImage") and type(decode["HubImage"]) == "string" then
-                MyLibrary.Save.HubImage = decode["HubImage"]
-            end
-            if rawget(decode, "MinimizeImage") and type(decode["MinimizeImage"]) == "string" then
-                MyLibrary.Save.MinimizeImage = decode["MinimizeImage"]
-            end
-            if rawget(decode, "MinimizeImagePadrao") and type(decode["MinimizeImagePadrao"]) == "string" then
-                MyLibrary.Save.MinimizeImagePadrao = decode["MinimizeImagePadrao"]
-            end
         end
     end
 end
 
-    pcall(Save, ConfigFile)
+    pcall(Save, "SAGAZx HUB lib.json")
 end
 
 local function Color3ToHex(c)
@@ -303,7 +354,7 @@ local GetFlag, SetFlag, CheckFlag do
 
     local db
     Connection.FlagsChanged:Connect(function(Flag, Value)
-        local ScriptFile = Settings.ScriptFile
+    local ScriptFile = GetFullPath(Settings.ScriptFile)
         if not db and ScriptFile and writefile then
             db = true; task.wait(0.1); db = false
             local Success, Encoded = pcall(function()
@@ -403,14 +454,9 @@ end
 
 local function SaveJson(FileName, save)
     if writefile then
-        -- Extrai o diretório do arquivo
-        local folder = FileName:match("^(.*)/[^/]+$")
-        if folder and not isfolder(folder) then
-            makefolder(folder)
-        end
-        
+        local path = GetFullPath(FileName)
         local json = HttpService:JSONEncode(save)
-        writefile(FileName, json)
+        writefile(path, json)
     end
 end
 
@@ -631,7 +677,7 @@ function MyLibrary:SetThemeColor(key, value)
         currentTheme[key] = value
     end
 
-    SaveJson(ConfigFile, MyLibrary.Save)
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
 
     -- Atualiza os elementos já criados
@@ -660,7 +706,7 @@ function MyLibrary:SetTheme(NewTheme)
     if not VerifyTheme(NewTheme) then return end
 
     MyLibrary.Save.Theme = NewTheme
-    SaveJson(ConfigFile, MyLibrary.Save)
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     Theme = MyLibrary.Themes[NewTheme]
     ApplyCustomColorsToTheme(Theme)
 
@@ -696,40 +742,36 @@ function MyLibrary:SetScale(NewScale)
     UIScale, ScreenGui.Scale.Scale = NewScale, NewScale
 end
 
-
-
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "redz Library V5"
     local WMiniText = Configs[2] or Configs.SubTitle or "by : redz9999"
 
     Settings.ScriptFile = Configs[3] or Configs.SaveFolder or false
 
-    local function LoadFile()
-        local File = Settings.ScriptFile
-        if type(File) ~= "string" then return end
-        if not readfile or not isfile then return end
-        local s, r = pcall(isfile, File)
-        if s and r then
-            local s, _Flags = pcall(readfile, File)
-            if s and type(_Flags) == "string" then
-                local s, r = pcall(function() return HttpService:JSONDecode(_Flags) end)
-                Flags = s and r or {}
-            end
+local function LoadFile()
+    local File = Settings.ScriptFile
+    if type(File) ~= "string" then return end
+    local path = GetFullPath(File)  -- <<< ADICIONE
+    if not readfile or not isfile then return end
+    local s, r = pcall(isfile, path)
+    if s and r then
+        local s, _Flags = pcall(readfile, path)
+        if s and type(_Flags) == "string" then
+            local s, r = pcall(function() return HttpService:JSONDecode(_Flags) end)
+            Flags = s and r or {}
         end
     end
+end
     LoadFile()
 
     local UISizeX, UISizeY = unpack(MyLibrary.Save.UISize)
-local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
-    Size = UDim2.fromOffset(UISizeX, UISizeY),
-    Position = UDim2.new(0.5, -UISizeX/2, 0.5, -UISizeY/2),
-    BackgroundTransparency = 0.03,
-    Image = "",  -- <<< ALTERADO: será definido abaixo
-    Name = "Hub"
-}), "Main")
-
-ApplyImage(MainFrame, MyLibrary.Save.HubImage, MyLibrary.Save.HubImagePadrao, "ImageHub")
-
+    local MainFrame = InsertTheme(Create("ImageButton", ScreenGui, {
+        Size = UDim2.fromOffset(UISizeX, UISizeY),
+        Position = UDim2.new(0.5, -UISizeX/2, 0.5, -UISizeY/2),
+        BackgroundTransparency = 0.03,
+        Name = "Hub"
+    }), "Main")
+    Make("Gradient", MainFrame, { Rotation = 45 })
     MakeDrag(MainFrame)
 
     local MainCorner = Make("Corner", MainFrame)
@@ -836,13 +878,13 @@ ApplyImage(MainFrame, MyLibrary.Save.HubImage, MyLibrary.Save.HubImagePadrao, "I
     ConnectSave(ControlSize1, function()
         if not Minimized then
             MyLibrary.Save.UISize = {MainFrame.Size.X.Offset, MainFrame.Size.Y.Offset}
-            SaveJson(ConfigFile, MyLibrary.Save)
+            SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
         end
     end)
 
     ConnectSave(ControlSize2, function()
         MyLibrary.Save.TabSize = MainScroll.Size.X.Offset
-        SaveJson(ConfigFile, MyLibrary.Save)
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     end)
 
     local ButtonsFolder = Create("Folder", TopBar, { Name = "Buttons" })
@@ -865,147 +907,8 @@ ApplyImage(MainFrame, MyLibrary.Save.HubImage, MyLibrary.Save.HubImagePadrao, "I
 
     SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
 
-local Minimized, SaveSize, WaitClick
-local Window, FirstTab = {}, false
-
--- ============ BOTÃO MINIMIZAR EXTERNO (PADRÃO DA LIB) ============
-local MinimizeButtonExternal = MakeDrag(Create("ImageButton", ScreenGui, {
-    Size = UDim2.fromOffset(35, 35),
-    Position = UDim2.fromScale(0.15, 0.15),
-    BackgroundTransparency = 0,
-    AutoButtonColor = false,
-    Image = "",  -- <<< ALTERADO
-    Name = "MinimizeButtonExternal"
-}))
-Make("Corner", MinimizeButtonExternal, UDim.new(0, 8))
-
-ApplyImage(MinimizeButtonExternal, MyLibrary.Save.MinimizeImage, MyLibrary.Save.MinimizeImagePadrao, "Imagebutton")
-
-MinimizeButtonExternal.Activated:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
-
-    
--- Função auxiliar para baixar e salvar imagem (retorna caminho do arquivo)
-local function DownloadImage(url, fileName)
-    local requestFunc = request or http_request or (syn and syn.request)
-    if not requestFunc then
-        warn("Executor não suporta download de imagens.")
-        return nil
-    end
-
-    if not isfolder(ImagesFolder) then
-        makefolder(ImagesFolder)
-    end
-
-    local filePath = ImagesFolder .. "/" .. fileName
-    if isfile(filePath) then
-        return filePath  -- já baixado
-    end
-
-    local response = requestFunc({
-        Url = url,
-        Method = "GET",
-        Headers = { ["User-Agent"] = "Mozilla/5.0" }
-    })
-
-    if response and response.Body then
-        writefile(filePath, response.Body)
-        return filePath
-    else
-        warn("Falha ao baixar imagem:", url)
-        return nil
-    end
-end
-
--- Função para aplicar imagem em um botão (trata links, IDs e arquivos)
-local function ApplyImage(instance, imageValue, defaultImage, filePrefix)
-    if not instance then return end
-
-    if imageValue == nil or imageValue == "" then
-        instance.Image = defaultImage or ""
-        return
-    end
-
-    -- Se for link, baixa (ou usa cache) e aplica
-    if imageValue:find("https://") or imageValue:find("http://") then
-        local filePath = DownloadImage(imageValue, filePrefix .. ".png")
-        if filePath then
-            instance.Image = getcustomasset(filePath) or defaultImage
-        else
-            instance.Image = defaultImage
-        end
-    -- Se for um asset ID nativo do Roblox
-    elseif imageValue:find("rbxassetid://") or imageValue:find("rbxasset://") then
-        instance.Image = imageValue
-    -- Se for um caminho de arquivo local
-    else
-        if isfile(imageValue) then
-            instance.Image = getcustomasset(imageValue) or defaultImage
-        else
-            instance.Image = defaultImage
-        end
-    end
-end
-
--- Função para definir a imagem do Hub
-function Window:SetHubImage(ImageId)
-    if ImageId == nil or ImageId == "" or ImageId == "default" then
-        MyLibrary.Save.HubImage = ""
-        SaveJson(ConfigFile, MyLibrary.Save)
-        local hub = ScreenGui:FindFirstChild("Hub")
-        if hub then
-            ApplyImage(hub, "", MyLibrary.Save.HubImagePadrao, "ImageHub")
-        end
-        return
-    end
-
-    -- Salva o valor original (link, ID ou caminho) para persistência
-    MyLibrary.Save.HubImage = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
-
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if hub then
-        ApplyImage(hub, ImageId, MyLibrary.Save.HubImagePadrao, "ImageHub")
-    end
-end
-
--- Função para definir a imagem do botão minimizar (drag button)
-function Window:SetMinimizeImage(ImageId)
-    if ImageId == nil or ImageId == "" or ImageId == "default" then
-        MyLibrary.Save.MinimizeImage = ""
-        SaveJson(ConfigFile, MyLibrary.Save)
-        local button = ScreenGui:FindFirstChild("MinimizeButtonExternal")
-        if button then
-            ApplyImage(button, "", MyLibrary.Save.MinimizeImagePadrao, "Imagebutton")
-        end
-        return
-    end
-
-    MyLibrary.Save.MinimizeImage = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
-
-    local button = ScreenGui:FindFirstChild("MinimizeButtonExternal")
-    if button then
-        ApplyImage(button, ImageId, MyLibrary.Save.MinimizeImagePadrao, "Imagebutton")
-    end
-end
-
--- Função para definir a imagem padrão do botão minimizar
-function Window:SetMinimizeImagePadrao(ImageId)
-    if type(ImageId) ~= "string" or ImageId == "" then
-        warn("ImageId padrão inválido.")
-        return
-    end
-
-    MyLibrary.Save.MinimizeImagePadrao = ImageId
-    SaveJson(ConfigFile, MyLibrary.Save)
-
-    local button = ScreenGui:FindFirstChild("MinimizeButtonExternal")
-    if button and (not MyLibrary.Save.MinimizeImage or MyLibrary.Save.MinimizeImage == "") then
-        ApplyImage(button, "", ImageId, "Imagebutton")
-    end
-end
+    local Minimized, SaveSize, WaitClick
+    local Window, FirstTab = {}, false
     
     function Window:SetToggleKey(KeyCode)
     if type(KeyCode) == "string" then
@@ -1018,7 +921,7 @@ end
     end
 
     MyLibrary.Save.ToggleKey = KeyCode.Name
-    SaveJson(ConfigFile, MyLibrary.Save)
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
 
     -- Reconecta o listener
     if MyLibrary._ToggleConnection then
@@ -1084,7 +987,28 @@ end)
         MainFrame.Visible = not MainFrame.Visible
     end
 
-    
+    function Window:AddMinimizeButton(Configs)
+        local Button = MakeDrag(Create("ImageButton", ScreenGui, {
+            Size = UDim2.fromOffset(35, 35),
+            Position = UDim2.fromScale(0.15, 0.15),
+            BackgroundTransparency = 1,
+            AutoButtonColor = false
+        }))
+
+        local Stroke, Corner
+        if Configs.Corner then
+            Corner = Make("Corner", Button)
+            SetProps(Corner, Configs.Corner)
+        end
+        if Configs.Stroke then
+            Stroke = Make("Stroke", Button)
+            SetProps(Stroke, Configs.Stroke)
+        end
+        SetProps(Button, Configs.Button)
+
+        Button.Activated:Connect(Window.Minimize)
+        return { Stroke = Stroke, Corner = Corner, Button = Button }
+    end
 
     function Window:Set(Val1, Val2)
         if type(Val1) == "string" and type(Val2) == "string" then
@@ -2860,6 +2784,5 @@ end)
     MinimizeButton.Activated:Connect(Window.MinimizeBtn)
     return Window
 end
-
 
 return MyLibrary
