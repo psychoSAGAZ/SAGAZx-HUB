@@ -932,10 +932,7 @@ function MyLibrary:SetHubImage(imageInput)
         SaveImageSettings(CurrentImageSettings)
     end
 
-    -- Desativa o gradiente se uma imagem não vazia for aplicada
-    if MyLibrary.HubGradient then
-        MyLibrary.HubGradient.Enabled = (imageInput == "")
-    end
+ 
 end
 
 
@@ -960,10 +957,7 @@ function MyLibrary:ResetHubImage()
     CurrentImageSettings.HubImage = DEFAULT_HUB_IMAGE
     SaveImageSettings(CurrentImageSettings)
 
-    -- Reativa o gradiente (ou desativa se a imagem padrão for vazia)
-    if MyLibrary.HubGradient then
-        MyLibrary.HubGradient.Enabled = (DEFAULT_HUB_IMAGE == "")
-    end
+
 end
 
 function MyLibrary:ResetMinimizeImage()
@@ -1011,7 +1005,6 @@ end
         BackgroundTransparency = 0.03,
         Name = "Hub"
     }), "Main")
-    AddTransparency(MainFrame)
     MainFrame.BackgroundTransparency = MyLibrary.Save.HubTransparency or 0
     MainFrame.ImageTransparency = MyLibrary.Save.HubImageTransparency or 0
     MyLibrary.HubGradient = Make("Gradient", MainFrame, { Rotation = 45 })
@@ -1246,15 +1239,6 @@ MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta à funçã
 task.spawn(function()
     if CurrentImageSettings.HubImage and CurrentImageSettings.HubImage ~= "" then
         ProcessAndApplyImage(MainFrame, CurrentImageSettings.HubImage, "Hub")
-        -- Desativa o gradiente para a imagem não ficar escura
-        if MyLibrary.HubGradient then
-            MyLibrary.HubGradient.Enabled = false
-        end
-    else
-        -- Se não houver imagem, mantém o gradiente ativo
-        if MyLibrary.HubGradient then
-            MyLibrary.HubGradient.Enabled = true
-        end
     end
 
     if CurrentImageSettings.MinimizeImage and CurrentImageSettings.MinimizeImage ~= "" then
