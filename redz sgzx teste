@@ -631,10 +631,13 @@ AddEle("Button", function(parent, props, ...)
     AddTransparency(New)
 
     New.MouseEnter:Connect(function()
-        New.BackgroundTransparency = 0.4
+        -- Usa a transparência global como base, mas deixa um pouco mais clara ao passar o mouse
+        local base = MyLibrary.Save.GlobalTransparency or 0
+        New.BackgroundTransparency = math.max(0.4, base)
     end)
     New.MouseLeave:Connect(function()
-        New.BackgroundTransparency = 0
+        -- Restaura a transparência global definida
+        New.BackgroundTransparency = MyLibrary.Save.GlobalTransparency or 0
     end)
     if args[1] then
         New.Activated:Connect(args[1])
