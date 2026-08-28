@@ -1166,7 +1166,17 @@ MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta à funçã
 task.spawn(function()
     if CurrentImageSettings.HubImage and CurrentImageSettings.HubImage ~= "" then
         ProcessAndApplyImage(MainFrame, CurrentImageSettings.HubImage, "Hub")
+        -- Desativa o gradiente para a imagem não ficar escura
+        if MyLibrary.HubGradient then
+            MyLibrary.HubGradient.Enabled = false
+        end
+    else
+        -- Se não houver imagem, mantém o gradiente ativo
+        if MyLibrary.HubGradient then
+            MyLibrary.HubGradient.Enabled = true
+        end
     end
+
     if CurrentImageSettings.MinimizeImage and CurrentImageSettings.MinimizeImage ~= "" then
         ProcessAndApplyImage(MinimizeExternalButton, CurrentImageSettings.MinimizeImage, "minizebutton")
     end
