@@ -108,6 +108,12 @@ local function AddTransparency(instance)
         if v == instance then return end
     end
     table.insert(MyLibrary.TransparencyInstances, instance)
+
+    -- Aplica imediatamente a transparência global salva
+    local transparency = MyLibrary.Save.GlobalTransparency or 0
+    if instance:IsA("Frame") or instance:IsA("TextButton") or instance:IsA("ImageButton") or instance:IsA("ScrollingFrame") then
+        instance.BackgroundTransparency = transparency
+    end
 end
 
 local function Save(file)
@@ -999,7 +1005,6 @@ end
         Name = "Hub"
     }), "Main")
     MainFrame.BackgroundTransparency = MyLibrary.Save.HubTransparency or 0
-    MainFrame.ImageTransparency = MyLibrary.Save.HubImageTransparency or 0
     MyLibrary.HubGradient = Make("Gradient", MainFrame, { Rotation = 45 })
     MakeDrag(MainFrame)
 
