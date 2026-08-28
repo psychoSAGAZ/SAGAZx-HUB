@@ -97,9 +97,7 @@ local function GetFullPath(fileName)
     -- Caso contrário, coloca dentro da pasta da lib
     return LibFolder .. "/" .. fileName
 end
-if rawget(decoded, "GlobalTransparency") then
-    MyLibrary.Save.GlobalTransparency = tonumber(decoded.GlobalTransparency) or 0
-end
+
 
 -- Função auxiliar para registrar elementos que terão transparência controlada
 local function AddTransparency(instance)
@@ -110,7 +108,6 @@ local function AddTransparency(instance)
     table.insert(MyLibrary.TransparencyInstances, instance)
 end
 
--- Função Save modificada
 local function Save(file)
     local path = GetFullPath(file)
     if readfile and isfile and isfile(path) then
@@ -130,8 +127,13 @@ local function Save(file)
         if rawget(decoded, "ToggleKey") and type(decoded["ToggleKey"]) == "string" then
             MyLibrary.Save.ToggleKey = decoded["ToggleKey"]
         end
+        if rawget(decoded, "GlobalTransparency") then
+            MyLibrary.Save.GlobalTransparency = tonumber(decoded.GlobalTransparency) or 0
+        end
     end
 end
+
+pcall(Save, "SAGAZx HUB lib.json")
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
 local UIScale = ViewportSize.Y / 450
