@@ -914,25 +914,20 @@ function MyLibrary:SetHubImageTransparency(value)
     MyLibrary.Save.HubImageTransparency = value
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
 
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if hub then
-        hub.ImageTransparency = value
+    local imageLabel = MyLibrary.HubImageLabel
+    if imageLabel then
+        imageLabel.ImageTransparency = value
     end
 end
 
 function MyLibrary:SetHubImage(imageInput)
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if not hub then
-        warn("Hub não encontrado.")
-        return
-    end
-    local result = ProcessAndApplyImage(hub, imageInput, "Hub")
+    local imageLabel = MyLibrary.HubImageLabel
+    if not imageLabel then warn("HubImageLabel não encontrado.") return end
+    local result = ProcessAndApplyImage(imageLabel, imageInput, "Hub")
     if result ~= "" then
         CurrentImageSettings.HubImage = imageInput
         SaveImageSettings(CurrentImageSettings)
     end
-
- 
 end
 
 
@@ -951,13 +946,11 @@ function MyLibrary:SetMinimizeImage(imageInput)
 end
 
 function MyLibrary:ResetHubImage()
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if not hub then return end
-    ProcessAndApplyImage(hub, DEFAULT_HUB_IMAGE, "Hub")
+    local imageLabel = MyLibrary.HubImageLabel
+    if not imageLabel then return end
+    ProcessAndApplyImage(imageLabel, DEFAULT_HUB_IMAGE, "Hub")
     CurrentImageSettings.HubImage = DEFAULT_HUB_IMAGE
     SaveImageSettings(CurrentImageSettings)
-
-
 end
 
 function MyLibrary:ResetMinimizeImage()
@@ -1011,6 +1004,15 @@ end
     MakeDrag(MainFrame)
 
     local MainCorner = Make("Corner", MainFrame)
+    
+    local HubImageLabel = Create("ImageLabel", MainFrame, {
+    Size = UDim2.fromScale(1, 1),
+    BackgroundTransparency = 1,
+    Image = "",
+    ImageTransparency = MyLibrary.Save.HubImageTransparency or 0,
+    Name = "HubImage"
+})
+MyLibrary.HubImageLabel = HubImageLabel
 
     local Components = Create("Folder", MainFrame, { Name = "Components" })
     local DropdownHolder = Create("Folder", ScreenGui, { Name = "Dropdown" })
@@ -1237,9 +1239,9 @@ MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta à funçã
 
 -- Aplica as imagens salvas automaticamente
 task.spawn(function()
-    if CurrentImageSettings.HubImage and CurrentImageSettings.HubImage ~= "" then
-        ProcessAndApplyImage(MainFrame, CurrentImageSettings.HubImage, "Hub")
-    end
+if CurrentImageSettings.HubImage and CurrentImageSettings.HubImage ~= "" then
+    ProcessAndApplyImage(MyLibrary.HubImageLabel, CurrentImageSettings.HubImage, "Hub")
+end
 
     if CurrentImageSettings.MinimizeImage and CurrentImageSettings.MinimizeImage ~= "" then
         ProcessAndApplyImage(MinimizeExternalButton, CurrentImageSettings.MinimizeImage, "minizebutton")
