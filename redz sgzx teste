@@ -57,6 +57,8 @@ Save = {
     CustomColors = {},
     ToggleKey = "RightShift",
     GlobalTransparency = 0,  -- 0 = opaco, 1 = totalmente transparente
+    HubTransparency = 0,
+    HubImageTransparency = 0,
 },
     Settings = {},
     Connection = {},
@@ -130,6 +132,12 @@ local function Save(file)
         if rawget(decoded, "GlobalTransparency") then
             MyLibrary.Save.GlobalTransparency = tonumber(decoded.GlobalTransparency) or 0
         end
+        if rawget(decoded, "HubTransparency") then
+    MyLibrary.Save.HubTransparency = tonumber(decoded.HubTransparency) or 0
+end
+if rawget(decoded, "HubImageTransparency") then
+    MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
+end
     end
 end
 
@@ -884,6 +892,34 @@ function MyLibrary:SetGlobalTransparency(value)
     end
 end
 
+function MyLibrary:SetHubTransparency(value)
+    value = tonumber(value)
+    if not value then return end
+    value = math.clamp(value, 0, 1)
+
+    MyLibrary.Save.HubTransparency = value
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    local hub = ScreenGui:FindFirstChild("Hub")
+    if hub then
+        hub.BackgroundTransparency = value
+    end
+end
+
+function MyLibrary:SetHubImageTransparency(value)
+    value = tonumber(value)
+    if not value then return end
+    value = math.clamp(value, 0, 1)
+
+    MyLibrary.Save.HubImageTransparency = value
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    local hub = ScreenGui:FindFirstChild("Hub")
+    if hub then
+        hub.ImageTransparency = value
+    end
+end
+
 function MyLibrary:SetHubImage(imageInput)
     local hub = ScreenGui:FindFirstChild("Hub")
     if not hub then
@@ -976,6 +1012,8 @@ end
         Name = "Hub"
     }), "Main")
     AddTransparency(MainFrame)
+    MainFrame.BackgroundTransparency = MyLibrary.Save.HubTransparency or 0
+    MainFrame.ImageTransparency = MyLibrary.Save.HubImageTransparency or 0
     MyLibrary.HubGradient = Make("Gradient", MainFrame, { Rotation = 45 })
     MakeDrag(MainFrame)
 
