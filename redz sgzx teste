@@ -55,7 +55,7 @@ Save = {
     TabSize = 160,
     Theme = "Purple",
     CustomColors = {},
-    ToggleKey = "RightShift"
+    ToggleKey = "RightShift",
     GlobalTransparency = 0,  -- 0 = opaco, 1 = totalmente transparente
 },
     Settings = {},
@@ -96,6 +96,18 @@ local function GetFullPath(fileName)
     end
     -- Caso contrário, coloca dentro da pasta da lib
     return LibFolder .. "/" .. fileName
+end
+if rawget(decoded, "GlobalTransparency") then
+    MyLibrary.Save.GlobalTransparency = tonumber(decoded.GlobalTransparency) or 0
+end
+
+-- Função auxiliar para registrar elementos que terão transparência controlada
+local function AddTransparency(instance)
+    if not instance or typeof(instance) ~= "Instance" then return end
+    for _, v in ipairs(MyLibrary.TransparencyInstances) do
+        if v == instance then return end
+    end
+    table.insert(MyLibrary.TransparencyInstances, instance)
 end
 
 -- Função Save modificada
@@ -177,14 +189,7 @@ local SetProps, SetChildren, InsertTheme, Create do
         return new
     end
 
-local function AddTransparency(instance)
-    if not instance or typeof(instance) ~= "Instance" then return end
-    -- Evita duplicatas
-    for _, v in ipairs(MyLibrary.TransparencyInstances) do
-        if v == instance then return end
-    end
-    table.insert(MyLibrary.TransparencyInstances, instance)
-end
+
 
 local function Save(file)
     if readfile and isfile and isfile(file) then
