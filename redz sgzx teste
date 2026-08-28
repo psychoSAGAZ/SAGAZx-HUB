@@ -854,7 +854,14 @@ function MyLibrary:SetHubImage(imageInput)
         CurrentImageSettings.HubImage = imageInput
         SaveImageSettings(CurrentImageSettings)
     end
+
+    -- Desativa o gradiente se uma imagem não vazia for aplicada
+    if MyLibrary.HubGradient then
+        MyLibrary.HubGradient.Enabled = (imageInput == "")
+    end
 end
+
+
 
 function MyLibrary:SetMinimizeImage(imageInput)
     local minimizeBtn = ScreenGui:FindFirstChild("MinimizeExternalButton")
@@ -875,6 +882,11 @@ function MyLibrary:ResetHubImage()
     ProcessAndApplyImage(hub, DEFAULT_HUB_IMAGE, "Hub")
     CurrentImageSettings.HubImage = DEFAULT_HUB_IMAGE
     SaveImageSettings(CurrentImageSettings)
+
+    -- Reativa o gradiente (ou desativa se a imagem padrão for vazia)
+    if MyLibrary.HubGradient then
+        MyLibrary.HubGradient.Enabled = (DEFAULT_HUB_IMAGE == "")
+    end
 end
 
 function MyLibrary:ResetMinimizeImage()
@@ -922,7 +934,7 @@ end
         BackgroundTransparency = 0.03,
         Name = "Hub"
     }), "Main")
-    Make("Gradient", MainFrame, { Rotation = 45 })
+    MyLibrary.HubGradient = Make("Gradient", MainFrame, { Rotation = 45 })
     MakeDrag(MainFrame)
 
     local MainCorner = Make("Corner", MainFrame)
