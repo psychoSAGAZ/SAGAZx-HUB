@@ -96,6 +96,26 @@ local function GetFullPath(fileName)
     return LibFolder .. "/" .. fileName
 end
 
+-- ===================================================
+-- SISTEMA DE IMAGENS (Minimize + Hub)
+-- ===================================================
+local DEFAULT_MINIMIZE_IMAGE = "rbxassetid://86050226751861" -- ID padrão do botão minimizar
+local DEFAULT_HUB_IMAGE = "" -- Deixe vazio para não usar imagem padrão no hub
+
+local IMAGES_FOLDER = LibFolder .. "/imagens"
+local JSON_IMAGES_FILE = IMAGES_FOLDER .. "/imagens.json"
+
+-- Funções do executor
+local requestFunc = request or http_request or (syn and syn.request)
+local getAssetFunc = getcustomasset or getsynasset
+
+-- Garante que a pasta de imagens exista
+pcall(function()
+    if makefolder and not isfolder(IMAGES_FOLDER) then
+        makefolder(IMAGES_FOLDER)
+    end
+end)
+
 -- Função Save modificada
 local function Save(file)
     local path = GetFullPath(file)
@@ -998,6 +1018,106 @@ local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
 }))
 Make("Corner", MinimizeExternalButton, UDim.new(0, 8))  -- cantos arredondados
 MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta à função de minimizar
+
+-- ===================================================
+-- CONFIGURAÇÃO DE IMAGENS
+-- ===================================================
+local imageConfig = {
+    MinimizeImage = DEFAULT_MINIMIZE_IMAGE,
+    HubImage = DEFAULT_HUB_IMAGE
+}
+
+local function saveImageConfig()
+    if writefile then
+        writefile(JSON_IMAGES_FILE, HttpService:JSONEncode(imageConfig))
+    end
+end
+
+local function loadImageConfig()
+    if readfile and isfile and isfile(JSON_IMAGES_FILE) then
+        local success, result = pcall(function()
+            return HttpService:JSONDecode(readfile(JSON_IMAGES_FILE))
+        end)
+        if success and type(result) == "table" then
+            imageConfig.MinimizeImage = result.MinimizeImage or DEFAULT_MINIMIZE_IMAGE
+            imageConfig.HubImage = result.HubImage or DEFAULT_HUB_IMAGE
+        end
+    else
+        saveImageConfig()
+    end
+end
+
+local function applyImage(objectTarget, inputPathOrUrl)
+    if not objectTarget or type(inputPathOrUrl) ~= "string" or inputPathOrUrl == "" then return end
+
+    if inputPathOrUrl:find("https://") or inputPathOrUrl:find("http://") then
+        if not requestFunc or not getAssetFunc then
+            warn("Executor não suporta requisições HTTP ou getcustomasset.")
+            return
+        end
+
+        task.spawn(function()
+            local fileName = IMAGES_FOLDER .. "/img_" .. inputPathOrUrl:gsub("[%W]", ""):sub(-20) .. ".png"
+
+            if isfile and isfile(fileName) then
+                local assetPath = getAssetFunc(fileName)
+                if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
+                    objectTarget.Image = assetPath
+                end
+                return
+            end
+
+            local response = requestFunc({
+                Url = inputPathOrUrl,
+                Method = "GET",
+                Headers = {["User-Agent"] = "Mozilla/5.0"}
+            })
+
+            if response and response.Body then
+                writefile(fileName, response.Body)
+                local assetPath = getAssetFunc(fileName)
+                if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
+                    objectTarget.Image = assetPath
+                end
+            end
+        end)
+    else
+        local finalImage = inputPathOrUrl
+        if not inputPathOrUrl:find("rbxassetid://") and not inputPathOrUrl:find("rbxasset://") and not inputPathOrUrl:find("/") then
+            finalImage = "rbxassetid://" .. inputPathOrUrl
+        end
+
+        if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
+            objectTarget.Image = finalImage
+        end
+    end
+end
+
+-- Funções públicas para controle das imagens
+function Window:SetMinimizeImage(image)
+    imageConfig.MinimizeImage = image
+    saveImageConfig()
+    applyImage(MinimizeExternalButton, image)
+end
+
+function Window:SetHubImage(image)
+    imageConfig.HubImage = image
+    saveImageConfig()
+    applyImage(MainFrame, image)
+end
+
+function Window:ResetMinimizeImage()
+    Window:SetMinimizeImage(DEFAULT_MINIMIZE_IMAGE)
+end
+
+function Window:ResetHubImage()
+    Window:SetHubImage(DEFAULT_HUB_IMAGE)
+end
+
+-- Carregar e aplicar imagens salvas ao iniciar
+loadImageConfig()
+applyImage(MinimizeExternalButton, imageConfig.MinimizeImage)
+applyImage(MainFrame, imageConfig.HubImage)
 
     function Window:Set(Val1, Val2)
         if type(Val1) == "string" and type(Val2) == "string" then
