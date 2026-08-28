@@ -1008,15 +1008,19 @@ end
     MyLibrary.HubGradient = Make("Gradient", MainFrame, { Rotation = 45 })
     MakeDrag(MainFrame)
 
-    local MainCorner = Make("Corner", MainFrame)
-    
-    local HubImageLabel = Create("ImageLabel", MainFrame, {
+local MainCorner = Make("Corner", MainFrame)
+
+local HubImageLabel = Create("ImageLabel", MainFrame, {
     Size = UDim2.fromScale(1, 1),
     BackgroundTransparency = 1,
     Image = "",
     ImageTransparency = MyLibrary.Save.HubImageTransparency or 0,
     Name = "HubImage"
 })
+
+-- Aplica o mesmo canto arredondado do Hub
+Make("Corner", HubImageLabel, UDim.new(0, 7))  -- ou o mesmo raio usado no MainFrame
+
 MyLibrary.HubImageLabel = HubImageLabel
 
     local Components = Create("Folder", MainFrame, { Name = "Components" })
