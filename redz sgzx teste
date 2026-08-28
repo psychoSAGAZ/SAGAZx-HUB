@@ -205,26 +205,6 @@ local SetProps, SetChildren, InsertTheme, Create do
         return new
     end
 
-
-
-local function Save(file)
-    if readfile and isfile and isfile(file) then
-        local decode = HttpService:JSONDecode(readfile(file))
-        if type(decode) == "table" then
-            if rawget(decode, "UISize") then MyLibrary.Save["UISize"] = decode["UISize"] end
-            if rawget(decode, "TabSize") then MyLibrary.Save["TabSize"] = decode["TabSize"] end
-            if rawget(decode, "Theme") and VerifyTheme(decode["Theme"]) then MyLibrary.Save["Theme"] = decode["Theme"] end
-            if rawget(decode, "CustomColors") and type(decode["CustomColors"]) == "table" then
-                MyLibrary.Save.CustomColors = decode["CustomColors"]
-            end
-            if rawget(decode, "ToggleKey") and type(decode["ToggleKey"]) == "string" then
-                MyLibrary.Save.ToggleKey = decode["ToggleKey"]
-            end
-        end
-    end
-end
-
-    pcall(Save, "SAGAZx HUB lib.json")
 end
 
 local function Color3ToHex(c)
