@@ -56,6 +56,7 @@ Save = {
     Theme = "Purple",
     CustomColors = {},
     ToggleKey = "RightShift"
+    GlobalTransparency = 0,  -- 0 = opaco, 1 = totalmente transparente
 },
     Settings = {},
     Connection = {},
@@ -64,6 +65,7 @@ Save = {
     Options = {},
     Flags = {},
     Tabs = {},
+    TransparencyInstances = {},  -- lista para elementos controlados
     Icons = (function()
         return {
             -- ... (todos os ícones mantidos, omitidos aqui por brevidade)
@@ -174,6 +176,15 @@ local SetProps, SetChildren, InsertTheme, Create do
         end
         return new
     end
+
+local function AddTransparency(instance)
+    if not instance or typeof(instance) ~= "Instance" then return end
+    -- Evita duplicatas
+    for _, v in ipairs(MyLibrary.TransparencyInstances) do
+        if v == instance then return end
+    end
+    table.insert(MyLibrary.TransparencyInstances, instance)
+end
 
 local function Save(file)
     if readfile and isfile and isfile(file) then
@@ -609,6 +620,8 @@ AddEle("Button", function(parent, props, ...)
         BackgroundColor3 = Theme["Color Hub 2"],
         AutoButtonColor = false
     }), props), "Frame")
+    
+    AddTransparency(New)
 
     New.MouseEnter:Connect(function()
         New.BackgroundTransparency = 0.4
@@ -843,6 +856,24 @@ function MyLibrary:SetScale(NewScale)
     UIScale, ScreenGui.Scale.Scale = NewScale, NewScale
 end
 
+function MyLibrary:SetGlobalTransparency(value)
+    value = tonumber(value)
+    if not value then return end
+    value = math.clamp(value, 0, 1)
+
+    MyLibrary.Save.GlobalTransparency = value
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    -- Aplica a todos os elementos registrados que ainda existem
+    for _, instance in ipairs(MyLibrary.TransparencyInstances) do
+        if instance and instance.Parent then
+            if instance:IsA("Frame") or instance:IsA("TextButton") or instance:IsA("ImageButton") or instance:IsA("ScrollingFrame") then
+                instance.BackgroundTransparency = value
+            end
+        end
+    end
+end
+
 function MyLibrary:SetHubImage(imageInput)
     local hub = ScreenGui:FindFirstChild("Hub")
     if not hub then
@@ -934,6 +965,7 @@ end
         BackgroundTransparency = 0.03,
         Name = "Hub"
     }), "Main")
+    AddTransparency(MainFrame)
     MyLibrary.HubGradient = Make("Gradient", MainFrame, { Rotation = 45 })
     MakeDrag(MainFrame)
 
@@ -1540,6 +1572,7 @@ end)
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = Theme["Color Stroke"]
             }), "Stroke")
+            AddTransparency(ToggleHolder)
             Make("Corner", ToggleHolder, UDim.new(0.5, 0))
 
             local Slider = Create("Frame", ToggleHolder, {
@@ -1620,6 +1653,7 @@ end)
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = Theme["Color Stroke"]
             }), "Stroke")
+            AddTransparency(SelectedFrame)
             Make("Corner", SelectedFrame, UDim.new(0, 4))
 
             local ActiveLabel = InsertTheme(Create("TextLabel", SelectedFrame, {
@@ -1659,6 +1693,7 @@ end)
                 Active = true
             })
             Make("Corner", DropFrame)
+            AddTransparency(DropFrame)
             Make("Stroke", DropFrame)
             Make("Gradient", DropFrame, { Rotation = 60 })
 
@@ -1962,6 +1997,7 @@ end)
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = Theme["Color Stroke"]
             }), "Stroke")
+            AddTransparency(SelectedFrame)
             Make("Corner", SelectedFrame, UDim.new(0, 4))
 
             local ActiveLabel = InsertTheme(Create("TextLabel", SelectedFrame, {
@@ -2001,6 +2037,7 @@ end)
                 Active = true
             })
             Make("Corner", DropFrame)
+            AddTransparency(DropFrame)
             Make("Stroke", DropFrame)
             Make("Gradient", DropFrame, { Rotation = 60 })
 
@@ -2298,6 +2335,7 @@ end)
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = Theme["Color Stroke"]
             }), "Stroke")
+            AddTransparency(SelectedFrame)
             Make("Corner", SelectedFrame, UDim.new(0, 4))
 
             local ActiveLabel = InsertTheme(Create("TextLabel", SelectedFrame, {
@@ -2337,6 +2375,7 @@ end)
                 Active = true
             })
             Make("Corner", DropFrame)
+            AddTransparency(DropFrame)
             Make("Stroke", DropFrame)
             Make("Gradient", DropFrame, { Rotation = 60 })
 
@@ -2673,6 +2712,7 @@ end)
                 Position = UDim2.new(0.5, 0, 0.5),
                 AnchorPoint = Vector2.new(0.5, 0.5)
             }), "Stroke")
+            AddTransparency(SliderBar)
             Make("Corner", SliderBar)
 
             local Indicator = InsertTheme(Create("Frame", SliderBar, {
@@ -2799,6 +2839,7 @@ end)
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = Theme["Color Stroke"]
             }), "Stroke")
+            AddTransparency(SelectedFrame)
             Make("Corner", SelectedFrame, UDim.new(0, 4))
 
             local TextBoxInput = InsertTheme(Create("TextBox", SelectedFrame, {
@@ -2877,6 +2918,7 @@ end)
                 Position = UDim2.new(0, 0, 1),
                 BackgroundColor3 = Theme["Color Hub 2"]
             }), "Frame")
+            AddTransparency(FrameHolder)
             Make("Corner", FrameHolder)
 
             local ImageLabel = Create("ImageLabel", FrameHolder, {
@@ -2954,8 +2996,13 @@ end)
 
     CloseButton.Activated:Connect(Window.CloseBtn)
     MinimizeButton.Activated:Connect(Window.MinimizeBtn)
+    
+    -- Aplica a transparência global salva
+if MyLibrary.Save.GlobalTransparency and MyLibrary.Save.GlobalTransparency > 0 then
+    MyLibrary:SetGlobalTransparency(MyLibrary.Save.GlobalTransparency)
+end
+
     return Window
 end
 
 return MyLibrary
- 
