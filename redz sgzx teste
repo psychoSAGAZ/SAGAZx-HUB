@@ -130,10 +130,9 @@ local function UpdateStroke(stroke)
     stroke.Color = Color3.fromHex(colorHex)
     stroke.Transparency = transparency
 
-    -- Se for o stroke do MinimizeExternalButton, ajusta a espessura
-    if stroke.Parent and stroke.Parent.Name == "MinimizeExternalButton" then
-        stroke.Thickness = 0.3
-    end
+if stroke.Parent and stroke.Parent.Name == "MinimizeExternalButton" then
+    stroke.Thickness = 3
+end
 end
 
 -- Função para aplicar borda a um GuiObject
