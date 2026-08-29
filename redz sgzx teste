@@ -59,6 +59,7 @@ Save = {
     GlobalTransparency = 0,  -- 0 = opaco, 1 = totalmente transparente
     HubTransparency = 0,
     HubImageTransparency = 0,
+    StrokeTransparency = 0,
 },
     Settings = {},
     Connection = {},
@@ -68,6 +69,7 @@ Save = {
     Flags = {},
     Tabs = {},
     TransparencyInstances = {},  -- lista para elementos controlados
+    StrokeInstances = {},
     Icons = (function()
         return {
             -- ... (todos os ícones mantidos, omitidos aqui por brevidade)
@@ -101,6 +103,7 @@ local function GetFullPath(fileName)
 end
 
 
+
 -- Função auxiliar para registrar elementos que terão transparência controlada
 local function AddTransparency(instance)
     if not instance or typeof(instance) ~= "Instance" then return end
@@ -114,6 +117,24 @@ local function AddTransparency(instance)
     if instance:IsA("Frame") or instance:IsA("TextButton") or instance:IsA("ImageButton") or instance:IsA("ScrollingFrame") then
         instance.BackgroundTransparency = transparency
     end
+
+    -- Adiciona contorno automaticamente
+    AddStroke(instance)
+end
+
+local function AddStroke(instance)
+    if not instance or typeof(instance) ~= "Instance" then return end
+    for _, v in ipairs(MyLibrary.StrokeInstances) do
+        if v == instance then return end
+    end
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Theme["Color Theme"]
+    stroke.Thickness = 1.5
+    stroke.ApplyStrokeMode = "Border"
+    stroke.Transparency = MyLibrary.Save.StrokeTransparency or 0
+    stroke.Parent = instance
+    table.insert(MyLibrary.StrokeInstances, stroke)
 end
 
 local function Save(file)
@@ -143,6 +164,9 @@ local function Save(file)
 end
 if rawget(decoded, "HubImageTransparency") then
     MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
+end
+if rawget(decoded, "StrokeTransparency") then
+    MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
 end
     end
 end
@@ -878,6 +902,22 @@ function MyLibrary:SetGlobalTransparency(value)
     end
 end
 
+function MyLibrary:SetStrokeTransparency(value)
+    value = tonumber(value)
+    if not value then return end
+    value = math.clamp(value, 0, 1)
+
+    MyLibrary.Save.StrokeTransparency = value
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    -- Aplica a todos os strokes registrados
+    for _, stroke in ipairs(MyLibrary.StrokeInstances) do
+        if stroke and stroke.Parent then
+            stroke.Transparency = value
+        end
+    end
+end
+
 function MyLibrary:SetHubTransparency(value)
     value = tonumber(value)
     if not value then return end
@@ -1000,6 +1040,9 @@ local HubImageLabel = Create("ImageLabel", MainFrame, {
 
 -- Aplica o mesmo canto arredondado do Hub
 Make("Corner", HubImageLabel, UDim.new(0, 7))  -- ou o mesmo raio usado no MainFrame
+
+AddStroke(MainFrame)
+AddStroke(HubImageLabel)
 
 MyLibrary.HubImageLabel = HubImageLabel
 
