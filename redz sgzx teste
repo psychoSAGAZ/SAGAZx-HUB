@@ -145,7 +145,12 @@ local function ApplyBorder(guiObject)
         table.insert(MyLibrary.StrokeInstances, stroke)
     end
 
-    UpdateStroke(stroke)
+    -- Aplica imediatamente usando os valores salvos atuais
+    local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
+    local transparency = MyLibrary.Save.StrokeTransparency or 0
+
+    stroke.Color = Color3.fromHex(colorHex)
+    stroke.Transparency = transparency
 end
 
 local function UpdateMinimizeStroke(stroke)
@@ -173,7 +178,16 @@ local function ApplyMinimizeBorder(button)
         stroke.Thickness = 3
     end
 
-    UpdateMinimizeStroke(stroke)
+    -- Aplica imediatamente
+    local colorHex = MyLibrary.Save.MinimizeStrokeColor or "#8A2BE2"
+    stroke.Color = Color3.fromHex(colorHex)
+
+    local transparency = MyLibrary.Save.StrokeTransparency or 0
+    local hub = ScreenGui:FindFirstChild("Hub")
+    if hub and not hub.Visible then
+        transparency = math.min(0.6, transparency + 0.4)
+    end
+    stroke.Transparency = transparency
 end
 
 local function Save(file)
