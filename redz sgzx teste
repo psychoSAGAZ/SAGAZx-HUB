@@ -131,7 +131,7 @@ local function AddStroke(instance)
     local stroke = Instance.new("UIStroke")
     stroke.Color = Theme["Color Theme"]
     stroke.Thickness = 1.5
-    stroke.ApplyStrokeMode = "Border"
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Transparency = MyLibrary.Save.StrokeTransparency or 0
     stroke.Parent = instance
     table.insert(MyLibrary.StrokeInstances, stroke)
@@ -632,7 +632,7 @@ AddEle("Stroke", function(parent, props, ...)
     local New = InsertTheme(SetProps(Create("UIStroke", parent, {
         Color = args[1] or Theme["Color Stroke"],
         Thickness = args[2] or 1,
-        ApplyStrokeMode = "Border"
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     }), props), "Stroke")
     return New
 end)
