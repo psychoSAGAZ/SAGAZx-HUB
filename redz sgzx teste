@@ -1057,6 +1057,7 @@ end
     }), "Main")
     MainFrame.BackgroundTransparency = MyLibrary.Save.HubTransparency or 0
     MyLibrary.HubGradient = Make("Gradient", MainFrame, { Rotation = 45 })
+    ApplyBorder(MainFrame)
     MakeDrag(MainFrame)
 
 local MainCorner = Make("Corner", MainFrame)
@@ -1073,6 +1074,7 @@ local HubImageLabel = Create("ImageLabel", MainFrame, {
 Make("Corner", HubImageLabel, UDim.new(0, 7))  -- ou o mesmo raio usado no MainFrame
 
 MyLibrary.HubImageLabel = HubImageLabel
+ApplyBorder(HubImageLabel)
 
     local Components = Create("Folder", MainFrame, { Name = "Components" })
     local DropdownHolder = Create("Folder", ScreenGui, { Name = "Dropdown" })
@@ -2998,6 +3000,7 @@ end)
                 BackgroundTransparency = 1
             })
             Make("Corner", InviteHolder, UDim.new(0, 6))
+            ApplyBorder(InviteHolder)
 
             local InviteLabel = Create("TextLabel", InviteHolder, {
                 Size = UDim2.new(1, 0, 0, 15),
