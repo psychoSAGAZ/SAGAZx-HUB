@@ -152,10 +152,7 @@ local function ApplyBorder(guiObject)
     UpdateStroke(stroke)
 end
 
-local minimizeStroke = MinimizeExternalButton:FindFirstChild("LibBorder")
-if minimizeStroke then
-    minimizeStroke.Thickness = 0.3
-end
+
 
 local function Save(file)
     local path = GetFullPath(file)
