@@ -59,6 +59,8 @@ Save = {
     GlobalTransparency = 0,  -- 0 = opaco, 1 = totalmente transparente
     HubTransparency = 0,
     HubImageTransparency = 0,
+    StrokeColor = "#8A2BE2",   -- cor padrão da borda (roxo)
+    StrokeTransparency = 0,    -- 0 = opaco, 1 = totalmente transparente
 },
     Settings = {},
     Connection = {},
@@ -116,6 +118,35 @@ local function AddTransparency(instance)
     end
 end
 
+-- Lista para armazenar os UIStrokes aplicados
+MyLibrary.StrokeInstances = {}
+
+-- Função para atualizar um UIStroke específico
+local function UpdateStroke(stroke)
+    if not stroke then return end
+    local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
+    local transparency = MyLibrary.Save.StrokeTransparency or 0
+
+    stroke.Color = Color3.fromHex(colorHex)
+    stroke.Transparency = transparency
+end
+
+-- Função para aplicar borda a um GuiObject
+local function ApplyBorder(guiObject)
+    if not guiObject or not guiObject:IsA("GuiObject") then return end
+
+    local stroke = guiObject:FindFirstChild("LibBorder")
+    if not stroke then
+        stroke = Instance.new("UIStroke")
+        stroke.Name = "LibBorder"
+        stroke.Parent = guiObject
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        table.insert(MyLibrary.StrokeInstances, stroke)
+    end
+
+    UpdateStroke(stroke)
+end
+
 local function Save(file)
     local path = GetFullPath(file)
     if readfile and isfile and isfile(path) then
@@ -143,6 +174,12 @@ local function Save(file)
 end
 if rawget(decoded, "HubImageTransparency") then
     MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
+end
+if rawget(decoded, "StrokeColor") and type(decoded.StrokeColor) == "string" then
+    MyLibrary.Save.StrokeColor = decoded.StrokeColor
+end
+if rawget(decoded, "StrokeTransparency") then
+    MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
 end
     end
 end
@@ -623,6 +660,7 @@ AddEle("Button", function(parent, props, ...)
     }), props), "Frame")
     
     AddTransparency(New)
+    ApplyBorder(New)
 
     New.MouseEnter:Connect(function()
         -- Usa a transparência global como base, mas deixa um pouco mais clara ao passar o mouse
@@ -953,6 +991,39 @@ end
 
 function MyLibrary:GetMinimizeImage()
     return CurrentImageSettings.MinimizeImage
+end
+
+function MyLibrary:SetStrokeColor(colorInput)
+    if typeof(colorInput) == "Color3" then
+        colorInput = Color3ToHex(colorInput)
+    end
+
+    if type(colorInput) ~= "string" then return end
+
+    MyLibrary.Save.StrokeColor = colorInput
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    -- Atualiza todos os UIStrokes existentes
+    for _, stroke in ipairs(MyLibrary.StrokeInstances) do
+        if stroke and stroke.Parent then
+            UpdateStroke(stroke)
+        end
+    end
+end
+
+function MyLibrary:SetStrokeTransparency(value)
+    value = tonumber(value)
+    if not value then return end
+    value = math.clamp(value, 0, 1)
+
+    MyLibrary.Save.StrokeTransparency = value
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    for _, stroke in ipairs(MyLibrary.StrokeInstances) do
+        if stroke and stroke.Parent then
+            UpdateStroke(stroke)
+        end
+    end
 end
 
 function MyLibrary:MakeWindow(Configs)
@@ -1379,6 +1450,7 @@ end)
         local TabSelect = Make("Button", MainScroll, {
             Size = UDim2.new(1, 0, 0, 24)
         })
+        ApplyBorder(TabSelect)
         Make("Corner", TabSelect)
 
         local LabelTitle = InsertTheme(Create("TextLabel", TabSelect, {
@@ -1434,6 +1506,7 @@ end)
             }),
             Create("UIListLayout", { Padding = UDim.new(0, 5) })
         }), "ScrollBar")
+        ApplyBorder(Container)
 
         table.insert(ContainerList, Container)
         if not FirstTab then Container.Parent = Containers end
@@ -3025,6 +3098,13 @@ end)
     -- Aplica a transparência global salva
 if MyLibrary.Save.GlobalTransparency and MyLibrary.Save.GlobalTransparency > 0 then
     MyLibrary:SetGlobalTransparency(MyLibrary.Save.GlobalTransparency)
+end
+
+-- Aplica cor e transparência da borda em todos os elementos registrados
+for _, stroke in ipairs(MyLibrary.StrokeInstances) do
+    if stroke and stroke.Parent then
+        UpdateStroke(stroke)
+    end
 end
 
     return Window
