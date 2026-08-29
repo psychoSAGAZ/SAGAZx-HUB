@@ -1296,27 +1296,35 @@ end)
     end
 end
 
--- Cria automaticamente o botão de minimizar externo
-local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
+local MinimizeContainer = MakeDrag(Create("Frame", ScreenGui, {
     Size = UDim2.fromOffset(35, 35),
     Position = UDim2.fromScale(0.15, 0.15),
+    BackgroundTransparency = 1,
+    Name = "MinimizeContainer"
+}))
+
+local ShadowFrame = Create("Frame", MinimizeContainer, {
+    Size = UDim2.new(1, 0, 1, 4),
+    Position = UDim2.new(0, 0, 0, 4),
+    BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+    BackgroundTransparency = 0.6,
+    BorderSizePixel = 0,
+    Name = "MinimizeShadow"
+})
+Make("Corner", ShadowFrame, UDim.new(0, 8))
+
+local MinimizeExternalButton = Create("ImageButton", MinimizeContainer, {
+    Size = UDim2.fromScale(1, 1),
     BackgroundTransparency = 0,
     AutoButtonColor = false,
-    Image = "rbxassetid://86050226751861",  -- imagem padrão
+    Image = "rbxassetid://86050226751861",
     Name = "MinimizeExternalButton"
-}))
-Make("Corner", MinimizeExternalButton, UDim.new(0, 8))  -- cantos arredondados
+})
+Make("Corner", MinimizeExternalButton, UDim.new(0, 8))
 ApplyBorder(MinimizeExternalButton)
+MinimizeExternalButton.Activated:Connect(Window.Minimize)
 
--- Sombra do botão de minimizar
-local minimizeShadow = Instance.new("UIStroke")
-minimizeShadow.Name = "MinimizeShadow"
-minimizeShadow.Color = Color3.fromRGB(0, 0, 0)
-minimizeShadow.Transparency = 0.5  -- mais visível
-minimizeShadow.Thickness = 5      -- mais espessa para parecer sombra
-minimizeShadow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-minimizeShadow.Parent = MinimizeExternalButton
-MyLibrary.MinimizeShadow = minimizeShadow
+MyLibrary.MinimizeShadow = ShadowFrame
 
 local function UpdateMinimizeBorder()
     if not MyLibrary.Hub then return end
