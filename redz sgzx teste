@@ -124,17 +124,25 @@ end
 
 local function AddStroke(instance)
     if not instance or typeof(instance) ~= "Instance" then return end
-    for _, v in ipairs(MyLibrary.StrokeInstances) do
-        if v == instance then return end
+
+    -- Verifica se já existe um UIStroke filho desse instance
+    for _, child in ipairs(instance:GetChildren()) do
+        if child:IsA("UIStroke") then
+            return child  -- já tem stroke, não cria outro
+        end
     end
 
     local stroke = Instance.new("UIStroke")
-    stroke.Color = Theme["Color Theme"]
-    stroke.Thickness = 1.5
-    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    stroke.Transparency = MyLibrary.Save.StrokeTransparency or 0
-    stroke.Parent = instance
-    table.insert(MyLibrary.StrokeInstances, stroke)
+    pcall(function()
+        stroke.Color = Theme["Color Theme"]
+        stroke.Thickness = 1.5
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        stroke.Transparency = MyLibrary.Save.StrokeTransparency or 0
+        stroke.Parent = instance
+        table.insert(MyLibrary.StrokeInstances, stroke)
+    end)
+
+    return stroke
 end
 
 local function Save(file)
