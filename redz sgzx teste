@@ -59,6 +59,7 @@ Save = {
     GlobalTransparency = 0,  -- 0 = opaco, 1 = totalmente transparente
     HubTransparency = 0,
     HubImageTransparency = 0,
+    StrokeThickness = 1,
     StrokeTransparency = 0,
 },
     Settings = {},
@@ -102,8 +103,6 @@ local function GetFullPath(fileName)
     return LibFolder .. "/" .. fileName
 end
 
-local Theme = MyLibrary.Themes[MyLibrary.Save.Theme]
-ApplyCustomColorsToTheme(Theme)
 
 -- Função auxiliar para registrar elementos que terão transparência controlada
 local function AddTransparency(instance)
@@ -113,41 +112,29 @@ local function AddTransparency(instance)
     end
     table.insert(MyLibrary.TransparencyInstances, instance)
 
+    -- Aplica imediatamente a transparência global salva
     local transparency = MyLibrary.Save.GlobalTransparency or 0
     if instance:IsA("Frame") or instance:IsA("TextButton") or instance:IsA("ImageButton") or instance:IsA("ScrollingFrame") then
         instance.BackgroundTransparency = transparency
     end
 end
 
-    -- Adiciona contorno automaticamente
-    AddStroke(instance)
-end
-
 local function AddStroke(instance)
     if not instance or typeof(instance) ~= "Instance" then return end
-
-    -- Não adiciona stroke em elementos muito pequenos ou de texto
-    if instance:IsA("TextLabel") or instance:IsA("TextBox") or instance:IsA("ImageLabel") then
-        return
+    for _, v in ipairs(MyLibrary.StrokeInstances) do
+        if v == instance then return end
     end
+    table.insert(MyLibrary.StrokeInstances, instance)
 
-    -- Verifica se já existe um UIStroke filho
-    for _, child in ipairs(instance:GetChildren()) do
-        if child:IsA("UIStroke") then
-            return child
-        end
+    local thickness = MyLibrary.Save.StrokeThickness or 1
+    local transparency = MyLibrary.Save.StrokeTransparency or 0
+    local themeColor = Theme["Color Theme"]
+
+    if instance:IsA("UIStroke") then
+        instance.Thickness = thickness
+        instance.Transparency = transparency
+        instance.Color = themeColor
     end
-
-    local stroke = Instance.new("UIStroke")
-    if not stroke then return end
-
-    stroke.Color = Theme and Theme["Color Theme"] or Color3.fromRGB(150, 0, 255)
-    stroke.Thickness = 1.2
-    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    stroke.Transparency = MyLibrary.Save.StrokeTransparency or 0
-    stroke.Parent = instance
-    table.insert(MyLibrary.StrokeInstances, stroke)
-    return stroke
 end
 
 local function Save(file)
@@ -177,6 +164,9 @@ local function Save(file)
 end
 if rawget(decoded, "HubImageTransparency") then
     MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
+end
+if rawget(decoded, "StrokeThickness") then
+    MyLibrary.Save.StrokeThickness = tonumber(decoded.StrokeThickness) or 1
 end
 if rawget(decoded, "StrokeTransparency") then
     MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
@@ -619,7 +609,8 @@ local function ApplyCustomColorsToTheme(targetTheme)
     end
 end
 
-
+local Theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+ApplyCustomColorsToTheme(Theme)
 
 local function AddEle(Name, Func)
     MyLibrary.Elements[Name] = Func
@@ -642,10 +633,11 @@ end)
 AddEle("Stroke", function(parent, props, ...)
     local args = {...}
     local New = InsertTheme(SetProps(Create("UIStroke", parent, {
-        Color = args[1] or Theme["Color Stroke"],
-        Thickness = args[2] or 1,
-        ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        Color = args[1] or Theme["Color Theme"],  -- usa Color Theme como padrão
+        Thickness = args[2] or MyLibrary.Save.StrokeThickness or 1,
+        ApplyStrokeMode = "Border"
     }), props), "Stroke")
+    AddStroke(New)
     return New
 end)
 
@@ -659,6 +651,8 @@ AddEle("Button", function(parent, props, ...)
     }), props), "Frame")
     
     AddTransparency(New)
+    
+    Make("Stroke", New, nil, Theme["Color Theme"])
 
     New.MouseEnter:Connect(function()
         -- Usa a transparência global como base, mas deixa um pouco mais clara ao passar o mouse
@@ -719,6 +713,8 @@ local function ButtonFrame(Instance, Title, Description, HolderSize)
         Name = "Option"
     })
     Make("Corner", Frame, UDim.new(0, 6))
+    
+    Make("Stroke", Frame, nil, Theme["Color Theme"])
 
     local LabelHolder = Create("Frame", Frame, {
         AutomaticSize = "Y",
@@ -914,18 +910,30 @@ function MyLibrary:SetGlobalTransparency(value)
     end
 end
 
+function MyLibrary:SetStrokeThickness(value)
+    value = tonumber(value)
+    if not value then return end
+    value = math.clamp(value, 0, 10)
+    MyLibrary.Save.StrokeThickness = value
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    for _, instance in ipairs(MyLibrary.StrokeInstances) do
+        if instance and instance.Parent and instance:IsA("UIStroke") then
+            instance.Thickness = value
+        end
+    end
+end
+
 function MyLibrary:SetStrokeTransparency(value)
     value = tonumber(value)
     if not value then return end
     value = math.clamp(value, 0, 1)
-
     MyLibrary.Save.StrokeTransparency = value
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
 
-    -- Aplica a todos os strokes registrados
-    for _, stroke in ipairs(MyLibrary.StrokeInstances) do
-        if stroke and stroke.Parent then
-            stroke.Transparency = value
+    for _, instance in ipairs(MyLibrary.StrokeInstances) do
+        if instance and instance.Parent and instance:IsA("UIStroke") then
+            instance.Transparency = value
         end
     end
 end
@@ -1039,6 +1047,8 @@ end
     MainFrame.BackgroundTransparency = MyLibrary.Save.HubTransparency or 0
     MyLibrary.HubGradient = Make("Gradient", MainFrame, { Rotation = 45 })
     MakeDrag(MainFrame)
+    
+    Make("Stroke", MainFrame, nil, Theme["Color Theme"])
 
 local MainCorner = Make("Corner", MainFrame)
 
@@ -1053,8 +1063,7 @@ local HubImageLabel = Create("ImageLabel", MainFrame, {
 -- Aplica o mesmo canto arredondado do Hub
 Make("Corner", HubImageLabel, UDim.new(0, 7))  -- ou o mesmo raio usado no MainFrame
 
-AddStroke(MainFrame)
-AddStroke(HubImageLabel)
+Make("Stroke", HubImageLabel, nil, Theme["Color Theme"])
 
 MyLibrary.HubImageLabel = HubImageLabel
 
@@ -1652,6 +1661,8 @@ end)
             }), "Stroke")
             AddTransparency(ToggleHolder)
             Make("Corner", ToggleHolder, UDim.new(0.5, 0))
+            
+            Make("Stroke", ToggleHolder, nil, Theme["Color Theme"])
 
             local Slider = Create("Frame", ToggleHolder, {
                 BackgroundTransparency = 1,
@@ -2792,6 +2803,8 @@ end)
             }), "Stroke")
             AddTransparency(SliderBar)
             Make("Corner", SliderBar)
+            
+            Make("Stroke", SliderBar, nil, Theme["Color Theme"])
 
             local Indicator = InsertTheme(Create("Frame", SliderBar, {
                 BackgroundColor3 = Theme["Color Theme"],
@@ -2998,6 +3011,8 @@ end)
             }), "Frame")
             AddTransparency(FrameHolder)
             Make("Corner", FrameHolder)
+            
+            Make("Stroke", FrameHolder, nil, Theme["Color Theme"])
 
             local ImageLabel = Create("ImageLabel", FrameHolder, {
                 Size = UDim2.new(0, 30, 0, 30),
