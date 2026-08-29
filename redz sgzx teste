@@ -157,6 +157,7 @@ end
 
 -- Lista para armazenar os UIStrokes aplicados
 MyLibrary.StrokeInstances = {}
+local ScreenGui
 
 -- Função para atualizar um UIStroke específico
 local function UpdateStroke(stroke)
@@ -489,7 +490,7 @@ local GetFlag, SetFlag, CheckFlag do
     end)
 end
 
-local ScreenGui = Create("ScreenGui", CoreGui, {
+ScreenGui = Create("ScreenGui", CoreGui, {
     Name = "SAGAZx HUB",
 }, {
     Create("UIScale", {
