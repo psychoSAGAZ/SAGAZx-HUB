@@ -1312,8 +1312,8 @@ ApplyBorder(MinimizeExternalButton)
 local minimizeShadow = Instance.new("UIStroke")
 minimizeShadow.Name = "MinimizeShadow"
 minimizeShadow.Color = Color3.fromRGB(0, 0, 0)
-minimizeShadow.Transparency = 0.7
-minimizeShadow.Thickness = 3
+minimizeShadow.Transparency = 0.5  -- mais visível
+minimizeShadow.Thickness = 5      -- mais espessa para parecer sombra
 minimizeShadow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 minimizeShadow.Parent = MinimizeExternalButton
 MyLibrary.MinimizeShadow = minimizeShadow
