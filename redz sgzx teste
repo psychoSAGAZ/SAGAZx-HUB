@@ -1316,22 +1316,7 @@ local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
 }))
 Make("Corner", MinimizeExternalButton, UDim.new(0, 8))
 
--- Função para atualizar o estado visual do botão
-local function UpdateMinimizeButtonState()
-    local hub = MainFrame
-    local stroke = MinimizeExternalButton:FindFirstChild("LibBorder")
-    if not stroke then return end
-
-    if hub.Visible then
-        UpdateStroke(stroke)
-    else
-        stroke.Color = Color3.fromRGB(100, 100, 100)
-        stroke.Transparency = 0.2
-    end
-end
-
 ApplyBorder(MinimizeExternalButton)
-UpdateMinimizeButtonState()
 
 MinimizeExternalButton.Activated:Connect(Window.Minimize)
 
