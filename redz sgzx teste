@@ -635,7 +635,7 @@ AddEle("Stroke", function(parent, props, ...)
     local New = InsertTheme(SetProps(Create("UIStroke", parent, {
         Color = args[1] or Theme["Color Theme"],  -- usa Color Theme como padrão
         Thickness = args[2] or MyLibrary.Save.StrokeThickness or 1,
-        ApplyStrokeMode = "Border"
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border"
     }), props), "Stroke")
     AddStroke(New)
     return New
