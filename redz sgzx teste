@@ -1066,9 +1066,11 @@ function MyLibrary:SetStrokeColor(colorInput)
     if type(colorInput) ~= "string" then return end
 
     MyLibrary.Save.StrokeColor = colorInput
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    SaveBorderSettings({
+        StrokeColor = colorInput,
+        StrokeTransparency = MyLibrary.Save.StrokeTransparency
+    })
 
-    -- Atualiza todos os UIStrokes existentes
     for _, stroke in ipairs(MyLibrary.StrokeInstances) do
         if stroke and stroke.Parent then
             UpdateStroke(stroke)
@@ -1082,7 +1084,10 @@ function MyLibrary:SetStrokeTransparency(value)
     value = math.clamp(value, 0, 1)
 
     MyLibrary.Save.StrokeTransparency = value
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    SaveBorderSettings({
+        StrokeColor = MyLibrary.Save.StrokeColor,
+        StrokeTransparency = value
+    })
 
     for _, stroke in ipairs(MyLibrary.StrokeInstances) do
         if stroke and stroke.Parent then
