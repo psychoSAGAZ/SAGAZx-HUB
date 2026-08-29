@@ -102,7 +102,8 @@ local function GetFullPath(fileName)
     return LibFolder .. "/" .. fileName
 end
 
-
+local Theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+ApplyCustomColorsToTheme(Theme)
 
 -- Função auxiliar para registrar elementos que terão transparência controlada
 local function AddTransparency(instance)
@@ -112,11 +113,11 @@ local function AddTransparency(instance)
     end
     table.insert(MyLibrary.TransparencyInstances, instance)
 
-    -- Aplica imediatamente a transparência global salva
     local transparency = MyLibrary.Save.GlobalTransparency or 0
     if instance:IsA("Frame") or instance:IsA("TextButton") or instance:IsA("ImageButton") or instance:IsA("ScrollingFrame") then
         instance.BackgroundTransparency = transparency
     end
+end
 
     -- Adiciona contorno automaticamente
     AddStroke(instance)
@@ -125,23 +126,27 @@ end
 local function AddStroke(instance)
     if not instance or typeof(instance) ~= "Instance" then return end
 
-    -- Verifica se já existe um UIStroke filho desse instance
+    -- Não adiciona stroke em elementos muito pequenos ou de texto
+    if instance:IsA("TextLabel") or instance:IsA("TextBox") or instance:IsA("ImageLabel") then
+        return
+    end
+
+    -- Verifica se já existe um UIStroke filho
     for _, child in ipairs(instance:GetChildren()) do
         if child:IsA("UIStroke") then
-            return child  -- já tem stroke, não cria outro
+            return child
         end
     end
 
     local stroke = Instance.new("UIStroke")
-    pcall(function()
-        stroke.Color = Theme["Color Theme"]
-        stroke.Thickness = 1.5
-        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        stroke.Transparency = MyLibrary.Save.StrokeTransparency or 0
-        stroke.Parent = instance
-        table.insert(MyLibrary.StrokeInstances, stroke)
-    end)
+    if not stroke then return end
 
+    stroke.Color = Theme and Theme["Color Theme"] or Color3.fromRGB(150, 0, 255)
+    stroke.Thickness = 1.2
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Transparency = MyLibrary.Save.StrokeTransparency or 0
+    stroke.Parent = instance
+    table.insert(MyLibrary.StrokeInstances, stroke)
     return stroke
 end
 
@@ -614,8 +619,7 @@ local function ApplyCustomColorsToTheme(targetTheme)
     end
 end
 
-local Theme = MyLibrary.Themes[MyLibrary.Save.Theme]
-ApplyCustomColorsToTheme(Theme)
+
 
 local function AddEle(Name, Func)
     MyLibrary.Elements[Name] = Func
