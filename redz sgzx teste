@@ -121,28 +121,18 @@ end
 -- Lista para armazenar os UIStrokes aplicados
 MyLibrary.StrokeInstances = {}
 
+-- Função para atualizar um UIStroke específico
 local function UpdateStroke(stroke)
     if not stroke then return end
     local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
     local transparency = MyLibrary.Save.StrokeTransparency or 0
 
-    -- Se o stroke pertence ao MinimizeExternalButton e o Hub está invisível, aplica cor escura
-    if stroke.Parent and stroke.Parent.Name == "MinimizeExternalButton" then
-        local hub = ScreenGui:FindFirstChild("Hub")
-        if hub and not hub.Visible then
-            stroke.Color = Color3.fromRGB(100, 100, 100)
-            stroke.Transparency = 0.2
-            stroke.Thickness = 3
-            return
-        end
-    end
-
     stroke.Color = Color3.fromHex(colorHex)
     stroke.Transparency = transparency
 
-    if stroke.Parent and stroke.Parent.Name == "MinimizeExternalButton" then
-        stroke.Thickness = 3
-    end
+if stroke.Parent and stroke.Parent.Name == "MinimizeExternalButton" then
+    stroke.Thickness = 3
+end
 end
 
 -- Função para aplicar borda a um GuiObject
@@ -1297,73 +1287,24 @@ end)
         end
 
         WaitClick = false
-        UpdateMinimizeButtonState()
     end
 
-function Window:Minimize()
-    MainFrame.Visible = not MainFrame.Visible
-    UpdateMinimizeButtonState()
-end
+    function Window:Minimize()
+        MainFrame.Visible = not MainFrame.Visible
+    end
 
--- Cria automaticamente o botão de minimizar externo
 -- Cria automaticamente o botão de minimizar externo
 local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Size = UDim2.fromOffset(35, 35),
     Position = UDim2.fromScale(0.15, 0.15),
     BackgroundTransparency = 0,
     AutoButtonColor = false,
-    Image = "rbxassetid://86050226751861",
+    Image = "rbxassetid://86050226751861",  -- imagem padrão
     Name = "MinimizeExternalButton"
 }))
-Make("Corner", MinimizeExternalButton, UDim.new(0, 8))
-
--- Função para atualizar o estado visual do botão
-local function UpdateMinimizeButtonState()
-    local hub = MainFrame
-    local stroke = MinimizeExternalButton:FindFirstChild("LibBorder")
-    if not stroke then return end
-
-    if hub.Visible then
-        UpdateStroke(stroke)
-    else
-        stroke.Color = Color3.fromRGB(100, 100, 100)
-        stroke.Transparency = 0.2
-    end
-end
-
+Make("Corner", MinimizeExternalButton, UDim.new(0, 8))  -- cantos arredondados
 ApplyBorder(MinimizeExternalButton)
-UpdateMinimizeButtonState()
-
-MinimizeExternalButton.Activated:Connect(Window.Minimize)
-
--- Agora define as funções que usam UpdateMinimizeButtonState
-function Window:MinimizeBtn()
-    if WaitClick then return end
-    WaitClick = true
-
-    if Minimized then
-        MinimizeButton.Image = "rbxassetid://10734896206"
-        CreateTween({MainFrame, "Size", SaveSize, 0.25, true})
-        ControlSize1.Visible = true
-        ControlSize2.Visible = true
-        Minimized = false
-    else
-        MinimizeButton.Image = "rbxassetid://10734924532"
-        SaveSize = MainFrame.Size
-        ControlSize1.Visible = false
-        ControlSize2.Visible = false
-        CreateTween({MainFrame, "Size", UDim2.fromOffset(MainFrame.Size.X.Offset, 28), 0.25, true})
-        Minimized = true
-    end
-
-    WaitClick = false
-    UpdateMinimizeButtonState()
-end
-
-function Window:Minimize()
-    MainFrame.Visible = not MainFrame.Visible
-    UpdateMinimizeButtonState()
-end
+MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta à função de minimizar
 
 -- Aplica as imagens salvas automaticamente
 task.spawn(function()
