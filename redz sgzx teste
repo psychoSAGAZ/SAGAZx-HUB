@@ -61,6 +61,7 @@ Save = {
     HubImageTransparency = 0,
     StrokeColor = "#8A2BE2",   -- cor padrão da borda (roxo)
     StrokeTransparency = 0,    -- 0 = opaco, 1 = totalmente transparente
+    MinimizeStrokeColor = "#8A2BE2",
 },
     Settings = {},
     Connection = {},
@@ -129,10 +130,6 @@ local function UpdateStroke(stroke)
 
     stroke.Color = Color3.fromHex(colorHex)
     stroke.Transparency = transparency
-
-if stroke.Parent and stroke.Parent.Name == "MinimizeExternalButton" then
-    stroke.Thickness = 3
-end
 end
 
 -- Função para aplicar borda a um GuiObject
@@ -150,8 +147,6 @@ local function ApplyBorder(guiObject)
 
     UpdateStroke(stroke)
 end
-
-
 
 local function Save(file)
     local path = GetFullPath(file)
@@ -186,6 +181,9 @@ if rawget(decoded, "StrokeColor") and type(decoded.StrokeColor) == "string" then
 end
 if rawget(decoded, "StrokeTransparency") then
     MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
+end
+if rawget(decoded, "MinimizeStrokeColor") and type(decoded.MinimizeStrokeColor) == "string" then
+    MyLibrary.Save.MinimizeStrokeColor = decoded.MinimizeStrokeColor
 end
     end
 end
@@ -1032,6 +1030,26 @@ function MyLibrary:SetStrokeTransparency(value)
     end
 end
 
+function MyLibrary:SetMinimizeStrokeColor(colorInput)
+    if typeof(colorInput) == "Color3" then
+        colorInput = Color3ToHex(colorInput)
+    end
+
+    if type(colorInput) ~= "string" then return end
+
+    MyLibrary.Save.MinimizeStrokeColor = colorInput
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    -- Atualiza o stroke do botão de minimizar
+    local minimizeBtn = MyLibrary.MinimizeExternalButton
+    if minimizeBtn then
+        local stroke = minimizeBtn:FindFirstChild("LibMinimizeBorder")
+        if stroke then
+            UpdateMinimizeStroke(stroke)
+        end
+    end
+end
+
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "redz Library V5"
     local WMiniText = Configs[2] or Configs.SubTitle or "by : redz9999"
@@ -1289,9 +1307,17 @@ end)
         WaitClick = false
     end
 
-    function Window:Minimize()
-        MainFrame.Visible = not MainFrame.Visible
+function Window:Minimize()
+    MainFrame.Visible = not MainFrame.Visible
+    -- Atualiza a borda do botão de minimizar conforme a visibilidade do Hub
+    local minimizeBtn = MyLibrary.MinimizeExternalButton
+    if minimizeBtn then
+        local stroke = minimizeBtn:FindFirstChild("LibMinimizeBorder")
+        if stroke then
+            UpdateMinimizeStroke(stroke)
+        end
     end
+end
 
 -- Cria automaticamente o botão de minimizar externo
 local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
@@ -1303,8 +1329,10 @@ local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Name = "MinimizeExternalButton"
 }))
 Make("Corner", MinimizeExternalButton, UDim.new(0, 8))  -- cantos arredondados
-ApplyBorder(MinimizeExternalButton)
+ApplyMinimizeBorder(MinimizeExternalButton)
 MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta à função de minimizar
+
+MyLibrary.MinimizeExternalButton = MinimizeExternalButton
 
 -- Aplica as imagens salvas automaticamente
 task.spawn(function()
