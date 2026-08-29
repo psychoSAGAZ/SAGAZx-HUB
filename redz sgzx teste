@@ -1495,6 +1495,7 @@ end)
                 BackgroundTransparency = 1,
                 Name = "Option"
             })
+            Make("Corner", SectionFrame, UDim.new(0, 6))
 
             local SectionLabel = InsertTheme(Create("TextLabel", SectionFrame, {
                 Font = Enum.Font.BuilderSansExtraBold,
@@ -2942,7 +2943,7 @@ end)
                 BackgroundColor3 = Theme["Color Hub 2"]
             }), "Frame")
             AddTransparency(FrameHolder)
-            Make("Corner", FrameHolder)
+            Make("Corner", FrameHolder, UDim.new(0, 6))
 
             local ImageLabel = Create("ImageLabel", FrameHolder, {
                 Size = UDim2.new(0, 30, 0, 30),
