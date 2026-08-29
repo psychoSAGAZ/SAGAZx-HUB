@@ -145,12 +145,7 @@ local function ApplyBorder(guiObject)
         table.insert(MyLibrary.StrokeInstances, stroke)
     end
 
-    -- Aplica imediatamente usando os valores salvos atuais
-    local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
-    local transparency = MyLibrary.Save.StrokeTransparency or 0
-
-    stroke.Color = Color3.fromHex(colorHex)
-    stroke.Transparency = transparency
+    UpdateStroke(stroke)
 end
 
 local function UpdateMinimizeStroke(stroke)
@@ -178,16 +173,7 @@ local function ApplyMinimizeBorder(button)
         stroke.Thickness = 3
     end
 
-    -- Aplica imediatamente
-    local colorHex = MyLibrary.Save.MinimizeStrokeColor or "#8A2BE2"
-    stroke.Color = Color3.fromHex(colorHex)
-
-    local transparency = MyLibrary.Save.StrokeTransparency or 0
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if hub and not hub.Visible then
-        transparency = math.min(0.6, transparency + 0.4)
-    end
-    stroke.Transparency = transparency
+    UpdateMinimizeStroke(stroke)
 end
 
 local function Save(file)
@@ -213,20 +199,20 @@ local function Save(file)
             MyLibrary.Save.GlobalTransparency = tonumber(decoded.GlobalTransparency) or 0
         end
         if rawget(decoded, "HubTransparency") then
-            MyLibrary.Save.HubTransparency = tonumber(decoded.HubTransparency) or 0
-        end
-        if rawget(decoded, "HubImageTransparency") then
-            MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
-        end
-        if rawget(decoded, "StrokeColor") and type(decoded.StrokeColor) == "string" then
-            MyLibrary.Save.StrokeColor = decoded.StrokeColor
-        end
-        if rawget(decoded, "StrokeTransparency") then
-            MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
-        end
-        if rawget(decoded, "MinimizeStrokeColor") and type(decoded.MinimizeStrokeColor) == "string" then
-            MyLibrary.Save.MinimizeStrokeColor = decoded.MinimizeStrokeColor
-        end
+    MyLibrary.Save.HubTransparency = tonumber(decoded.HubTransparency) or 0
+end
+if rawget(decoded, "HubImageTransparency") then
+    MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
+end
+if rawget(decoded, "StrokeColor") and type(decoded.StrokeColor) == "string" then
+    MyLibrary.Save.StrokeColor = decoded.StrokeColor
+end
+if rawget(decoded, "StrokeTransparency") then
+    MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
+end
+if rawget(decoded, "MinimizeStrokeColor") and type(decoded.MinimizeStrokeColor) == "string" then
+    MyLibrary.Save.MinimizeStrokeColor = decoded.MinimizeStrokeColor
+end
     end
 end
 
@@ -479,7 +465,33 @@ if ScreenFind and ScreenFind ~= ScreenGui then
     ScreenFind:Destroy()
 end
 
+local function UpdateMinimizeStroke(stroke)
+    if not stroke then return end
+    local colorHex = MyLibrary.Save.MinimizeStrokeColor or "#8A2BE2"
+    stroke.Color = Color3.fromHex(colorHex)
 
+    local transparency = MyLibrary.Save.StrokeTransparency or 0
+    local hub = ScreenGui:FindFirstChild("Hub")
+    if hub and not hub.Visible then
+        transparency = math.min(0.6, transparency + 0.4)
+    end
+    stroke.Transparency = transparency
+end
+
+local function ApplyMinimizeBorder(button)
+    if not button or not button:IsA("GuiObject") then return end
+
+    local stroke = button:FindFirstChild("LibMinimizeBorder")
+    if not stroke then
+        stroke = Instance.new("UIStroke")
+        stroke.Name = "LibMinimizeBorder"
+        stroke.Parent = button
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        stroke.Thickness = 3
+    end
+
+    UpdateMinimizeStroke(stroke)
+end
 
 local function GetStr(val)
     if type(val) == "function" then
@@ -3182,17 +3194,10 @@ if MyLibrary.Save.GlobalTransparency and MyLibrary.Save.GlobalTransparency > 0 t
     MyLibrary:SetGlobalTransparency(MyLibrary.Save.GlobalTransparency)
 end
 
--- Atualiza visualmente as bordas, sem salvar
+-- Aplica cor e transparência da borda em todos os elementos registrados
 for _, stroke in ipairs(MyLibrary.StrokeInstances) do
     if stroke and stroke.Parent then
         UpdateStroke(stroke)
-    end
-end
-
-if MyLibrary.MinimizeExternalButton then
-    local minimizeStroke = MyLibrary.MinimizeExternalButton:FindFirstChild("LibMinimizeBorder")
-    if minimizeStroke then
-        UpdateMinimizeStroke(minimizeStroke)
     end
 end
 
