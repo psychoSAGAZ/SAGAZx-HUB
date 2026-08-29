@@ -119,36 +119,6 @@ local function AddTransparency(instance)
     end
 end
 
--- Lista para armazenar os UIStrokes aplicados
-MyLibrary.StrokeInstances = {}
-
--- Função para atualizar um UIStroke específico
-local function UpdateStroke(stroke)
-    if not stroke then return end
-    local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
-    local transparency = MyLibrary.Save.StrokeTransparency or 0
-
-    stroke.Color = Color3.fromHex(colorHex)
-    stroke.Transparency = transparency
-end
-
--- Função para aplicar borda a um GuiObject
-local function ApplyBorder(guiObject)
-    if not guiObject or not guiObject:IsA("GuiObject") then return end
-
-    local stroke = guiObject:FindFirstChild("LibBorder")
-    if not stroke then
-        stroke = Instance.new("UIStroke")
-        stroke.Name = "LibBorder"
-        stroke.Parent = guiObject
-        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        table.insert(MyLibrary.StrokeInstances, stroke)
-    end
-
-    UpdateStroke(stroke)
-end
-
-
 
 local function Save(file)
     local path = GetFullPath(file)
@@ -191,6 +161,35 @@ end
 end
 
 pcall(Save, "SAGAZx HUB lib.json")
+
+-- Lista para armazenar os UIStrokes aplicados
+MyLibrary.StrokeInstances = {}
+
+-- Função para atualizar um UIStroke específico
+local function UpdateStroke(stroke)
+    if not stroke then return end
+    local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
+    local transparency = MyLibrary.Save.StrokeTransparency or 0
+
+    stroke.Color = Color3.fromHex(colorHex)
+    stroke.Transparency = transparency
+end
+
+-- Função para aplicar borda a um GuiObject
+local function ApplyBorder(guiObject)
+    if not guiObject or not guiObject:IsA("GuiObject") then return end
+
+    local stroke = guiObject:FindFirstChild("LibBorder")
+    if not stroke then
+        stroke = Instance.new("UIStroke")
+        stroke.Name = "LibBorder"
+        stroke.Parent = guiObject
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        table.insert(MyLibrary.StrokeInstances, stroke)
+    end
+
+    UpdateStroke(stroke)
+end
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
 local UIScale = ViewportSize.Y / 450
