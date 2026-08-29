@@ -199,20 +199,20 @@ local function Save(file)
             MyLibrary.Save.GlobalTransparency = tonumber(decoded.GlobalTransparency) or 0
         end
         if rawget(decoded, "HubTransparency") then
-    MyLibrary.Save.HubTransparency = tonumber(decoded.HubTransparency) or 0
-end
-if rawget(decoded, "HubImageTransparency") then
-    MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
-end
-if rawget(decoded, "StrokeColor") and type(decoded.StrokeColor) == "string" then
-    MyLibrary.Save.StrokeColor = decoded.StrokeColor
-end
-if rawget(decoded, "StrokeTransparency") then
-    MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
-end
-if rawget(decoded, "MinimizeStrokeColor") and type(decoded.MinimizeStrokeColor) == "string" then
-    MyLibrary.Save.MinimizeStrokeColor = decoded.MinimizeStrokeColor
-end
+            MyLibrary.Save.HubTransparency = tonumber(decoded.HubTransparency) or 0
+        end
+        if rawget(decoded, "HubImageTransparency") then
+            MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
+        end
+        if rawget(decoded, "StrokeColor") and type(decoded.StrokeColor) == "string" then
+            MyLibrary.Save.StrokeColor = decoded.StrokeColor
+        end
+        if rawget(decoded, "StrokeTransparency") then
+            MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
+        end
+        if rawget(decoded, "MinimizeStrokeColor") and type(decoded.MinimizeStrokeColor) == "string" then
+            MyLibrary.Save.MinimizeStrokeColor = decoded.MinimizeStrokeColor
+        end
     end
 end
 
@@ -3198,6 +3198,13 @@ end
 for _, stroke in ipairs(MyLibrary.StrokeInstances) do
     if stroke and stroke.Parent then
         UpdateStroke(stroke)
+    end
+end
+
+if MyLibrary.MinimizeExternalButton then
+    local minimizeStroke = MyLibrary.MinimizeExternalButton:FindFirstChild("LibMinimizeBorder")
+    if minimizeStroke then
+        UpdateMinimizeStroke(minimizeStroke)
     end
 end
 
