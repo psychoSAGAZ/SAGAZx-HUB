@@ -81,11 +81,7 @@ Save = {
     end)()
 }
 
-local BorderSettings = LoadBorderSettings()
-MyLibrary.Save.StrokeColor = BorderSettings.StrokeColor or "#8A2BE2"
-MyLibrary.Save.StrokeTransparency = BorderSettings.StrokeTransparency or 0 
-
--- Criar pasta da biblioteca (coloque isso logo após a definição da tabela MyLibrary)
+-- Criar pasta da biblioteca
 local LibFolder = "SAGAZx HUB Lib"
 pcall(function()
     if makefolder then
@@ -98,15 +94,51 @@ local function GetFullPath(fileName)
     if type(fileName) ~= "string" then
         return fileName
     end
-    -- Se já tiver barra, considera como caminho absoluto/relativo do executor
     if fileName:find("/") or fileName:find("\\") then
         return fileName
     end
-    -- Caso contrário, coloca dentro da pasta da lib
     return LibFolder .. "/" .. fileName
 end
 
+-- Função SaveJson (necessária para salvar o JSON de borda)
+local function SaveJson(FileName, save)
+    if writefile then
+        local path = GetFullPath(FileName)
+        local json = HttpService:JSONEncode(save)
+        writefile(path, json)
+    end
+end
 
+-- Caminho do JSON de borda
+local BORDER_JSON_PATH = LibFolder .. "/TransparencyBorde.json"
+
+-- Funções de carregamento/salvamento das configurações de borda
+local function LoadBorderSettings()
+    local defaultData = {
+        StrokeColor = "#8A2BE2",
+        StrokeTransparency = 0
+    }
+    if isfile and isfile(BORDER_JSON_PATH) then
+        local ok, decoded = pcall(function()
+            return HttpService:JSONDecode(readfile(BORDER_JSON_PATH))
+        end)
+        if ok and type(decoded) == "table" then
+            return decoded
+        end
+    else
+        SaveJson(BORDER_JSON_PATH, defaultData)
+    end
+    return defaultData
+end
+
+local function SaveBorderSettings(data)
+    SaveJson(BORDER_JSON_PATH, data)
+end
+
+-- Carregar e aplicar as configurações
+local BorderSettings = LoadBorderSettings()
+MyLibrary.Save.StrokeColor = BorderSettings.StrokeColor or "#8A2BE2"
+MyLibrary.Save.StrokeTransparency = BorderSettings.StrokeTransparency or 0
 
 -- Função auxiliar para registrar elementos que terão transparência controlada
 local function AddTransparency(instance)
@@ -222,29 +254,7 @@ end
 
 pcall(Save, "SAGAZx HUB lib.json")
 
-local BORDER_JSON_PATH = LibFolder .. "/TransparencyBorde.json"
 
-local function LoadBorderSettings()
-    local defaultData = {
-        StrokeColor = "#8A2BE2",
-        StrokeTransparency = 0
-    }
-    if isfile and isfile(BORDER_JSON_PATH) then
-        local ok, decoded = pcall(function()
-            return HttpService:JSONDecode(readfile(BORDER_JSON_PATH))
-        end)
-        if ok and type(decoded) == "table" then
-            return decoded
-        end
-    else
-        SaveJson(BORDER_JSON_PATH, defaultData)
-    end
-    return defaultData
-end
-
-local function SaveBorderSettings(data)
-    SaveJson(BORDER_JSON_PATH, data)
-end
 
 local ViewportSize = workspace.CurrentCamera.ViewportSize
 local UIScale = ViewportSize.Y / 450
@@ -561,13 +571,7 @@ local function MakeDrag(Instance)
     return Instance
 end
 
-local function SaveJson(FileName, save)
-    if writefile then
-        local path = GetFullPath(FileName)
-        local json = HttpService:JSONEncode(save)
-        writefile(path, json)
-    end
-end
+
 
 -- Configurações de imagem padrão
 local DEFAULT_HUB_IMAGE = ""
