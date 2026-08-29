@@ -465,6 +465,34 @@ if ScreenFind and ScreenFind ~= ScreenGui then
     ScreenFind:Destroy()
 end
 
+local function UpdateMinimizeStroke(stroke)
+    if not stroke then return end
+    local colorHex = MyLibrary.Save.MinimizeStrokeColor or "#8A2BE2"
+    stroke.Color = Color3.fromHex(colorHex)
+
+    local transparency = MyLibrary.Save.StrokeTransparency or 0
+    local hub = ScreenGui:FindFirstChild("Hub")
+    if hub and not hub.Visible then
+        transparency = math.min(0.6, transparency + 0.4)
+    end
+    stroke.Transparency = transparency
+end
+
+local function ApplyMinimizeBorder(button)
+    if not button or not button:IsA("GuiObject") then return end
+
+    local stroke = button:FindFirstChild("LibMinimizeBorder")
+    if not stroke then
+        stroke = Instance.new("UIStroke")
+        stroke.Name = "LibMinimizeBorder"
+        stroke.Parent = button
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        stroke.Thickness = 3
+    end
+
+    UpdateMinimizeStroke(stroke)
+end
+
 local function GetStr(val)
     if type(val) == "function" then
         return val()
