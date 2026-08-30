@@ -419,6 +419,8 @@ local ScreenGui = Create("m", CoreGui, {
 
 local ScreenFind = CoreGui:FindFirstChild(ScreenGui.Name)
 if ScreenFind and ScreenFind ~= ScreenGui then
+    ScreenFind:Destroy()
+end
 
 local function UpdateMinimizeStroke(stroke)
     if not stroke then return end
@@ -446,9 +448,6 @@ local function ApplyMinimizeBorder(button)
     end
 
     UpdateMinimizeStroke(stroke)
-end
-
-    ScreenFind:Destroy()
 end
 
 local function UpdateMinimizeStroke(stroke)
