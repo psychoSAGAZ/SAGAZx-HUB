@@ -103,6 +103,9 @@ local function GetFullPath(fileName)
     return LibFolder .. "/" .. fileName
 end
 
+local function VerifyTheme(Theme)
+    return MyLibrary.Themes[Theme] ~= nil
+end
 
 -- Função auxiliar para registrar elementos que terão transparência controlada
 local function AddTransparency(instance)
@@ -198,9 +201,7 @@ local UIScale = ViewportSize.Y / 450
 local Settings = MyLibrary.Settings
 local Flags = MyLibrary.Flags
 
-local function VerifyTheme(Theme)
-    return MyLibrary.Themes[Theme] ~= nil
-end
+
 
 local SetProps, SetChildren, InsertTheme, Create do
     InsertTheme = function(Instance, Type)
