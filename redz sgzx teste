@@ -408,7 +408,7 @@ local GetFlag, SetFlag, CheckFlag do
     end)
 end
 
-local ScreenGui = Create("m", CoreGui, {
+local ScreenGui = Create("ScreenGui", CoreGui, {
     Name = "SAGAZx HUB",
 }, {
     Create("UIScale", {
