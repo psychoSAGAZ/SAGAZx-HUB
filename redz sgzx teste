@@ -62,6 +62,8 @@ Save = {
     StrokeColor = "#8A2BE2",   -- cor padrão da borda (roxo)
     StrokeTransparency = 0,    -- 0 = opaco, 1 = totalmente transparente
     MinimizeStrokeColor = "#8A2BE2",
+    Font = "Gotham", 
+},
 },
     Settings = {},
     Connection = {},
@@ -81,6 +83,8 @@ Save = {
         }
     end)()
 }
+
+MyLibrary.CurrentFont = Enum.Font[MyLibrary.Save.Font] or Enum.Font.Gotham
 
 -- Criar pasta da biblioteca (coloque isso logo após a definição da tabela MyLibrary)
 local LibFolder = "SAGAZx HUB Lib"
@@ -160,6 +164,10 @@ end
 if rawget(decoded, "MinimizeStrokeColor") and type(decoded.MinimizeStrokeColor) == "string" then
     MyLibrary.Save.MinimizeStrokeColor = decoded.MinimizeStrokeColor
 end
+if rawget(decoded, "Font") and type(decoded.Font) == "string" then
+    MyLibrary.Save.Font = decoded.Font
+    MyLibrary.CurrentFont = Enum.Font[decoded.Font] or Enum.Font.Gotham
+end
     end
 end
 
@@ -172,7 +180,6 @@ MyLibrary.StrokeInstances = {}
 local function UpdateStroke(stroke)
     if not stroke then return end
     local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
-    print("Cor da borda carregada:", colorHex)  --
     local transparency = MyLibrary.Save.StrokeTransparency or 0
 
     stroke.Color = Color3.fromHex(colorHex)
@@ -722,7 +729,7 @@ end)
 
 local function ButtonFrame(Instance, Title, Description, HolderSize)
     local TitleL = InsertTheme(Create("TextLabel", {
-        Font = Enum.Font.FredokaOne,
+        Font = MyLibrary.CurrentFont,
         TextColor3 = Theme["Color Text"],
         Size = UDim2.new(1, -20),
         AutomaticSize = "Y",
@@ -737,7 +744,7 @@ local function ButtonFrame(Instance, Title, Description, HolderSize)
     }), "Text")
 
     local DescL = InsertTheme(Create("TextLabel", {
-        Font = Enum.Font.Gotham,
+        Font = MyLibrary.CurrentFont,
         TextColor3 = Theme["Color Dark Text"],
         Size = UDim2.new(1, -20),
         AutomaticSize = "Y",
@@ -1081,6 +1088,29 @@ function MyLibrary:SetMinimizeStrokeColor(colorInput)
     end
 end
 
+function MyLibrary:SetFont(fontInput)
+    if type(fontInput) == "string" then
+        fontInput = Enum.Font[fontInput]
+    end
+
+    if typeof(fontInput) ~= "EnumItem" or fontInput.EnumType ~= Enum.Font then
+        warn("Fonte inválida. Use uma string ou Enum.Font.")
+        return
+    end
+
+    MyLibrary.Save.Font = fontInput.Name
+    MyLibrary.CurrentFont = fontInput
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    -- Atualiza todos os textos existentes
+    for _, val in ipairs(MyLibrary.Instances) do
+        local inst = val.Instance
+        if inst:IsA("TextLabel") or inst:IsA("TextButton") or inst:IsA("TextBox") then
+            inst.Font = fontInput
+        end
+    end
+end
+
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "redz Library V5"
     local WMiniText = Configs[2] or Configs.SubTitle or "by : redz9999"
@@ -1149,7 +1179,7 @@ ApplyBorder(HubImageLabel)
         TextSize = 12,
         TextColor3 = Theme["Color Text"],
         BackgroundTransparency = 1,
-        Font = Enum.Font.BuilderSansBold,
+        Font = MyLibrary.CurrentFont,
         Name = "Title"
     }, {
         InsertTheme(Create("TextLabel", {
@@ -1163,7 +1193,7 @@ ApplyBorder(HubImageLabel)
             TextXAlignment = "Left",
             TextYAlignment = "Bottom",
             TextSize = 9,
-            Font = Enum.Font.Gotham,
+            Font = MyLibrary.CurrentFont,
             Name = "SubTitle"
         }), "DarkText")
     }), "Text")
@@ -1400,7 +1430,7 @@ end)
             AnchorPoint = Vector2.new(0.5, 0.5)
         }, {
             InsertTheme(Create("TextLabel", {
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.CurrentFont,
                 Size = UDim2.new(1, 0, 0, 20),
                 Text = DTitle,
                 TextXAlignment = "Left",
@@ -1410,7 +1440,7 @@ end)
                 BackgroundTransparency = 1
             }), "Text"),
             InsertTheme(Create("TextLabel", {
-                Font = Enum.Font.GothamMedium,
+                Font = MyLibrary.CurrentFont,
                 Size = UDim2.new(1, -25),
                 AutomaticSize = "Y",
                 Text = DText,
@@ -1464,7 +1494,7 @@ end)
             Make("Corner", Button)
             SetProps(Button, {
                 Text = Name,
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.CurrentFont,
                 TextColor3 = Theme["Color Text"],
                 TextSize = 12
             })
@@ -1525,7 +1555,7 @@ end)
             Size = UDim2.new(1, TIcon and -25 or -15, 1),
             Position = UDim2.fromOffset(TIcon and 25 or 15),
             BackgroundTransparency = 1,
-            Font = Enum.Font.BuilderSansBold,
+            Font = MyLibrary.CurrentFont,
             Text = TName,
             TextColor3 = Theme["Color Text"],
             TextSize = 10,
@@ -1639,7 +1669,7 @@ end)
             Make("Corner", SectionFrame, UDim.new(0, 6))
 
             local SectionLabel = InsertTheme(Create("TextLabel", SectionFrame, {
-                Font = Enum.Font.BuilderSansExtraBold,
+                Font = MyLibrary.CurrentFont,
                 Text = SectionName,
                 TextColor3 = Theme["Color Text"],
                 Size = UDim2.new(1, -25, 1, 0),
@@ -1826,7 +1856,7 @@ end)
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.CurrentFont,
                 TextScaled = true,
                 TextColor3 = Theme["Color Text"],
                 Text = "..."
@@ -2046,7 +2076,7 @@ end)
                         Position = UDim2.new(0, 10),
                         Text = Name,
                         TextColor3 = Theme["Color Text"],
-                        Font = Enum.Font.FredokaOne,
+                        Font = MyLibrary.CurrentFont,
                         TextXAlignment = "Left",
                         BackgroundTransparency = 1,
                         TextTransparency = 0.4
@@ -2170,7 +2200,7 @@ end)
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.CurrentFont,
                 TextScaled = true,
                 TextColor3 = Theme["Color Text"],
                 Text = tostring(OpDefault)
@@ -2218,7 +2248,7 @@ end)
                 Size = UDim2.new(1, -10, 1, 0),
                 Position = UDim2.new(0, 8, 0, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamMedium,
+                Font = MyLibrary.CurrentFont,
                 TextSize = 12,
                 TextColor3 = Theme["Color Text"],
                 PlaceholderText = "Pesquisar...",
@@ -2398,7 +2428,7 @@ end)
                         Position = UDim2.new(0, 28),
                         Text = Name,
                         TextColor3 = Theme["Color Text"],
-                        Font = Enum.Font.FredokaOne,
+                        Font = MyLibrary.CurrentFont,
                         TextXAlignment = "Left",
                         BackgroundTransparency = 1,
                         TextTransparency = 0.4,
@@ -2508,7 +2538,7 @@ end)
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.CurrentFont,
                 TextScaled = true,
                 TextColor3 = Theme["Color Text"],
                 Text = "..."
@@ -2556,7 +2586,7 @@ end)
                 Size = UDim2.new(1, -10, 1, 0),
                 Position = UDim2.new(0, 8, 0, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamMedium,
+                Font = MyLibrary.CurrentFont,
                 TextSize = 12,
                 TextColor3 = Theme["Color Text"],
                 PlaceholderText = "Pesquisar...",
@@ -2754,7 +2784,7 @@ end)
                         Position = UDim2.new(0, 10),
                         Text = Name,
                         TextColor3 = Theme["Color Text"],
-                        Font = Enum.Font.FredokaOne,
+                        Font = MyLibrary.CurrentFont,
                         TextXAlignment = "Left",
                         BackgroundTransparency = 1,
                         TextTransparency = 0.4
@@ -2902,7 +2932,7 @@ end)
                 Position = UDim2.new(0, 0, 0.5),
                 BackgroundTransparency = 1,
                 TextColor3 = Theme["Color Text"],
-                Font = Enum.Font.FredokaOne,
+                Font = MyLibrary.CurrentFont,
                 TextSize = 12
             }), "Text")
 
@@ -3012,7 +3042,7 @@ end)
                 AnchorPoint = Vector2.new(0.5, 0.5),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
                 BackgroundTransparency = 1,
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.CurrentFont,
                 TextScaled = true,
                 TextColor3 = Theme["Color Text"],
                 ClearTextOnFocus = TClearText,
@@ -3072,7 +3102,7 @@ end)
                 Size = UDim2.new(1, 0, 0, 15),
                 Position = UDim2.new(0, 5),
                 TextColor3 = Color3.fromRGB(40, 150, 255),
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.CurrentFont,
                 TextXAlignment = "Left",
                 BackgroundTransparency = 1,
                 TextSize = 10,
@@ -3100,7 +3130,7 @@ end)
             local LTitle = InsertTheme(Create("TextLabel", FrameHolder, {
                 Size = UDim2.new(1, -52, 0, 15),
                 Position = UDim2.new(0, 44, 0, 7),
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.CurrentFont,
                 TextColor3 = Theme["Color Text"],
                 TextXAlignment = "Left",
                 BackgroundTransparency = 1,
@@ -3113,7 +3143,7 @@ end)
                 Position = UDim2.new(0, 44, 0, 22),
                 TextWrapped = "Y",
                 AutomaticSize = "Y",
-                Font = Enum.Font.Gotham,
+                Font = MyLibrary.CurrentFont,
                 TextColor3 = Theme["Color Dark Text"],
                 TextXAlignment = "Left",
                 BackgroundTransparency = 1,
@@ -3126,7 +3156,7 @@ end)
                 AnchorPoint = Vector2.new(0.5, 1),
                 Position = UDim2.new(0.5, 0, 1, -7),
                 Text = "Copia Nick",
-                Font = Enum.Font.GothamBold,
+                Font = MyLibrary.CurrentFont,
                 TextSize = 12,
                 TextColor3 = Color3.fromRGB(220, 220, 220),
                 BackgroundColor3 = Color3.fromRGB(50, 150, 50)
