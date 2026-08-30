@@ -39,6 +39,7 @@ Save = {
     StrokeTransparency = 0,    -- 0 = opaco, 1 = totalmente transparente
     MinimizeStrokeColor = "#8A2BE2",
     Font = "Gotham", 
+    TopbarImage = "",  -- ID ou link da imagem da topbar (vazio = sem imagem)
 },
     Settings = {},
     Connection = {},
@@ -142,6 +143,9 @@ end
 if rawget(decoded, "Font") and type(decoded.Font) == "string" then
     MyLibrary.Save.Font = decoded.Font
     MyLibrary.CurrentFont = Enum.Font[decoded.Font] or Enum.Font.Gotham
+end
+if rawget(decoded, "TopbarImage") and type(decoded.TopbarImage) == "string" then
+    MyLibrary.Save.TopbarImage = decoded.TopbarImage
 end
     end
 end
@@ -575,10 +579,11 @@ local getAssetFunc = getcustomasset or getsynasset
 
 -- Carrega as configurações de imagem do JSON
 local function LoadImageSettings()
-    local defaultData = {
-        HubImage = DEFAULT_HUB_IMAGE,
-        MinimizeImage = DEFAULT_MINIMIZE_IMAGE
-    }
+local defaultData = {
+    HubImage = DEFAULT_HUB_IMAGE,
+    MinimizeImage = DEFAULT_MINIMIZE_IMAGE,
+    TopbarImage = ""  -- padrão vazio
+}
     if isfile and isfile(JSON_FILE_PATH) then
         local ok, decoded = pcall(function()
             return HttpService:JSONDecode(readfile(JSON_FILE_PATH))
@@ -961,6 +966,17 @@ function MyLibrary:SetGlobalTransparency(value)
     end
 end
 
+function MyLibrary:SetTopbarImage(imageInput)
+    local imageLabel = MyLibrary.TopbarImageLabel
+    if not imageLabel then warn("TopbarImageLabel não encontrado.") return end
+
+    local result = ProcessAndApplyImage(imageLabel, imageInput, "ImageTopbar")
+    if result ~= "" then
+        CurrentImageSettings.TopbarImage = imageInput
+        SaveImageSettings(CurrentImageSettings)
+    end
+end
+
 function MyLibrary:SetHubTransparency(value)
     value = tonumber(value)
     if not value then return end
@@ -1172,9 +1188,20 @@ ApplyBorder(HubImageLabel)
         BackgroundTransparency = 1,
         Name = "Top Bar"
     })
+    
+    local TopbarImage = Create("ImageLabel", TopBar, {
+    Size = UDim2.new(0, 20, 0, 20),
+    Position = UDim2.new(0, 5, 0.5, 0),  -- centralizado verticalmente
+    AnchorPoint = Vector2.new(0, 0.5),
+    BackgroundTransparency = 1,
+    Image = "",
+    Name = "TopbarImage"
+})
+Make("Corner", TopbarImage, UDim.new(0.5, 0))  -- cantos totalmente arredondados
+MyLibrary.TopbarImageLabel = TopbarImage
 
     local Title = InsertTheme(Create("TextLabel", TopBar, {
-        Position = UDim2.new(0, 15, 0.5),
+        Position = UDim2.new(0, 30, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         AutomaticSize = "XY",
         Text = WTitle,
@@ -1408,6 +1435,10 @@ end
         ProcessAndApplyImage(MinimizeExternalButton, CurrentImageSettings.MinimizeImage, "minizebutton")
     end
 end)
+
+if CurrentImageSettings.TopbarImage and CurrentImageSettings.TopbarImage ~= "" then
+    ProcessAndApplyImage(MyLibrary.TopbarImageLabel, CurrentImageSettings.TopbarImage, "ImageTopbar")
+end
 
     function Window:Set(Val1, Val2)
         if type(Val1) == "string" and type(Val2) == "string" then
