@@ -1963,7 +1963,7 @@ end)
             return ToggleObj
         end
         
-        function Tab:AddRainbowToggle(Configs)
+function Tab:AddRainbowToggle(Configs)
     local TName = Configs[1] or Configs.Name or Configs.Title or "Rainbow Toggle"
     local TDesc = Configs.Desc or Configs.Description or ""
     local Callback = Configs.Callback or function() end
@@ -1986,26 +1986,87 @@ end)
         AnchorPoint = Vector2.new(0.5, 0.5)
     })
 
-local Ball = Create("Frame", Slider, {
-    Size = UDim2.new(0, 12, 0, 12),
-    Position = UDim2.new(0, 0, 0.5),
-    AnchorPoint = Vector2.new(0, 0.5),
-    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-    Name = "RainbowBall"
-})
-Make("Corner", Ball, UDim.new(0.5, 0))
+    -- Bolinha com gradiente arco-íris
+    local Ball = Create("Frame", Slider, {
+        Size = UDim2.new(0, 12, 0, 12),
+        Position = UDim2.new(0, 0, 0.5),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        Name = "RainbowBall"
+    })
+    Make("Corner", Ball, UDim.new(0.5, 0))
 
--- Cria o gradiente arco-íris
-local BallGradient = Create("UIGradient", Ball, {
-    Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 120, 120)),   -- cor apagada (desativado)
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(160, 160, 160)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 120, 120))
-    }),
-    Rotation = 90
-})
+    -- Gradiente arco-íris (sem animação)
+    local rainbowGradient = Create("UIGradient", Ball, {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),     -- vermelho
+            ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 165, 0)), -- laranja
+            ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)), -- amarelo
+            ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 0)),   -- verde
+            ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 255)),   -- azul
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(128, 0, 128))    -- roxo
+        }),
+        Rotation = 45
+    })
 
-    task.spawn(SetToggleState, Default)
+    -- Função para ajustar brilho conforme estado
+    local function UpdateRainbowAppearance(enabled)
+        if enabled then
+            -- Brilho normal (cores vibrantes)
+            rainbowGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+                ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 165, 0)),
+                ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)),
+                ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 0)),
+                ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 255)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(128, 0, 128))
+            })
+        else
+            -- Desativado: cores escuras, mas mantendo tonalidade (sem luz forte)
+            rainbowGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 0, 0)),      -- vermelho escuro
+                ColorSequenceKeypoint.new(0.2, Color3.fromRGB(80, 50, 0)),   -- laranja escuro
+                ColorSequenceKeypoint.new(0.4, Color3.fromRGB(80, 80, 0)),   -- amarelo escuro
+                ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 80, 0)),    -- verde escuro
+                ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 80)),    -- azul escuro
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 40))      -- roxo escuro
+            })
+        end
+    end
+
+    -- Define aparência inicial
+    UpdateRainbowAppearance(Default)
+
+    local WaitClick = false
+    local function SetToggleState(state)
+        if WaitClick then return end
+        WaitClick = true
+
+        Default = state
+        MyLibrary.Save.RainbowToggleEnabled = state
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+        UpdateRainbowAppearance(state)
+        task.spawn(Callback, state)
+
+        if state then
+            CreateTween({Ball, "Position", UDim2.new(1, 0, 0.5), 0.25})
+            CreateTween({Ball, "AnchorPoint", Vector2.new(1, 0.5), 0.25, false})
+        else
+            CreateTween({Ball, "Position", UDim2.new(0, 0, 0.5), 0.25})
+            CreateTween({Ball, "AnchorPoint", Vector2.new(0, 0.5), 0.25, false})
+        end
+
+        WaitClick = false
+    end
+
+    -- Aplica estado inicial (sem animação de movimento brusca)
+    task.spawn(function()
+        if Default then
+            Ball.Position = UDim2.new(1, 0, 0.5)
+            Ball.AnchorPoint = Vector2.new(1, 0.5)
+        end
+    end)
 
     Button.Activated:Connect(function()
         SetToggleState(not Default)
