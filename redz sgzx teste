@@ -169,6 +169,7 @@ MyLibrary.StrokeInstances = {}
 local function UpdateStroke(stroke)
     if not stroke then return end
     local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
+    print("Cor da borda carregada:", colorHex)  --
     local transparency = MyLibrary.Save.StrokeTransparency or 0
 
     stroke.Color = Color3.fromHex(colorHex)
