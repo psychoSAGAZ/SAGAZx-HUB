@@ -38,8 +38,8 @@ Save = {
     StrokeColor = "#8A2BE2",   -- cor padrão da borda (roxo)
     StrokeTransparency = 0,    -- 0 = opaco, 1 = totalmente transparente
     MinimizeStrokeColor = "#8A2BE2",
-    Font = "Gotham", 
-    TopbarImage = "",  -- ID ou link da imagem da topbar (vazio = sem imagem)
+    Font = "Gotham",
+    TopbarImage = "rbxassetid://86050226751861", -- 👈 imagem padrão (pode trocar)
 },
     Settings = {},
     Connection = {},
@@ -561,6 +561,7 @@ end
 -- Configurações de imagem padrão
 local DEFAULT_HUB_IMAGE = ""
 local DEFAULT_MINIMIZE_IMAGE = "rbxassetid://86050226751861"
+local DEFAULT_TOP_BAR_IMAGE = "rbxassetid://86050226751861"
 
 -- Caminhos das imagens
 local IMAGES_FOLDER = LibFolder .. "/imagens"
@@ -579,11 +580,11 @@ local getAssetFunc = getcustomasset or getsynasset
 
 -- Carrega as configurações de imagem do JSON
 local function LoadImageSettings()
-local defaultData = {
-    HubImage = DEFAULT_HUB_IMAGE,
-    MinimizeImage = DEFAULT_MINIMIZE_IMAGE,
-    TopbarImage = ""  -- padrão vazio
-}
+    local defaultData = {
+        HubImage = DEFAULT_HUB_IMAGE,
+        MinimizeImage = DEFAULT_MINIMIZE_IMAGE
+        TopbarImage = MyLibrary.Save.TopbarImage or "rbxassetid://86050226751861",
+    }
     if isfile and isfile(JSON_FILE_PATH) then
         local ok, decoded = pcall(function()
             return HttpService:JSONDecode(readfile(JSON_FILE_PATH))
@@ -966,17 +967,6 @@ function MyLibrary:SetGlobalTransparency(value)
     end
 end
 
-function MyLibrary:SetTopbarImage(imageInput)
-    local imageLabel = MyLibrary.TopbarImageLabel
-    if not imageLabel then warn("TopbarImageLabel não encontrado.") return end
-
-    local result = ProcessAndApplyImage(imageLabel, imageInput, "ImageTopbar")
-    if result ~= "" then
-        CurrentImageSettings.TopbarImage = imageInput
-        SaveImageSettings(CurrentImageSettings)
-    end
-end
-
 function MyLibrary:SetHubTransparency(value)
     value = tonumber(value)
     if not value then return end
@@ -989,6 +979,24 @@ function MyLibrary:SetHubTransparency(value)
     if hub then
         hub.BackgroundTransparency = value
     end
+end
+
+function MyLibrary:SetTopbarImage(imageInput)
+    local imageLabel = MyLibrary.TopbarImageLabel
+    if not imageLabel then warn("TopbarImageLabel não encontrado.") return end
+    local result = ProcessAndApplyImage(imageLabel, imageInput, "ImageTopbar")
+    if result ~= "" then
+        CurrentImageSettings.TopbarImage = imageInput
+        SaveImageSettings(CurrentImageSettings)
+    end
+end
+
+function MyLibrary:ResetTopbarImage()
+    local imageLabel = MyLibrary.TopbarImageLabel
+    if not imageLabel then return end
+    ProcessAndApplyImage(imageLabel, DEFAULT_TOP_BAR_IMAGE, "ImageTopbar")
+    CurrentImageSettings.TopbarImage = DEFAULT_TOP_BAR_IMAGE
+    SaveImageSettings(CurrentImageSettings)
 end
 
 function MyLibrary:SetHubImageTransparency(value)
@@ -1188,45 +1196,46 @@ ApplyBorder(HubImageLabel)
         BackgroundTransparency = 1,
         Name = "Top Bar"
     })
-    
-    local TopbarImage = Create("ImageLabel", TopBar, {
+
+-- Imagem da TopBar
+local TopbarImageLabel = Create("ImageLabel", TopBar, {
     Size = UDim2.new(0, 20, 0, 20),
-    Position = UDim2.new(0, 5, 0.5, 0),  -- centralizado verticalmente
-    AnchorPoint = Vector2.new(0, 0.5),
+    Position = UDim2.new(0, 5, 0, 4),
     BackgroundTransparency = 1,
     Image = "",
     Name = "TopbarImage"
 })
-Make("Corner", TopbarImage, UDim.new(0.5, 0))  -- cantos totalmente arredondados
-MyLibrary.TopbarImageLabel = TopbarImage
+Make("Corner", TopbarImageLabel, UDim.new(0, 5))
+MyLibrary.TopbarImageLabel = TopbarImageLabel
 
-    local Title = InsertTheme(Create("TextLabel", TopBar, {
-        Position = UDim2.new(0, 30, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        AutomaticSize = "XY",
-        Text = WTitle,
-        TextXAlignment = "Left",
-        TextSize = 12,
-        TextColor3 = Theme["Color Text"],
+-- Título (movido para a direita)
+local Title = InsertTheme(Create("TextLabel", TopBar, {
+    Position = UDim2.new(0, 30, 0.5, 0),
+    AnchorPoint = Vector2.new(0, 0.5),
+    AutomaticSize = "XY",
+    Text = WTitle,
+    TextXAlignment = "Left",
+    TextSize = 12,
+    TextColor3 = Theme["Color Text"],
+    BackgroundTransparency = 1,
+    Font = MyLibrary.CurrentFont,
+    Name = "Title"
+}, {
+    InsertTheme(Create("TextLabel", {
+        Size = UDim2.fromScale(0, 1),
+        AutomaticSize = "X",
+        AnchorPoint = Vector2.new(0, 1),
+        Position = UDim2.new(1, 5, 0.9),
+        Text = WMiniText,
+        TextColor3 = Theme["Color Dark Text"],
         BackgroundTransparency = 1,
+        TextXAlignment = "Left",
+        TextYAlignment = "Bottom",
+        TextSize = 9,
         Font = MyLibrary.CurrentFont,
-        Name = "Title"
-    }, {
-        InsertTheme(Create("TextLabel", {
-            Size = UDim2.fromScale(0, 1),
-            AutomaticSize = "X",
-            AnchorPoint = Vector2.new(0, 1),
-            Position = UDim2.new(1, 5, 0.9),
-            Text = WMiniText,
-            TextColor3 = Theme["Color Dark Text"],
-            BackgroundTransparency = 1,
-            TextXAlignment = "Left",
-            TextYAlignment = "Bottom",
-            TextSize = 9,
-            Font = MyLibrary.CurrentFont,
-            Name = "SubTitle"
-        }), "DarkText")
-    }), "Text")
+        Name = "SubTitle"
+    }), "DarkText")
+}), "Text")
 
     local MainScroll = InsertTheme(Create("ScrollingFrame", Components, {
         Size = UDim2.new(0, MyLibrary.Save.TabSize, 1, -TopBar.Size.Y.Offset),
@@ -1434,11 +1443,10 @@ end
     if CurrentImageSettings.MinimizeImage and CurrentImageSettings.MinimizeImage ~= "" then
         ProcessAndApplyImage(MinimizeExternalButton, CurrentImageSettings.MinimizeImage, "minizebutton")
     end
-end)
-
-if CurrentImageSettings.TopbarImage and CurrentImageSettings.TopbarImage ~= "" then
+    if CurrentImageSettings.TopbarImage and CurrentImageSettings.TopbarImage ~= "" then
     ProcessAndApplyImage(MyLibrary.TopbarImageLabel, CurrentImageSettings.TopbarImage, "ImageTopbar")
 end
+end)
 
     function Window:Set(Val1, Val2)
         if type(Val1) == "string" and type(Val2) == "string" then
