@@ -581,10 +581,10 @@ local getAssetFunc = getcustomasset or getsynasset
 -- Carrega as configuraÃ§Ãµes de imagem do JSON
 local function LoadImageSettings()
     local defaultData = {
-        HubImage = DEFAULT_HUB_IMAGE,
-        MinimizeImage = DEFAULT_MINIMIZE_IMAGE,
-        TopbarImage = MyLibrary.Save.TopbarImage or "rbxassetid://86050226751861",
-    }
+    HubImage = DEFAULT_HUB_IMAGE,
+    MinimizeImage = DEFAULT_MINIMIZE_IMAGE,
+    TopbarImage = MyLibrary.Save.TopbarImage or "rbxassetid://86050226751861",
+}
     if isfile and isfile(JSON_FILE_PATH) then
         local ok, decoded = pcall(function()
             return HttpService:JSONDecode(readfile(JSON_FILE_PATH))
@@ -983,12 +983,11 @@ end
 
 function MyLibrary:SetTopbarImage(imageInput)
     local imageLabel = MyLibrary.TopbarImageLabel
-    if not imageLabel then warn("TopbarImageLabel nÃ£o encontrado.") return end
+    if not imageLabel then warn("TopbarImageLabel não encontrado.") return end
     local result = ProcessAndApplyImage(imageLabel, imageInput, "ImageTopbar")
-    if result ~= "" then
-        CurrentImageSettings.TopbarImage = imageInput
-        SaveImageSettings(CurrentImageSettings)
-    end
+    -- Salve sempre, independente do resultado
+    CurrentImageSettings.TopbarImage = imageInput
+    SaveImageSettings(CurrentImageSettings)
 end
 
 function MyLibrary:ResetTopbarImage()
