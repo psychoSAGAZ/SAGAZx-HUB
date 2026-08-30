@@ -40,6 +40,10 @@ Save = {
     MinimizeStrokeColor = "#8A2BE2",
     Font = "Gotham",
     TopbarImage = "rbxassetid://86050226751861", -- ðŸ‘ˆ imagem padrÃ£o (pode trocar)
+    ClickSoundEnabled = false,
+    ClickSoundId = "rbxassetid://18998603679",
+    ClickSoundVolume = 0.1,
+    RainbowToggleEnabled = false,
 },
     Settings = {},
     Connection = {},
@@ -147,6 +151,15 @@ end
 if rawget(decoded, "TopbarImage") and type(decoded.TopbarImage) == "string" then
     MyLibrary.Save.TopbarImage = decoded.TopbarImage
 end
+if rawget(decoded, "ClickSoundEnabled") then
+    MyLibrary.Save.ClickSoundEnabled = decoded.ClickSoundEnabled == true
+end
+if rawget(decoded, "ClickSoundId") and type(decoded.ClickSoundId) == "string" then
+    MyLibrary.Save.ClickSoundId = decoded.ClickSoundId
+end
+if rawget(decoded, "ClickSoundVolume") then
+    MyLibrary.Save.ClickSoundVolume = tonumber(decoded.ClickSoundVolume) or 0.1
+end
     end
 end
 
@@ -163,6 +176,20 @@ local function UpdateStroke(stroke)
 
     stroke.Color = Color3.fromHex(colorHex)
     stroke.Transparency = transparency
+end
+
+local function AnimateRainbowBall(ball)
+    if not ball then return end
+
+    task.spawn(function()
+        while ball and ball.Parent do
+            for hue = 0, 360, 30 do
+                if not ball or not ball.Parent then break end
+                ball.BackgroundColor3 = Color3.fromHSV(hue/360, 1, 1)
+                task.wait(0.1)
+            end
+        end
+    end)
 end
 
 -- FunÃ§Ã£o para aplicar borda a um GuiObject
@@ -424,6 +451,45 @@ local ScreenGui = Create("ScreenGui", CoreGui, {
 local ScreenFind = CoreGui:FindFirstChild(ScreenGui.Name)
 if ScreenFind and ScreenFind ~= ScreenGui then
     ScreenFind:Destroy()
+end
+
+-- Sistema de som de clique
+local SoundService = game:GetService("SoundService")
+local ClickSoundEnabled = MyLibrary.Save.ClickSoundEnabled or false
+local ClickSoundId = MyLibrary.Save.ClickSoundId or "rbxassetid://18998603679"
+local ClickSoundVolume = MyLibrary.Save.ClickSoundVolume or 0.1
+
+local HookedButtons = setmetatable({}, {__mode = "k"})
+
+local function PlayClickSound()
+    if not ClickSoundEnabled then return end
+    local sound = Instance.new("Sound")
+    sound.SoundId = ClickSoundId
+    sound.Volume = ClickSoundVolume
+    sound.Parent = SoundService
+    sound:Play()
+    sound.Ended:Connect(function()
+        sound:Destroy()
+    end)
+end
+
+local function HookClickSound(obj)
+    if HookedButtons[obj] then return end
+    HookedButtons[obj] = true
+    obj.Activated:Connect(PlayClickSound)
+end
+
+-- Conectar aos botões já existentes e futuros
+ScreenGui.DescendantAdded:Connect(function(obj)
+    if obj:IsA("TextButton") or obj:IsA("ImageButton") then
+        HookClickSound(obj)
+    end
+end)
+
+for _, v in ipairs(ScreenGui:GetDescendants()) do
+    if v:IsA("TextButton") or v:IsA("ImageButton") then
+        HookClickSound(v)
+    end
 end
 
 local function UpdateMinimizeStroke(stroke)
@@ -967,6 +1033,36 @@ function MyLibrary:SetGlobalTransparency(value)
     end
 end
 
+function MyLibrary:SetClickSoundEnabled(enabled)
+    ClickSoundEnabled = enabled == true
+    MyLibrary.Save.ClickSoundEnabled = ClickSoundEnabled
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+end
+
+function MyLibrary:SetClickSoundId(soundId)
+    if type(soundId) ~= "string" then return end
+    ClickSoundId = soundId
+    MyLibrary.Save.ClickSoundId = soundId
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+end
+
+function MyLibrary:SetClickSoundVolume(volume)
+    volume = tonumber(volume)
+    if not volume then return end
+    volume = math.clamp(volume, 0, 1)
+    ClickSoundVolume = volume
+    MyLibrary.Save.ClickSoundVolume = volume
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+end
+
+function MyLibrary:ResetClickSound()
+    ClickSoundId = "rbxassetid://18998603679"  -- ID padrão
+    ClickSoundVolume = 0.1                     -- volume padrão
+    MyLibrary.Save.ClickSoundId = ClickSoundId
+    MyLibrary.Save.ClickSoundVolume = ClickSoundVolume
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+end
+
 function MyLibrary:SetHubTransparency(value)
     value = tonumber(value)
     if not value then return end
@@ -1137,9 +1233,18 @@ function MyLibrary:SetFont(fontInput)
     end
 end
 
+function MyLibrary:SetRainbowToggleEnabled(enabled)
+    MyLibrary.Save.RainbowToggleEnabled = enabled == true
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+    -- Atualiza visualmente o toggle correspondente (se existir)
+    -- Para simplificar, você pode armazenar a referência do toggle criado.
+    -- Mas como o toggle também salva ao ser clicado, não é obrigatório.
+end
+
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "SAGAZx"
-    local WMiniText = Configs[2] or Configs.SubTitle or "by : SAGAZx😎"
+    local WMiniText = Configs[2] or Configs.SubTitle or "by : SAGAZx"
 
     Settings.ScriptFile = Configs[3] or Configs.SaveFolder or false
 
@@ -1198,8 +1303,8 @@ ApplyBorder(HubImageLabel)
 
 -- Imagem da TopBar
 local TopbarImageLabel = Create("ImageLabel", TopBar, {
-    Size = UDim2.new(0, 26, 0, 26),   -- 👈 tamanho 26x26
-    Position = UDim2.new(0, 5, 0, 6), -- 👈 posição ajustada
+    Size = UDim2.new(0, 26, 0, 26),   --  tamanho 26x26
+    Position = UDim2.new(0, 5, 0, 6), --  posição ajustada
     BackgroundTransparency = 1,
     Image = "",
     Name = "TopbarImage"
@@ -1871,6 +1976,88 @@ end)
             end
             return ToggleObj
         end
+        
+        function Tab:AddRainbowToggle(Configs)
+    local TName = Configs[1] or Configs.Name or Configs.Title or "Rainbow Toggle"
+    local TDesc = Configs.Desc or Configs.Description or ""
+    local Callback = Configs.Callback or function() end
+    local Default = MyLibrary.Save.RainbowToggleEnabled or false
+
+    local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
+
+    local ToggleHolder = InsertTheme(Create("Frame", Button, {
+        Size = UDim2.new(0, 35, 0, 18),
+        Position = UDim2.new(1, -10, 0.5),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundColor3 = Theme["Color Stroke"]
+    }), "Stroke")
+    Make("Corner", ToggleHolder, UDim.new(0.5, 0))
+
+    local Slider = Create("Frame", ToggleHolder, {
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0.8, 0, 0.8, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5)
+    })
+
+    local Ball = Create("Frame", Slider, {
+        Size = UDim2.new(0, 12, 0, 12),
+        Position = UDim2.new(0, 0, 0.5),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        Name = "RainbowBall"
+    })
+    Make("Corner", Ball, UDim.new(0.5, 0))
+
+    -- Inicia a animação arco-íris
+    AnimateRainbowBall(Ball)
+
+    local WaitClick = false
+    local function SetToggleState(state)
+        if WaitClick then return end
+        WaitClick = true
+
+        Default = state
+        MyLibrary.Save.RainbowToggleEnabled = state
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+        task.spawn(Callback, state)
+
+        if state then
+            CreateTween({Ball, "Position", UDim2.new(1, 0, 0.5), 0.25})
+            CreateTween({Ball, "AnchorPoint", Vector2.new(1, 0.5), 0.25, false})
+        else
+            CreateTween({Ball, "Position", UDim2.new(0, 0, 0.5), 0.25})
+            CreateTween({Ball, "AnchorPoint", Vector2.new(0, 0.5), 0.25, false})
+        end
+
+        WaitClick = false
+    end
+
+    task.spawn(SetToggleState, Default)
+
+    Button.Activated:Connect(function()
+        SetToggleState(not Default)
+    end)
+
+    local RainbowToggle = {}
+    function RainbowToggle:Set(state)
+        SetToggleState(state == true)
+    end
+    function RainbowToggle:Visible(visible)
+        Button.Visible = visible
+    end
+    function RainbowToggle:Destroy()
+        Button:Destroy()
+    end
+    function RainbowToggle:SetTitle(title)
+        LabelFunc:SetTitle(title)
+    end
+    function RainbowToggle:SetDesc(desc)
+        LabelFunc:SetDesc(desc)
+    end
+    return RainbowToggle
+end
 
         function Tab:AddDropdown(Configs)
             local DName = Configs[1] or Configs.Name or Configs.Title or "Dropdown"
