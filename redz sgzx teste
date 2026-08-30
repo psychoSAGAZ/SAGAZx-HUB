@@ -178,20 +178,6 @@ local function UpdateStroke(stroke)
     stroke.Transparency = transparency
 end
 
-local function AnimateRainbowBall(ball)
-    if not ball then return end
-
-    task.spawn(function()
-        while ball and ball.Parent do
-            for hue = 0, 360, 30 do
-                if not ball or not ball.Parent then break end
-                ball.BackgroundColor3 = Color3.fromHSV(hue/360, 1, 1)
-                task.wait(0.1)
-            end
-        end
-    end)
-end
-
 -- FunÃ§Ã£o para aplicar borda a um GuiObject
 local function ApplyBorder(guiObject)
     if not guiObject or not guiObject:IsA("GuiObject") then return end
@@ -2000,39 +1986,24 @@ end)
         AnchorPoint = Vector2.new(0.5, 0.5)
     })
 
-    local Ball = Create("Frame", Slider, {
-        Size = UDim2.new(0, 12, 0, 12),
-        Position = UDim2.new(0, 0, 0.5),
-        AnchorPoint = Vector2.new(0, 0.5),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        Name = "RainbowBall"
-    })
-    Make("Corner", Ball, UDim.new(0.5, 0))
+local Ball = Create("Frame", Slider, {
+    Size = UDim2.new(0, 12, 0, 12),
+    Position = UDim2.new(0, 0, 0.5),
+    AnchorPoint = Vector2.new(0, 0.5),
+    BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+    Name = "RainbowBall"
+})
+Make("Corner", Ball, UDim.new(0.5, 0))
 
-    -- Inicia a animação arco-íris
-    AnimateRainbowBall(Ball)
-
-    local WaitClick = false
-    local function SetToggleState(state)
-        if WaitClick then return end
-        WaitClick = true
-
-        Default = state
-        MyLibrary.Save.RainbowToggleEnabled = state
-        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-
-        task.spawn(Callback, state)
-
-        if state then
-            CreateTween({Ball, "Position", UDim2.new(1, 0, 0.5), 0.25})
-            CreateTween({Ball, "AnchorPoint", Vector2.new(1, 0.5), 0.25, false})
-        else
-            CreateTween({Ball, "Position", UDim2.new(0, 0, 0.5), 0.25})
-            CreateTween({Ball, "AnchorPoint", Vector2.new(0, 0.5), 0.25, false})
-        end
-
-        WaitClick = false
-    end
+-- Cria o gradiente arco-íris
+local BallGradient = Create("UIGradient", Ball, {
+    Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 120, 120)),   -- cor apagada (desativado)
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(160, 160, 160)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 120, 120))
+    }),
+    Rotation = 90
+})
 
     task.spawn(SetToggleState, Default)
 
