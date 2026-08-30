@@ -1138,8 +1138,8 @@ function MyLibrary:SetFont(fontInput)
 end
 
 function MyLibrary:MakeWindow(Configs)
-    local WTitle = Configs[1] or Configs.Name or Configs.Title or "redz Library V5"
-    local WMiniText = Configs[2] or Configs.SubTitle or "by : redz9999"
+    local WTitle = Configs[1] or Configs.Name or Configs.Title or "SAGAZx"
+    local WMiniText = Configs[2] or Configs.SubTitle or "by : SAGAZx😎"
 
     Settings.ScriptFile = Configs[3] or Configs.SaveFolder or false
 
@@ -1209,7 +1209,7 @@ MyLibrary.TopbarImageLabel = TopbarImageLabel
 
 -- TÃ­tulo (movido para a direita)
 local Title = InsertTheme(Create("TextLabel", TopBar, {
-    Position = UDim2.new(0, 30, 0.5, 0),
+    Position = UDim2.new(0, 35, 0.5, 0),
     AnchorPoint = Vector2.new(0, 0.5),
     AutomaticSize = "XY",
     Text = WTitle,
