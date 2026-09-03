@@ -1401,311 +1401,28 @@ local Title = InsertTheme(Create("TextLabel", TopBar, {
         SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     end)
 
-local ButtonsFolder = Create("Folder", TopBar, { Name = "Buttons" })
+    local ButtonsFolder = Create("Folder", TopBar, { Name = "Buttons" })
 
-local CloseButton = Create("ImageButton", {
-    Size = UDim2.new(0, 14, 0, 14),
-    Position = UDim2.new(1, -10, 0.5),
-    AnchorPoint = Vector2.new(1, 0.5),
-    BackgroundTransparency = 1,
-    Image = "rbxassetid://10747384394",
-    AutoButtonColor = false,
-    Name = "Close"
-})
+    local CloseButton = Create("ImageButton", {
+        Size = UDim2.new(0, 14, 0, 14),
+        Position = UDim2.new(1, -10, 0.5),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://10747384394",
+        AutoButtonColor = false,
+        Name = "Close"
+    })
 
-local MinimizeButton = SetProps(CloseButton:Clone(), {
-    Position = UDim2.new(1, -35, 0.5),
-    Image = "rbxassetid://10734896206",
-    Name = "Minimize"
-})
+    local MinimizeButton = SetProps(CloseButton:Clone(), {
+        Position = UDim2.new(1, -35, 0.5),
+        Image = "rbxassetid://10734896206",
+        Name = "Minimize"
+    })
 
--- NOVO: Botão de Edição
-local EditButton = SetProps(CloseButton:Clone(), {
-    Position = UDim2.new(1, -60, 0.5),
-    Image = "rbxassetid://10709751939", -- ícone de configurações/engrenagem
-    Name = "Edit"
-})
-
-SetChildren(ButtonsFolder, { CloseButton, MinimizeButton, EditButton })
+    SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
 
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
-    
-
-    
-local Minimized, SaveSize, WaitClick
-local Window, FirstTab = {}, false
-
--- Função para criar a GUI de edição (versão simplificada que funciona)
-local function CreateEditGUI()
-    -- Verificar se já existe
-    local existingEdit = Player.PlayerGui:FindFirstChild("EditarHubGui")
-    if existingEdit then
-        existingEdit:Destroy()
-        return
-    end
-    
-    -- Criar ScreenGui
-    local editScreenGui = Instance.new("ScreenGui")
-    editScreenGui.Name = "EditarHubGui"
-    editScreenGui.Parent = Player.PlayerGui
-    editScreenGui.ResetOnSpawn = false
-    
-    -- Frame Principal
-    local editMainFrame = Instance.new("Frame")
-    editMainFrame.Name = "MainFrame"
-    editMainFrame.Parent = editScreenGui
-    editMainFrame.Size = UDim2.new(0, 250, 0, 300)
-    editMainFrame.Position = UDim2.new(0.5, -125, 0.5, -150)
-    editMainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-    editMainFrame.BorderSizePixel = 0
-    
-    local editMainCorner = Instance.new("UICorner")
-    editMainCorner.CornerRadius = UDim.new(0, 8)
-    editMainCorner.Parent = editMainFrame
-    
-    local editMainStroke = Instance.new("UIStroke")
-    editMainStroke.Color = Color3.fromRGB(70, 70, 85)
-    editMainStroke.Thickness = 2
-    editMainStroke.Parent = editMainFrame
-    
-    -- Barra Superior
-    local editTopBar = Instance.new("Frame")
-    editTopBar.Name = "TopBar"
-    editTopBar.Parent = editMainFrame
-    editTopBar.Size = UDim2.new(1, 0, 0, 35)
-    editTopBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
-    editTopBar.BorderSizePixel = 0
-    
-    local editTopBarCorner = Instance.new("UICorner")
-    editTopBarCorner.CornerRadius = UDim.new(0, 8)
-    editTopBarCorner.Parent = editTopBar
-    
-    -- Título
-    local editTitleLabel = Instance.new("TextLabel")
-    editTitleLabel.Name = "TitleLabel"
-    editTitleLabel.Parent = editTopBar
-    editTitleLabel.Size = UDim2.new(1, -45, 1, 0)
-    editTitleLabel.Position = UDim2.new(0, 10, 0, 0)
-    editTitleLabel.BackgroundTransparency = 1
-    editTitleLabel.Text = "Editar Hub"
-    editTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    editTitleLabel.TextSize = 16
-    editTitleLabel.Font = Enum.Font.SourceSansBold
-    editTitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    
-    -- Botão Fechar
-    local editCloseButton = Instance.new("TextButton")
-    editCloseButton.Name = "CloseButton"
-    editCloseButton.Parent = editTopBar
-    editCloseButton.Size = UDim2.new(0, 25, 0, 25)
-    editCloseButton.Position = UDim2.new(1, -31, 0.5, -12)
-    editCloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-    editCloseButton.Text = "X"
-    editCloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    editCloseButton.TextSize = 14
-    editCloseButton.Font = Enum.Font.SourceSansBold
-    editCloseButton.BorderSizePixel = 0
-    
-    local editCloseButtonCorner = Instance.new("UICorner")
-    editCloseButtonCorner.CornerRadius = UDim.new(0, 5)
-    editCloseButtonCorner.Parent = editCloseButton
-    
-    editCloseButton.MouseButton1Click:Connect(function()
-        editScreenGui:Destroy()
-    end)
-    
-    -- Navegação (abas)
-    local editNavFrame = Instance.new("Frame")
-    editNavFrame.Name = "NavFrame"
-    editNavFrame.Parent = editMainFrame
-    editNavFrame.Size = UDim2.new(1, -12, 0, 30)
-    editNavFrame.Position = UDim2.new(0, 6, 0, 42)
-    editNavFrame.BackgroundTransparency = 1
-    
-    local editNavListLayout = Instance.new("UIListLayout")
-    editNavListLayout.Parent = editNavFrame
-    editNavListLayout.FillDirection = Enum.FillDirection.Horizontal
-    editNavListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    editNavListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    editNavListLayout.Padding = UDim.new(0, 2)
-    
-    -- Container de Conteúdo
-    local editContentFrame = Instance.new("Frame")
-    editContentFrame.Name = "ContentFrame"
-    editContentFrame.Parent = editMainFrame
-    editContentFrame.Size = UDim2.new(1, -12, 1, -80)
-    editContentFrame.Position = UDim2.new(0, 6, 0, 75)
-    editContentFrame.BackgroundTransparency = 1
-    
-    -- Variáveis das abas
-    local tabButtons = {}
-    local tabPages = {}
-    local buttons = {"Cores", "Imagens", "Temas", "Fontes", "Extras", "Config"}
-    
-    local COLOR_ACTIVE = Color3.fromRGB(0, 120, 215)
-    local COLOR_INACTIVE = Color3.fromRGB(50, 50, 65)
-    
-    local function selectTab(tabName)
-        for name, button in pairs(tabButtons) do
-            local page = tabPages[name]
-            if name == tabName then
-                button.BackgroundColor3 = COLOR_ACTIVE
-                page.Visible = true
-            else
-                button.BackgroundColor3 = COLOR_INACTIVE
-                page.Visible = false
-            end
-        end
-    end
-    
-    -- Criar abas
-    for index, btnText in ipairs(buttons) do
-        local btn = Instance.new("TextButton")
-        local btnCorner = Instance.new("UICorner")
-        
-        btn.Name = btnText .. "Btn"
-        btn.Parent = editNavFrame
-        btn.LayoutOrder = index
-        btn.Size = UDim2.new(1/#buttons, -2, 1, 0)
-        btn.BackgroundColor3 = COLOR_INACTIVE
-        btn.Text = btnText
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        btn.TextSize = 9
-        btn.Font = Enum.Font.SourceSansSemibold
-        btn.BorderSizePixel = 0
-        
-        btnCorner.CornerRadius = UDim.new(0, 6)
-        btnCorner.Parent = btn
-        
-        tabButtons[btnText] = btn
-        
-        local scroll = Instance.new("ScrollingFrame")
-        local scrollCorner = Instance.new("UICorner")
-        local padding = Instance.new("UIPadding")
-        
-        scroll.Name = btnText .. "Scroll"
-        scroll.Parent = editContentFrame
-        scroll.Size = UDim2.new(1, 0, 1, 0)
-        scroll.BackgroundColor3 = Color3.fromRGB(22, 22, 26)
-        scroll.BorderSizePixel = 0
-        scroll.ScrollBarThickness = 4
-        scroll.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 120)
-        scroll.Visible = false
-        
-        scrollCorner.CornerRadius = UDim.new(0, 6)
-        scrollCorner.Parent = scroll
-        
-        padding.Parent = scroll
-        padding.PaddingTop = UDim.new(0, 5)
-        padding.PaddingBottom = UDim.new(0, 5)
-        padding.PaddingLeft = UDim.new(0, 5)
-        padding.PaddingRight = UDim.new(0, 5)
-        
-        if btnText ~= "Fontes" then
-            local listLayout = Instance.new("UIListLayout")
-            listLayout.Parent = scroll
-            listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            listLayout.Padding = UDim.new(0, 6)
-            
-            listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-                scroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
-            end)
-        end
-        
-        tabPages[btnText] = scroll
-        
-        btn.MouseButton1Click:Connect(function()
-            selectTab(btnText)
-        end)
-    end
-    
-    -- Adicionar conteúdo básico à aba Cores
-    local coresScroll = tabPages["Cores"]
-    
-    -- Função para criar controle de cor simples
-    local function createSimpleColorControl(colorName, defaultColor, colorKey)
-        local container = Instance.new("Frame")
-        container.Name = colorName .. "_Control"
-        container.Parent = coresScroll
-        container.Size = UDim2.new(1, 0, 0, 45)
-        container.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-        container.BorderSizePixel = 0
-        
-        local containerCorner = Instance.new("UICorner")
-        containerCorner.CornerRadius = UDim.new(0, 6)
-        containerCorner.Parent = container
-        
-        local label = Instance.new("TextLabel")
-        label.Parent = container
-        label.Size = UDim2.new(1, -70, 1, 0)
-        label.Position = UDim2.new(0, 8, 0, 0)
-        label.BackgroundTransparency = 1
-        label.Text = colorName
-        label.TextColor3 = Color3.fromRGB(200, 200, 220)
-        label.TextSize = 11
-        label.Font = Enum.Font.GothamBold
-        label.TextXAlignment = Enum.TextXAlignment.Left
-        
-        local colorBtn = Instance.new("ImageButton")
-        colorBtn.Parent = container
-        colorBtn.Size = UDim2.new(0, 25, 0, 25)
-        colorBtn.Position = UDim2.new(1, -35, 0.5, -12)
-        colorBtn.BackgroundColor3 = defaultColor
-        colorBtn.AutoButtonColor = false
-        
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 4)
-        btnCorner.Parent = colorBtn
-        
-        -- Lista de cores predefinidas
-        local presetColors = {
-            Color3.fromRGB(255, 0, 0),
-            Color3.fromRGB(0, 255, 0),
-            Color3.fromRGB(0, 0, 255),
-            Color3.fromRGB(255, 255, 0),
-            Color3.fromRGB(255, 0, 255),
-            Color3.fromRGB(0, 255, 255),
-            Color3.fromRGB(255, 255, 255),
-            Color3.fromRGB(0, 0, 0),
-            Color3.fromRGB(150, 0, 255),
-            Color3.fromRGB(255, 150, 0)
-        }
-        
-        colorBtn.MouseButton1Click:Connect(function()
-            -- Ciclar entre cores
-            local currentColor = colorBtn.BackgroundColor3
-            local currentIndex = 1
-            for i, color in ipairs(presetColors) do
-                if color == currentColor then
-                    currentIndex = i
-                    break
-                end
-            end
-            local nextIndex = currentIndex % #presetColors + 1
-            local newColor = presetColors[nextIndex]
-            colorBtn.BackgroundColor3 = newColor
-            
-            -- Aplicar cor
-            if MyLibrary.SetThemeColor and colorKey then
-                MyLibrary:SetThemeColor(colorKey, newColor)
-            end
-        end)
-    end
-    
-    -- Adicionar controles de cor
-    local theme = MyLibrary.Themes[MyLibrary.Save.Theme]
-    if theme then
-        createSimpleColorControl("Cor do Tema", theme["Color Theme"], "Color Theme")
-        createSimpleColorControl("Cor do Texto", theme["Color Text"], "Color Text")
-        createSimpleColorControl("Cor do Texto Secundário", theme["Color Dark Text"], "Color Dark Text")
-        createSimpleColorControl("Cor dos Componentes", theme["Color Hub 2"], "Color Hub 2")
-        createSimpleColorControl("Cor do Stroke", theme["Color Stroke"], "Color Stroke")
-    end
-    
-    -- Selecionar primeira aba
-    selectTab("Cores")
-end
     
     function Window:SetToggleKey(KeyCode)
     if type(KeyCode) == "string" then
@@ -3736,7 +3453,6 @@ end
 
     CloseButton.Activated:Connect(Window.CloseBtn)
     MinimizeButton.Activated:Connect(Window.MinimizeBtn)
-    EditButton.Activated:Connect(CreateEditGUI)
     
     -- Aplica a transparÃªncia global salva
 if MyLibrary.Save.GlobalTransparency and MyLibrary.Save.GlobalTransparency > 0 then
@@ -3751,11 +3467,6 @@ for _, stroke in ipairs(MyLibrary.StrokeInstances) do
 end
 
     return Window
-end
-
--- Adicionar método para abrir a GUI de edição
-function Window:OpenEditGUI()
-    CreateEditGUI()
 end
 
 return MyLibrary
