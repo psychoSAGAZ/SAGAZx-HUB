@@ -1437,13 +1437,15 @@ local SettingsButton = Create("ImageButton", {
 SetChildren(ButtonsFolder, {CloseButton, MinimizeButton, SettingsButton})
 
 -- Função para criar a GUI de Edição
+-- Modifique a função CreateEditHubGUI para garantir que apareça na frente
+
 local function CreateEditHubGUI()
     -- Verifica se já existe uma GUI de edição aberta
     if MainFrame:FindFirstChild("EditHubContainer") then
         return
     end
     
-    -- Container para a GUI de edição
+    -- Container para a GUI de edição (agora com ZIndex alto)
     local EditHubContainer = Create("Frame", MainFrame, {
         Size = UDim2.new(1, -20, 1, -50),
         Position = UDim2.new(0.5, 0, 0.5, 25),
@@ -1452,18 +1454,33 @@ local function CreateEditHubGUI()
         BackgroundTransparency = 0,
         BorderSizePixel = 0,
         Name = "EditHubContainer",
-        ZIndex = 100
+        ZIndex = 1000,  -- ZIndex muito alto
+        Active = true,
+        ClipsDescendants = true
     })
+    
+    -- Força o container a ficar na frente de tudo
+    EditHubContainer.ZIndex = 1000
     
     Make("Corner", EditHubContainer, UDim.new(0, 8))
     ApplyBorder(EditHubContainer)
+    
+    -- Garante que todos os filhos tenham ZIndex alto
+    local function SetHighZIndex(parent)
+        for _, child in ipairs(parent:GetDescendants()) do
+            if child:IsA("GuiObject") then
+                child.ZIndex = 1000 + child.ZIndex
+            end
+        end
+    end
     
     -- Barra superior da GUI de edição
     local EditTopBar = Create("Frame", EditHubContainer, {
         Size = UDim2.new(1, 0, 0, 35),
         BackgroundColor3 = Color3.fromRGB(45, 45, 55),
         BorderSizePixel = 0,
-        Name = "EditTopBar"
+        Name = "EditTopBar",
+        ZIndex = 1001
     })
     Make("Corner", EditTopBar, UDim.new(0, 8))
     
@@ -1476,7 +1493,8 @@ local function CreateEditHubGUI()
         TextColor3 = Theme["Color Text"],
         TextSize = 16,
         Font = MyLibrary.CurrentFont,
-        TextXAlignment = Enum.TextXAlignment.Left
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 1002
     })
     
     -- Botão de fechar
@@ -1488,7 +1506,8 @@ local function CreateEditHubGUI()
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 14,
         Font = Enum.Font.SourceSansBold,
-        BorderSizePixel = 0
+        BorderSizePixel = 0,
+        ZIndex = 1002
     })
     Make("Corner", EditCloseButton, UDim.new(0, 5))
     
@@ -1496,366 +1515,23 @@ local function CreateEditHubGUI()
         EditHubContainer:Destroy()
     end)
     
-    -- Frame dos Botões de Navegação
-    local NavFrame = Create("Frame", EditHubContainer, {
-        Size = UDim2.new(1, -12, 0, 30),
-        Position = UDim2.new(0, 6, 0, 42),
-        BackgroundTransparency = 1
-    })
+    -- Resto do código permanece igual...
+    -- MAS adicione isso no final da função:
     
-    local NavListLayout = Create("UIListLayout", NavFrame, {
-        FillDirection = Enum.FillDirection.Horizontal,
-        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 2)
-    })
+    -- Aplica ZIndex alto a todos os elementos
+    SetHighZIndex(EditHubContainer)
     
-    -- Container de Conteúdo
-    local ContentFrame = Create("Frame", EditHubContainer, {
-        Size = UDim2.new(1, -12, 1, -80),
-        Position = UDim2.new(0, 6, 0, 75),
-        BackgroundTransparency = 1
-    })
-    
-    local tabButtons = {}
-    local tabPages = {}
-    local buttons = {"Cores", "Imagens", "Temas", "Fontes", "Extras", "Config"}
-    
-    local COLOR_ACTIVE = Color3.fromRGB(0, 120, 215)
-    local COLOR_INACTIVE = Color3.fromRGB(50, 50, 65)
-    
-    local function selectTab(tabName)
-        for name, button in pairs(tabButtons) do
-            local page = tabPages[name]
-            if name == tabName then
-                button.BackgroundColor3 = COLOR_ACTIVE
-                page.Visible = true
-            else
-                button.BackgroundColor3 = COLOR_INACTIVE
-                page.Visible = false
+    -- Garante que o container fique na frente
+    task.spawn(function()
+        task.wait(0.1)  -- Pequena espera para garantir que tudo foi criado
+        EditHubContainer.ZIndex = 1000
+        for _, child in ipairs(EditHubContainer:GetDescendants()) do
+            if child:IsA("GuiObject") then
+                child.ZIndex = math.max(child.ZIndex, 1000)
             end
         end
-    end
-    
-    -- Criar abas
-    for index, btnText in ipairs(buttons) do
-        local btn = Create("TextButton", NavFrame, {
-            LayoutOrder = index,
-            Size = UDim2.new(1/#buttons, -2, 1, 0),
-            BackgroundColor3 = COLOR_INACTIVE,
-            Text = btnText,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 9,
-            Font = Enum.Font.SourceSansSemibold,
-            BorderSizePixel = 0
-        })
-        Make("Corner", btn, UDim.new(0, 6))
-        
-        tabButtons[btnText] = btn
-        
-        local scroll = Create("ScrollingFrame", ContentFrame, {
-            Size = UDim2.new(1, 0, 1, 0),
-            BackgroundColor3 = Color3.fromRGB(22, 22, 26),
-            BorderSizePixel = 0,
-            ScrollBarThickness = 4,
-            ScrollBarImageColor3 = Color3.fromRGB(100, 100, 120),
-            Visible = false
-        })
-        Make("Corner", scroll, UDim.new(0, 6))
-        
-        local padding = Create("UIPadding", scroll, {
-            PaddingTop = UDim.new(0, 5),
-            PaddingBottom = UDim.new(0, 5),
-            PaddingLeft = UDim.new(0, 5),
-            PaddingRight = UDim.new(0, 5)
-        })
-        
-        if btnText ~= "Fontes" then
-            local listLayout = Create("UIListLayout", scroll, {
-                SortOrder = Enum.SortOrder.LayoutOrder,
-                Padding = UDim.new(0, 6)
-            })
-            
-            listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-                scroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 10)
-            end)
-        end
-        
-        tabPages[btnText] = scroll
-        
-        btn.MouseButton1Click:Connect(function()
-            selectTab(btnText)
-        end)
-    end
-    
-    -- Função auxiliar para criar seções de cores
-    local function colorToHex(color)
-        local r = math.round(color.R * 255)
-        local g = math.round(color.G * 255)
-        local b = math.round(color.B * 255)
-        return string.format("#%02X%02X%02X", r, g, b)
-    end
-    
-    local function createColorSection(parentScroll, colorKey, colorName, initialColor, description)
-        local sectionFrame = Create("Frame", parentScroll, {
-            Size = UDim2.new(1, 0, 0, 72),
-            BackgroundColor3 = Color3.fromRGB(35, 35, 45),
-            BorderSizePixel = 0
-        })
-        Make("Corner", sectionFrame, UDim.new(0, 8))
-        AddTransparency(sectionFrame)
-        
-        local sectionTitleLabel = Create("TextLabel", sectionFrame, {
-            Size = UDim2.new(1, -10, 0, 18),
-            Position = UDim2.new(0, 5, 0, 4),
-            BackgroundTransparency = 1,
-            Text = colorName,
-            TextColor3 = Color3.fromRGB(180, 180, 200),
-            TextSize = 11,
-            Font = Enum.Font.GothamBold,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-        
-        local rgbBox = Create("TextBox", sectionFrame, {
-            Size = UDim2.new(1, -104, 0, 20),
-            Position = UDim2.new(0, 5, 0, 26),
-            BackgroundColor3 = Color3.fromRGB(20, 20, 25),
-            Text = math.round(initialColor.R * 255) .. ", " .. math.round(initialColor.G * 255) .. ", " .. math.round(initialColor.B * 255),
-            TextColor3 = Color3.fromRGB(220, 220, 230),
-            TextSize = 10,
-            Font = Enum.Font.GothamSemibold,
-            ClearTextOnFocus = false,
-            BorderSizePixel = 0
-        })
-        Make("Corner", rgbBox, UDim.new(0, 4))
-        Make("Stroke", rgbBox, nil, Color3.fromRGB(55, 55, 70), 1)
-        
-        local colorBtn = Create("ImageButton", sectionFrame, {
-            Size = UDim2.new(0, 20, 0, 20),
-            Position = UDim2.new(1, -92, 0, 26),
-            BackgroundColor3 = initialColor,
-            AutoButtonColor = false
-        })
-        Make("Corner", colorBtn, UDim.new(0, 4))
-        Make("Stroke", colorBtn, nil, Color3.fromRGB(80, 80, 100), 1)
-        
-        local hexBox = Create("TextBox", sectionFrame, {
-            Size = UDim2.new(0, 62, 0, 20),
-            Position = UDim2.new(1, -67, 0, 26),
-            BackgroundColor3 = Color3.fromRGB(20, 20, 25),
-            Text = colorToHex(initialColor),
-            TextColor3 = initialColor,
-            TextSize = 10,
-            Font = Enum.Font.GothamBold,
-            ClearTextOnFocus = false,
-            BorderSizePixel = 0
-        })
-        Make("Corner", hexBox, UDim.new(0, 4))
-        Make("Stroke", hexBox, nil, Color3.fromRGB(55, 55, 70), 1)
-        
-        local indicatorLabel = Create("TextLabel", sectionFrame, {
-            Size = UDim2.new(1, -10, 0, 14),
-            Position = UDim2.new(0, 5, 0, 52),
-            BackgroundTransparency = 1,
-            Text = description or "Esta cor afeta: " .. colorName,
-            TextColor3 = Color3.fromRGB(120, 120, 140),
-            TextSize = 8,
-            Font = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-        
-        -- Eventos
-        colorBtn.MouseButton1Click:Connect(function()
-            -- Abrir color picker simples
-            local picker = Create("Frame", EditHubContainer, {
-                Size = UDim2.new(0, 200, 0, 200),
-                Position = UDim2.new(0.5, -100, 0.5, -100),
-                BackgroundColor3 = Color3.fromRGB(35, 35, 42),
-                BorderSizePixel = 0,
-                ZIndex = 200
-            })
-            Make("Corner", picker, UDim.new(0, 8))
-            Make("Stroke", picker, nil, Color3.fromRGB(80, 80, 100), 2)
-            
-            -- Grid de cores predefinidas
-            local grid = Create("UIGridLayout", picker, {
-                CellSize = UDim2.new(0, 40, 0, 40),
-                CellPadding = UDim2.new(0, 5, 0, 5)
-            })
-            
-            local presetColors = {
-                Color3.fromRGB(255, 0, 0), Color3.fromRGB(0, 255, 0), Color3.fromRGB(0, 0, 255),
-                Color3.fromRGB(255, 255, 0), Color3.fromRGB(0, 255, 255), Color3.fromRGB(255, 0, 255),
-                Color3.fromRGB(255, 128, 0), Color3.fromRGB(128, 0, 255), Color3.fromRGB(0, 200, 100),
-                Color3.fromRGB(255, 255, 255), Color3.fromRGB(120, 120, 120), Color3.fromRGB(0, 0, 0)
-            }
-            
-            for _, color in ipairs(presetColors) do
-                local colorButton = Create("TextButton", picker, {
-                    BackgroundColor3 = color,
-                    Text = "",
-                    BorderSizePixel = 0
-                })
-                Make("Corner", colorButton, UDim.new(0, 4))
-                
-                colorButton.MouseButton1Click:Connect(function()
-                    colorBtn.BackgroundColor3 = color
-                    rgbBox.Text = math.round(color.R*255) .. ", " .. math.round(color.G*255) .. ", " .. math.round(color.B*255)
-                    hexBox.Text = colorToHex(color)
-                    hexBox.TextColor3 = color
-                    
-                    -- Aplicar cor
-                    if MyLibrary and MyLibrary.SetThemeColor then
-                        local themeKey = colorKey
-                        if colorKey == "Gradient1" or colorKey == "Gradient2" or colorKey == "Gradient3" then
-                            -- Atualizar gradiente
-                            themeColors.GradientColors[tonumber(colorKey:sub(-1))] = color
-                            MyLibrary:SetThemeColor("Color Hub 1", {
-                                themeColors.GradientColors[1],
-                                themeColors.GradientColors[2],
-                                themeColors.GradientColors[3]
-                            })
-                        elseif colorKey == "Componentes" then
-                            MyLibrary:SetThemeColor("Color Hub 2", color)
-                        elseif colorKey == "Stroke" then
-                            MyLibrary:SetThemeColor("Color Stroke", color)
-                        elseif colorKey == "Theme" then
-                            MyLibrary:SetThemeColor("Color Theme", color)
-                        elseif colorKey == "Text" then
-                            MyLibrary:SetThemeColor("Color Text", color)
-                        elseif colorKey == "DarkText" then
-                            MyLibrary:SetThemeColor("Color Dark Text", color)
-                        elseif colorKey == "BorderColor" then
-                            MyLibrary:SetStrokeColor(color)
-                        elseif colorKey == "MinimizeStrokeColor" then
-                            MyLibrary:SetMinimizeStrokeColor(color)
-                        end
-                    end
-                    
-                    picker:Destroy()
-                end)
-            end
-            
-            -- Botão fechar picker
-            local closePicker = Create("TextButton", picker, {
-                Size = UDim2.new(0, 25, 0, 25),
-                Position = UDim2.new(1, -30, 0, 5),
-                BackgroundColor3 = Color3.fromRGB(220, 60, 60),
-                Text = "X",
-                TextColor3 = Color3.fromRGB(255, 255, 255),
-                TextSize = 14,
-                Font = Enum.Font.SourceSansBold,
-                BorderSizePixel = 0,
-                ZIndex = 201
-            })
-            Make("Corner", closePicker, UDim.new(0, 5))
-            
-            closePicker.MouseButton1Click:Connect(function()
-                picker:Destroy()
-            end)
-        end)
-        
-        -- Função para atualizar cores via RGB ou Hex
-        local function updateColor(newColor)
-            colorBtn.BackgroundColor3 = newColor
-            rgbBox.Text = math.round(newColor.R*255) .. ", " .. math.round(newColor.G*255) .. ", " .. math.round(newColor.B*255)
-            hexBox.Text = colorToHex(newColor)
-            hexBox.TextColor3 = newColor
-            
-            -- Aplicar cor
-            if MyLibrary and MyLibrary.SetThemeColor then
-                if colorKey == "Gradient1" or colorKey == "Gradient2" or colorKey == "Gradient3" then
-                    themeColors.GradientColors[tonumber(colorKey:sub(-1))] = newColor
-                    MyLibrary:SetThemeColor("Color Hub 1", {
-                        themeColors.GradientColors[1],
-                        themeColors.GradientColors[2],
-                        themeColors.GradientColors[3]
-                    })
-                elseif colorKey == "Componentes" then
-                    MyLibrary:SetThemeColor("Color Hub 2", newColor)
-                elseif colorKey == "Stroke" then
-                    MyLibrary:SetThemeColor("Color Stroke", newColor)
-                elseif colorKey == "Theme" then
-                    MyLibrary:SetThemeColor("Color Theme", newColor)
-                elseif colorKey == "Text" then
-                    MyLibrary:SetThemeColor("Color Text", newColor)
-                elseif colorKey == "DarkText" then
-                    MyLibrary:SetThemeColor("Color Dark Text", newColor)
-                elseif colorKey == "BorderColor" then
-                    MyLibrary:SetStrokeColor(newColor)
-                elseif colorKey == "MinimizeStrokeColor" then
-                    MyLibrary:SetMinimizeStrokeColor(newColor)
-                end
-            end
-        end
-        
-        hexBox.FocusLost:Connect(function()
-            local hexText = hexBox.Text:gsub("#", "")
-            if #hexText == 6 and tonumber(hexText, 16) then
-                local success, newColor = pcall(function()
-                    return Color3.fromHex(hexText)
-                end)
-                if success and newColor then
-                    hexBox.Text = "#" .. hexText:upper()
-                    updateColor(newColor)
-                end
-            else
-                hexBox.Text = colorToHex(colorBtn.BackgroundColor3)
-            end
-        end)
-        
-        rgbBox.FocusLost:Connect(function()
-            local r, g, b = rgbBox.Text:match("(%d+),%s*(%d+),%s*(%d+)")
-            if r and g and b then
-                r = math.clamp(tonumber(r), 0, 255)
-                g = math.clamp(tonumber(g), 0, 255)
-                b = math.clamp(tonumber(b), 0, 255)
-                rgbBox.Text = r .. ", " .. g .. ", " .. b
-                updateColor(Color3.fromRGB(r, g, b))
-            else
-                local cur = colorBtn.BackgroundColor3
-                rgbBox.Text = math.round(cur.R*255) .. ", " .. math.round(cur.G*255) .. ", " .. math.round(cur.B*255)
-            end
-        end)
-    end
-    
-    -- Variáveis de cores do tema
-    local themeColors = {
-        GradientColors = {
-            Color3.fromRGB(255, 0, 0),
-            Color3.fromRGB(0, 255, 0),
-            Color3.fromRGB(0, 0, 255)
-        },
-        ComponentesColor = Color3.fromRGB(32, 32, 40),
-        StrokeColor = Color3.fromRGB(70, 70, 85),
-        ThemeColor = Color3.fromRGB(0, 120, 215),
-        TextColor = Color3.fromRGB(255, 255, 255),
-        DarkTextColor = Color3.fromRGB(170, 170, 190),
-        BorderColor = Color3.fromRGB(255, 0, 0),
-        MinimizeStrokeColor = Color3.fromRGB(0, 255, 0)
-    }
-    
-    -- Criar seções de cores na aba Cores
-    local coresScroll = tabPages["Cores"]
-    createColorSection(coresScroll, "Gradient1", "Color Hub 1 - Inicial", themeColors.GradientColors[1], "Gradiente: Posição Inicial")
-    createColorSection(coresScroll, "Gradient2", "Color Hub 1 - Meio", themeColors.GradientColors[2], "Gradiente: Posição Central")
-    createColorSection(coresScroll, "Gradient3", "Color Hub 1 - Fim", themeColors.GradientColors[3], "Gradiente: Posição Final")
-    createColorSection(coresScroll, "Componentes", "Color Hub 2 (Componentes)", themeColors.ComponentesColor, "Cor de fundo dos componentes")
-    createColorSection(coresScroll, "Stroke", "Color Stroke", themeColors.StrokeColor, "Cor da borda (SubsComponentes desativado)")
-    createColorSection(coresScroll, "Theme", "Color Theme", themeColors.ThemeColor, "Cor de destaque (Subs Componentes Ativado)")
-    createColorSection(coresScroll, "Text", "Color Text", themeColors.TextColor, "Cor do texto principal")
-    createColorSection(coresScroll, "DarkText", "Color Dark Text", themeColors.DarkTextColor, "Cor do texto secundário")
-    createColorSection(coresScroll, "BorderColor", "Cor da Borda", themeColors.BorderColor, "Cor da borda geral do Hub")
-    createColorSection(coresScroll, "MinimizeStrokeColor", "Cor da Borda do Drag", themeColors.MinimizeStrokeColor, "Cor da borda quando arrasta/minimiza")
-    
-    -- Selecionar primeira aba
-    selectTab("Cores")
+    end)
 end
-
--- Conectar botão de configurações
-SettingsButton.MouseButton1Click:Connect(function()
-    CreateEditHubGUI()
-end)
 
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
