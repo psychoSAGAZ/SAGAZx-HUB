@@ -2171,123 +2171,366 @@ function Tab:AddRainbowToggle(Configs)
 end
 
 function Tab:AddColorPicker(Configs)
-    local TName = Configs[1] or Configs.Name or Configs.Title or "Color Picker"
-    local TDesc = Configs.Desc or Configs.Description or ""
-    local DefaultColor = Configs[2] or Configs.Default or Color3.fromRGB(255, 255, 255)
-    local Callback = Configs.Callback or function() end
+    local CPName = Configs[1] or Configs.Name or Configs.Title or "Color Picker"
+    local CPDesc = Configs.Desc or Configs.Description or ""
+    local CPCallback = Configs.Callback or function() end
+    local CPDefault = Configs[2] or Configs.Default or Color3.fromRGB(255, 255, 255)
+    local CPFlag = Configs.Flag or false
 
-    -- Container principal do componente
-    local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
+    if CheckFlag(CPFlag) then
+        CPDefault = GetFlag(CPFlag) or CPDefault
+    end
 
-    -- Botão de cor (mostra a cor atual)
-    local ColorButton = Create("ImageButton", Button, {
-        Size = UDim2.new(0, 28, 0, 18),
+    local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -160))
+
+    -- Container da cor
+    local ColorContainer = InsertTheme(Create("Frame", Button, {
+        Size = UDim2.new(0, 150, 0, 18),
         Position = UDim2.new(1, -10, 0.5),
         AnchorPoint = Vector2.new(1, 0.5),
-        BackgroundColor3 = DefaultColor,
-        AutoButtonColor = false,
-        Name = "ColorButton"
-    })
-    Make("Corner", ColorButton, UDim.new(0, 4))
-    ApplyBorder(ColorButton) -- aplica borda padrão da lib
+        BackgroundColor3 = Theme["Color Stroke"]
+    }), "Stroke")
+    Make("Corner", ColorContainer, UDim.new(0, 4))
 
-    -- Popup do Color Picker
-    local ColorPickerFrame = Create("Frame", Button, {
+    -- TextBox RGB
+    local RGBBox = InsertTheme(Create("TextBox", ColorContainer, {
+        Size = UDim2.new(0, 50, 0, 14),
+        Position = UDim2.new(0, 5, 0.5, -7),
+        BackgroundColor3 = Color3.fromRGB(20, 20, 25),
+        Text = "",
+        TextColor3 = Color3.fromRGB(220, 220, 230),
+        TextSize = 8,
+        Font = Enum.Font.GothamSemibold,
+        ClearTextOnFocus = false,
+        PlaceholderText = "R, G, B",
+        PlaceholderColor3 = Color3.fromRGB(100, 100, 115)
+    }), "Text")
+    Make("Corner", RGBBox, UDim.new(0, 3))
+
+    -- Botão de cor
+    local ColorButton = InsertTheme(Create("ImageButton", ColorContainer, {
+        Size = UDim2.new(0, 18, 0, 18),
+        Position = UDim2.new(0, 60, 0.5, -9),
+        BackgroundColor3 = CPDefault,
+        AutoButtonColor = false,
+        Image = ""
+    }), "Frame")
+    Make("Corner", ColorButton, UDim.new(0, 3))
+
+    -- TextBox Hex
+    local HexBox = InsertTheme(Create("TextBox", ColorContainer, {
+        Size = UDim2.new(0, 50, 0, 14),
+        Position = UDim2.new(0, 83, 0.5, -7),
+        BackgroundColor3 = Color3.fromRGB(20, 20, 25),
+        Text = "",
+        TextColor3 = CPDefault,
+        TextSize = 8,
+        Font = Enum.Font.GothamBold,
+        ClearTextOnFocus = false,
+        PlaceholderText = "#FFFFFF",
+        PlaceholderColor3 = Color3.fromRGB(100, 100, 115)
+    }), "Text")
+    Make("Corner", HexBox, UDim.new(0, 3))
+
+    -- Popup (inicialmente invisível, centralizado no Hub)
+    local Popup = Create("Frame", ScreenGui, {
         Size = UDim2.new(0, 230, 0, 230),
         Position = UDim2.new(0.5, -115, 0.5, -115),
-        BackgroundColor3 = Theme["Color Hub 2"],
-        BorderSizePixel = 0,
+        BackgroundColor3 = Color3.fromRGB(35, 35, 42),
         Visible = false,
         Active = true,
-        ZIndex = 10,
+        ZIndex = 100,
         Name = "ColorPickerPopup"
     })
-    Make("Corner", ColorPickerFrame, UDim.new(0, 8))
-    ApplyBorder(ColorPickerFrame)
+    Make("Corner", Popup, UDim.new(0, 8))
+    Make("Stroke", Popup)
+    Popup.Parent = MainFrame  -- centralizado no Hub
 
-    -- (Aqui você pode adicionar os elementos do picker, adaptando o código original)
-    -- Para simplificar, vou usar um seletor básico com botões de cores predefinidas.
-
-    local currentColor = DefaultColor
-
-    local function UpdateColorButton()
-        ColorButton.BackgroundColor3 = currentColor
-        task.spawn(Callback, currentColor)
-    end
-
-    -- Função para mostrar/ocultar popup
-    local function TogglePopup()
-        ColorPickerFrame.Visible = not ColorPickerFrame.Visible
-    end
-
-    ColorButton.Activated:Connect(TogglePopup)
-
-    -- Grade de cores predefinidas (exemplo simples)
-    local presetColors = {
-        Color3.fromRGB(255, 0, 0), Color3.fromRGB(0, 255, 0), Color3.fromRGB(0, 0, 255),
-        Color3.fromRGB(255, 255, 0), Color3.fromRGB(0, 255, 255), Color3.fromRGB(255, 0, 255),
-        Color3.fromRGB(255, 128, 0), Color3.fromRGB(128, 0, 255), Color3.fromRGB(0, 200, 100),
-        Color3.fromRGB(255, 255, 255), Color3.fromRGB(120, 120, 120), Color3.fromRGB(0, 0, 0)
-    }
-
-    local PresetContainer = Create("Frame", ColorPickerFrame, {
-        Size = UDim2.new(1, -16, 0, 80),
-        Position = UDim2.new(0, 8, 0, 40),
+    -- Título do Popup
+    local PopupTitle = InsertTheme(Create("TextLabel", Popup, {
+        Size = UDim2.new(1, -16, 0, 22),
+        Position = UDim2.new(0, 8, 0, 4),
         BackgroundTransparency = 1,
-        ZIndex = 11
+        Text = "Escolher Cor",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 13,
+        Font = Enum.Font.SourceSansBold,
+        TextXAlignment = "Left",
+        ZIndex = 101
+    }), "Text")
+
+    -- Presets
+    local PresetContainer = Create("Frame", Popup, {
+        Size = UDim2.new(0, 70, 0, 120),
+        Position = UDim2.new(0, 8, 0, 28),
+        BackgroundTransparency = 1,
+        ZIndex = 101
     })
-    local Grid = Create("UIGridLayout", PresetContainer, {
-        CellSize = UDim2.new(0, 24, 0, 24),
+
+    local PresetGrid = Create("UIGridLayout", PresetContainer, {
+        CellSize = UDim2.new(0, 18, 0, 18),
         CellPadding = UDim2.new(0, 5, 0, 5)
     })
 
-    for _, presetColor in ipairs(presetColors) do
-        local ColorPresetButton = Create("TextButton", PresetContainer, {
-            Size = UDim2.new(0, 24, 0, 24),
-            BackgroundColor3 = presetColor,
-            Text = "",
-            BorderSizePixel = 0,
-            ZIndex = 11
+    -- ColorMap
+    local ColorMap = Create("Frame", Popup, {
+        Size = UDim2.new(0, 130, 0, 120),
+        Position = UDim2.new(0, 88, 0, 28),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        ZIndex = 101
+    })
+    Make("Corner", ColorMap, UDim.new(0, 4))
+
+    local HueGradient = Create("UIGradient", ColorMap, {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+            ColorSequenceKeypoint.new(0.166, Color3.fromRGB(255, 255, 0)),
+            ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
+            ColorSequenceKeypoint.new(0.666, Color3.fromRGB(0, 0, 255)),
+            ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
         })
-        Make("Corner", ColorPresetButton, UDim.new(0, 4))
-        ColorPresetButton.Activated:Connect(function()
-            currentColor = presetColor
-            UpdateColorButton()
+    })
+
+    -- Saturation overlay
+    local SatOverlay = Create("Frame", ColorMap, {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        ZIndex = 102
+    })
+    Make("Corner", SatOverlay, UDim.new(0, 4))
+    Create("UIGradient", SatOverlay, {
+        Rotation = 90,
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(1, 0)
+        })
+    })
+
+    -- Map pointer
+    local MapPointer = Create("Frame", ColorMap, {
+        Size = UDim2.new(0, 8, 0, 8),
+        Position = UDim2.new(0.5, -4, 0.5, -4),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BorderSizePixel = 1,
+        BorderColor3 = Color3.fromRGB(0, 0, 0),
+        ZIndex = 103
+    })
+    Make("Corner", MapPointer, UDim.new(1, 0))
+
+    -- Value slider
+    local ValueSlider = Create("Frame", Popup, {
+        Size = UDim2.new(1, -16, 0, 14),
+        Position = UDim2.new(0, 8, 0, 156),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        ZIndex = 101
+    })
+    Make("Corner", ValueSlider, UDim.new(0, 4))
+    local ValueGradient = Create("UIGradient", ValueSlider)
+
+    local ValuePointer = Create("Frame", ValueSlider, {
+        Size = UDim2.new(0, 8, 1, 4),
+        Position = UDim2.new(1, -4, 0.5, -9),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BorderSizePixel = 0,
+        ZIndex = 102
+    })
+    Make("Corner", ValuePointer, UDim.new(0, 3))
+    Make("Stroke", ValuePointer)
+
+    -- Botões Aplicar/Cancelar
+    local OkButton = Make("Button", Popup, {
+        Size = UDim2.new(0.65, -12, 0, 28),
+        Position = UDim2.new(0, 8, 1, -34),
+        BackgroundColor3 = CPDefault,
+        Text = "Aplicar Cor",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 12,
+        Font = Enum.Font.SourceSansBold,
+        ZIndex = 101
+    })
+    Make("Corner", OkButton, UDim.new(0, 6))
+
+    local CancelButton = Make("Button", Popup, {
+        Size = UDim2.new(0.35, -8, 0, 28),
+        Position = UDim2.new(0.65, 2, 1, -34),
+        BackgroundColor3 = Color3.fromRGB(180, 50, 50),
+        Text = "Cancelar",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 12,
+        Font = Enum.Font.SourceSansBold,
+        ZIndex = 101
+    })
+    Make("Corner", CancelButton, UDim.new(0, 6))
+
+    -- Variáveis do picker
+    local currentHue, currentSat, currentVal = 0, 1, 1
+    local previewColor = CPDefault
+    local draggingMap, draggingSlider = false, false
+
+    local function colorToHex(c)
+        return string.format("#%02X%02X%02X", math.round(c.R*255), math.round(c.G*255), math.round(c.B*255))
+    end
+
+    local function updatePickerVisuals()
+        local pureColor = Color3.fromHSV(currentHue, currentSat, 1)
+        ValueGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+            ColorSequenceKeypoint.new(1, pureColor)
+        })
+        previewColor = Color3.fromHSV(currentHue, currentSat, currentVal)
+        OkButton.BackgroundColor3 = previewColor
+        local brightness = (previewColor.R*0.299)+(previewColor.G*0.587)+(previewColor.B*0.114)
+        OkButton.TextColor3 = (brightness > 0.5) and Color3.fromRGB(20,20,20) or Color3.fromRGB(255,255,255)
+    end
+
+    local function updateMainColor(newColor)
+        ColorButton.BackgroundColor3 = newColor
+        local r,g,b = math.round(newColor.R*255), math.round(newColor.G*255), math.round(newColor.B*255)
+        RGBBox.Text = r..", "..g..", "..b
+        HexBox.Text = colorToHex(newColor)
+        HexBox.TextColor3 = newColor
+        if CPFlag then SetFlag(CPFlag, newColor) end
+        task.spawn(CPCallback, newColor)
+    end
+
+    -- Funções de interação com ColorMap e ValueSlider
+    local function updateMapInput(input)
+        local absPos, absSize = ColorMap.AbsolutePosition, ColorMap.AbsoluteSize
+        local mouseX = math.clamp(input.Position.X - absPos.X, 0, absSize.X)
+        local mouseY = math.clamp(input.Position.Y - absPos.Y, 0, absSize.Y)
+        currentHue = mouseX / absSize.X
+        currentSat = 1 - (mouseY / absSize.Y)
+        MapPointer.Position = UDim2.new(0, mouseX-4, 0, mouseY-4)
+        updatePickerVisuals()
+    end
+
+    local function updateSliderInput(input)
+        local absPos, absSize = ValueSlider.AbsolutePosition, ValueSlider.AbsoluteSize
+        local mouseX = math.clamp(input.Position.X - absPos.X, 0, absSize.X)
+        currentVal = mouseX / absSize.X
+        ValuePointer.Position = UDim2.new(0, mouseX-4, 0.5, -9)
+        updatePickerVisuals()
+    end
+
+    -- Eventos do ColorMap e ValueSlider
+    ColorMap.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            draggingMap = true
+            updateMapInput(input)
+        end
+    end)
+    ValueSlider.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            draggingSlider = true
+            updateSliderInput(input)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            draggingMap = false
+            draggingSlider = false
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            if draggingMap then updateMapInput(input)
+            elseif draggingSlider then updateSliderInput(input) end
+        end
+    end)
+
+    -- Presets
+    local presetColors = {
+        Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(0,0,255),
+        Color3.fromRGB(255,255,0), Color3.fromRGB(0,255,255), Color3.fromRGB(255,0,255),
+        Color3.fromRGB(255,128,0), Color3.fromRGB(128,0,255), Color3.fromRGB(0,200,100),
+        Color3.fromRGB(255,255,255), Color3.fromRGB(120,120,120), Color3.fromRGB(0,0,0)
+    }
+
+    for _, color in ipairs(presetColors) do
+        local pBtn = Create("TextButton", PresetContainer, {
+            BackgroundColor3 = color,
+            Text = "",
+            ZIndex = 101
+        })
+        Make("Corner", pBtn, UDim.new(0, 3))
+        pBtn.MouseButton1Click:Connect(function()
+            local h,s,v = color:ToHSV()
+            currentHue, currentSat, currentVal = h, s, v
+            MapPointer.Position = UDim2.new(currentHue, -4, 1-currentSat, -4)
+            ValuePointer.Position = UDim2.new(currentVal, -4, 0.5, -9)
+            updatePickerVisuals()
         end)
     end
 
-    -- Botão para aplicar
-    local ApplyButton = Create("TextButton", ColorPickerFrame, {
-        Size = UDim2.new(0.6, -10, 0, 28),
-        Position = UDim2.new(0, 8, 1, -34),
-        BackgroundColor3 = Theme["Color Theme"],
-        Text = "Aplicar",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        Font = MyLibrary.CurrentFont,
-        TextSize = 12,
-        BorderSizePixel = 0,
-        ZIndex = 11
-    })
-    Make("Corner", ApplyButton, UDim.new(0, 6))
-    ApplyButton.Activated:Connect(function()
-        UpdateColorButton()
-        ColorPickerFrame.Visible = false
+    -- Abrir popup
+    ColorButton.MouseButton1Click:Connect(function()
+        local startColor = ColorButton.BackgroundColor3
+        local h,s,v = startColor:ToHSV()
+        currentHue, currentSat, currentVal = h, s, v
+        MapPointer.Position = UDim2.new(currentHue, -4, 1-currentSat, -4)
+        ValuePointer.Position = UDim2.new(currentVal, -4, 0.5, -9)
+        updatePickerVisuals()
+        Popup.Visible = true
     end)
 
-    -- Objeto de retorno
+    -- Botões do popup
+    OkButton.Activated:Connect(function()
+        updateMainColor(previewColor)
+        Popup.Visible = false
+    end)
+    CancelButton.Activated:Connect(function()
+        Popup.Visible = false
+    end)
+
+    -- Campos de texto
+    RGBBox.FocusLost:Connect(function()
+        local r,g,b = RGBBox.Text:match("(%d+),%s*(%d+),%s*(%d+)")
+        if r and g and b then
+            r = math.clamp(tonumber(r),0,255)
+            g = math.clamp(tonumber(g),0,255)
+            b = math.clamp(tonumber(b),0,255)
+            updateMainColor(Color3.fromRGB(r,g,b))
+        else
+            local cur = ColorButton.BackgroundColor3
+            RGBBox.Text = math.round(cur.R*255)..", "..math.round(cur.G*255)..", "..math.round(cur.B*255)
+        end
+    end)
+
+    HexBox.FocusLost:Connect(function()
+        local hexText = HexBox.Text:gsub("#","")
+        if #hexText == 6 and tonumber(hexText,16) then
+            local success, newColor = pcall(function() return Color3.fromHex(hexText) end)
+            if success then
+                HexBox.Text = "#"..hexText:upper()
+                updateMainColor(newColor)
+            end
+        else
+            HexBox.Text = colorToHex(ColorButton.BackgroundColor3)
+            HexBox.TextColor3 = ColorButton.BackgroundColor3
+        end
+    end)
+
+    -- Inicializar
+    updateMainColor(CPDefault)
+    updatePickerVisuals()
+
+    -- API do componente
     local ColorPicker = {}
     function ColorPicker:Set(color)
-        currentColor = color
-        UpdateColorButton()
+        updateMainColor(color)
     end
     function ColorPicker:Get()
-        return currentColor
+        return ColorButton.BackgroundColor3
     end
     function ColorPicker:Visible(visible)
         Button.Visible = visible
     end
     function ColorPicker:Destroy()
         Button:Destroy()
+        Popup:Destroy()
     end
     function ColorPicker:SetTitle(title)
         LabelFunc:SetTitle(title)
@@ -2295,8 +2538,10 @@ function Tab:AddColorPicker(Configs)
     function ColorPicker:SetDesc(desc)
         LabelFunc:SetDesc(desc)
     end
+    function ColorPicker:Callback(func)
+        CPCallback = func
+    end
 
-    UpdateColorButton()
     return ColorPicker
 end
 
