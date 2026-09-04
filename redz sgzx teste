@@ -2042,133 +2042,6 @@ end)
             return ToggleObj
         end
         
-function Tab:AddRainbowToggle(Configs)
-    local TName = Configs[1] or Configs.Name or Configs.Title or "Rainbow Toggle"
-    local TDesc = Configs.Desc or Configs.Description or ""
-    local Callback = Configs.Callback or function() end
-    local Default = MyLibrary.Save.RainbowToggleEnabled or false
-
-    local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
-
-    local ToggleHolder = InsertTheme(Create("Frame", Button, {
-        Size = UDim2.new(0, 35, 0, 18),
-        Position = UDim2.new(1, -10, 0.5),
-        AnchorPoint = Vector2.new(1, 0.5),
-        BackgroundColor3 = Theme["Color Stroke"]
-    }), "Stroke")
-    Make("Corner", ToggleHolder, UDim.new(0.5, 0))
-
-    local Slider = Create("Frame", ToggleHolder, {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(0.8, 0, 0.8, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5)
-    })
-
-    -- Bolinha com gradiente arco-íris
-    local Ball = Create("Frame", Slider, {
-        Size = UDim2.new(0, 12, 0, 12),
-        Position = UDim2.new(0, 0, 0.5),
-        AnchorPoint = Vector2.new(0, 0.5),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        Name = "RainbowBall"
-    })
-    Make("Corner", Ball, UDim.new(0.5, 0))
-
-    -- Gradiente arco-íris (sem animação)
-    local rainbowGradient = Create("UIGradient", Ball, {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),     -- vermelho
-            ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 165, 0)), -- laranja
-            ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)), -- amarelo
-            ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 0)),   -- verde
-            ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 255)),   -- azul
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(128, 0, 128))    -- roxo
-        }),
-        Rotation = 45
-    })
-
-    -- Função para ajustar brilho conforme estado
-    local function UpdateRainbowAppearance(enabled)
-        if enabled then
-            -- Brilho normal (cores vibrantes)
-            rainbowGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-                ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 165, 0)),
-                ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)),
-                ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 0)),
-                ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 255)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(128, 0, 128))
-            })
-        else
-            -- Desativado: cores escuras, mas mantendo tonalidade (sem luz forte)
-            rainbowGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 0, 0)),      -- vermelho escuro
-                ColorSequenceKeypoint.new(0.2, Color3.fromRGB(80, 50, 0)),   -- laranja escuro
-                ColorSequenceKeypoint.new(0.4, Color3.fromRGB(80, 80, 0)),   -- amarelo escuro
-                ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 80, 0)),    -- verde escuro
-                ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 80)),    -- azul escuro
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 40))      -- roxo escuro
-            })
-        end
-    end
-
-    -- Define aparência inicial
-    UpdateRainbowAppearance(Default)
-
-    local WaitClick = false
-    local function SetToggleState(state)
-        if WaitClick then return end
-        WaitClick = true
-
-        Default = state
-        MyLibrary.Save.RainbowToggleEnabled = state
-        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-
-        UpdateRainbowAppearance(state)
-        task.spawn(Callback, state)
-
-        if state then
-            CreateTween({Ball, "Position", UDim2.new(1, 0, 0.5), 0.25})
-            CreateTween({Ball, "AnchorPoint", Vector2.new(1, 0.5), 0.25, false})
-        else
-            CreateTween({Ball, "Position", UDim2.new(0, 0, 0.5), 0.25})
-            CreateTween({Ball, "AnchorPoint", Vector2.new(0, 0.5), 0.25, false})
-        end
-
-        WaitClick = false
-    end
-
-    -- Aplica estado inicial (sem animação de movimento brusca)
-    task.spawn(function()
-        if Default then
-            Ball.Position = UDim2.new(1, 0, 0.5)
-            Ball.AnchorPoint = Vector2.new(1, 0.5)
-        end
-    end)
-
-    Button.Activated:Connect(function()
-        SetToggleState(not Default)
-    end)
-
-    local RainbowToggle = {}
-    function RainbowToggle:Set(state)
-        SetToggleState(state == true)
-    end
-    function RainbowToggle:Visible(visible)
-        Button.Visible = visible
-    end
-    function RainbowToggle:Destroy()
-        Button:Destroy()
-    end
-    function RainbowToggle:SetTitle(title)
-        LabelFunc:SetTitle(title)
-    end
-    function RainbowToggle:SetDesc(desc)
-        LabelFunc:SetDesc(desc)
-    end
-    return RainbowToggle
-end
 
 function Tab:AddColorPicker(Configs)
     local CPName = Configs[1] or Configs.Name or Configs.Title or "Color Picker"
@@ -2231,7 +2104,7 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", HexBox, UDim.new(0, 3))
 
-    -- Camada de bloqueio exclusiva desta instância
+    -- === Camada de bloqueio e Popup exclusivo desta instância ===
     local Blocker = Create("Frame", MainFrame, {
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
@@ -2241,7 +2114,6 @@ function Tab:AddColorPicker(Configs)
         Name = "PopupBlocker_" .. CPName
     })
 
-    -- Popup exclusivo desta instância
     local Popup = Create("Frame", Blocker, {
         Size = UDim2.new(0, 230, 0, 230),
         Position = UDim2.new(0.5, -115, 0.5, -115),
@@ -2253,6 +2125,7 @@ function Tab:AddColorPicker(Configs)
     })
     Make("Corner", Popup, UDim.new(0, 8))
 
+    -- Gradiente de fundo
     local PopupGradient = Create("UIGradient", Popup, {
         Color = Theme["Color Hub 1"]
     })
@@ -2264,7 +2137,7 @@ function Tab:AddColorPicker(Configs)
         Size = UDim2.new(1, -16, 0, 22),
         Position = UDim2.new(0, 8, 0, 4),
         BackgroundTransparency = 1,
-        Text = "Escolher Cor - " .. CPName,
+        Text = CPName,
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 13,
         Font = Enum.Font.SourceSansBold,
@@ -2306,6 +2179,7 @@ function Tab:AddColorPicker(Configs)
         })
     })
 
+    -- Saturation overlay
     local SatOverlay = Create("Frame", ColorMap, {
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -2320,6 +2194,7 @@ function Tab:AddColorPicker(Configs)
         })
     })
 
+    -- Map pointer
     local MapPointer = Create("Frame", ColorMap, {
         Size = UDim2.new(0, 8, 0, 8),
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -2378,10 +2253,11 @@ function Tab:AddColorPicker(Configs)
     })
     Make("Corner", CancelButton, UDim.new(0, 6))
 
-    -- Variáveis locais por instância
+    -- Variáveis de estado exclusivas desta instância
     local currentHue, currentSat, currentVal = 0, 1, 1
     local previewColor = CPDefault
     local draggingMap, draggingSlider = false, false
+    local inputMapConn, inputSliderConn, inputEndConn -- Conexões locais
 
     local function colorToHex(c)
         return string.format("#%02X%02X%02X", math.round(c.R*255), math.round(c.G*255), math.round(c.B*255))
@@ -2427,6 +2303,30 @@ function Tab:AddColorPicker(Configs)
         updatePickerVisuals()
     end
 
+    -- Escuta de eventos ativada apenas quando o popup estiver aberto
+    local function connectInputs()
+        inputMapConn = UserInputService.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                if draggingMap then updateMapInput(input)
+                elseif draggingSlider then updateSliderInput(input) end
+            end
+        end)
+
+        inputEndConn = UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                draggingMap = false
+                draggingSlider = false
+            end
+        end)
+    end
+
+    local function disconnectInputs()
+        if inputMapConn then inputMapConn:Disconnect() inputMapConn = nil end
+        if inputEndConn then inputEndConn:Disconnect() inputEndConn = nil end
+        draggingMap = false
+        draggingSlider = false
+    end
+
     ColorMap.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             draggingMap = true
@@ -2438,25 +2338,6 @@ function Tab:AddColorPicker(Configs)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             draggingSlider = true
             updateSliderInput(input)
-        end
-    end)
-
-    -- Apenas processa o arraste se ESTA instância específica estiver em dragging
-    local inputEndedConn, inputChangedConn
-    inputEndedConn = UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            draggingMap = false
-            draggingSlider = false
-        end
-    end)
-
-    inputChangedConn = UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            if draggingMap then 
-                updateMapInput(input)
-            elseif draggingSlider then 
-                updateSliderInput(input) 
-            end
         end
     end)
 
@@ -2484,6 +2365,7 @@ function Tab:AddColorPicker(Configs)
         end)
     end
 
+    -- Abrir Popup
     ColorButton.MouseButton1Click:Connect(function()
         local startColor = ColorButton.BackgroundColor3
         local h,s,v = startColor:ToHSV()
@@ -2491,20 +2373,25 @@ function Tab:AddColorPicker(Configs)
         MapPointer.Position = UDim2.new(currentHue, 0, 1 - currentSat, 0)
         ValuePointer.Position = UDim2.new(currentVal, 0, 0.5, 0)
         updatePickerVisuals()
+
+        connectInputs()
         Blocker.Visible = true
         Popup.Visible = true
     end)
 
+    -- Fechar Popup
+    local function closePopup()
+        disconnectInputs()
+        Popup.Visible = false
+        Blocker.Visible = false
+    end
+
     OkButton.Activated:Connect(function()
         updateMainColor(previewColor)
-        Popup.Visible = false
-        Blocker.Visible = false
+        closePopup()
     end)
 
-    CancelButton.Activated:Connect(function()
-        Popup.Visible = false
-        Blocker.Visible = false
-    end)
+    CancelButton.Activated:Connect(closePopup)
 
     RGBBox.FocusLost:Connect(function()
         local r,g,b = RGBBox.Text:match("(%d+),%s*(%d+),%s*(%d+)")
@@ -2540,18 +2427,12 @@ function Tab:AddColorPicker(Configs)
     function ColorPicker:Set(color) updateMainColor(color) end
     function ColorPicker:Get() return ColorButton.BackgroundColor3 end
     function ColorPicker:Visible(visible) Button.Visible = visible end
-    function ColorPicker:Destroy() 
-        if inputEndedConn then inputEndedConn:Disconnect() end
-        if inputChangedConn then inputChangedConn:Disconnect() end
-        Button:Destroy() 
-        Blocker:Destroy() 
-    end
-    function ColorPicker:SetTitle(title) LabelFunc:SetTitle(title) end
+    function ColorPicker:Destroy() disconnectInputs() Button:Destroy() Blocker:Destroy() end
+    function ColorPicker:SetTitle(title) LabelFunc:SetTitle(title) PopupTitle.Text = title end
     function ColorPicker:SetDesc(desc) LabelFunc:SetDesc(desc) end
     function ColorPicker:Callback(func) CPCallback = func end
     return ColorPicker
 end
-
 
 
         function Tab:AddDropdown(Configs)
