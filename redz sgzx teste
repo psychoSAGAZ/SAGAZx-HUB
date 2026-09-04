@@ -2183,10 +2183,10 @@ function Tab:AddColorPicker(Configs)
 
     local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -125))
 
-    -- === Área direita: RGB, cor e Hex (Ajustado para -20) ===
+    -- === Área direita: RGB, cor e Hex ===
     local RightArea = Create("Frame", Button, {
         Size = UDim2.new(0, 115, 1),
-        Position = UDim2.new(1, -20, 0.5), -- Ajustado para -20 conforme solicitado
+        Position = UDim2.new(1, -20, 0.5),
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundTransparency = 1
     })
@@ -2231,8 +2231,18 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", HexBox, UDim.new(0, 3))
 
-    -- === Popup (centralizado no Hub) ===
-    local Popup = Create("Frame", MainFrame, {
+    -- Camada de bloqueio exclusiva desta instância
+    local Blocker = Create("Frame", MainFrame, {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Visible = false,
+        Active = true,
+        ZIndex = 99,
+        Name = "PopupBlocker_" .. CPName
+    })
+
+    -- Popup exclusivo desta instância
+    local Popup = Create("Frame", Blocker, {
         Size = UDim2.new(0, 230, 0, 230),
         Position = UDim2.new(0.5, -115, 0.5, -115),
         BackgroundColor3 = Color3.fromRGB(35, 35, 42),
@@ -2243,31 +2253,18 @@ function Tab:AddColorPicker(Configs)
     })
     Make("Corner", Popup, UDim.new(0, 8))
 
-    -- Gradiente de fundo (usa Color Hub 1)
     local PopupGradient = Create("UIGradient", Popup, {
         Color = Theme["Color Hub 1"]
     })
 
-    -- Borda
     Make("Stroke", Popup)
-
-    -- Camada de bloqueio (impede cliques no Hub)
-    local Blocker = Create("Frame", MainFrame, {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Visible = false,
-        Active = true,
-        ZIndex = 99,
-        Name = "PopupBlocker"
-    })
-    Popup.Parent = Blocker
 
     -- Título
     local PopupTitle = InsertTheme(Create("TextLabel", Popup, {
         Size = UDim2.new(1, -16, 0, 22),
         Position = UDim2.new(0, 8, 0, 4),
         BackgroundTransparency = 1,
-        Text = "Escolher Cor",
+        Text = "Escolher Cor - " .. CPName,
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 13,
         Font = Enum.Font.SourceSansBold,
@@ -2309,7 +2306,6 @@ function Tab:AddColorPicker(Configs)
         })
     })
 
-    -- Saturation overlay
     local SatOverlay = Create("Frame", ColorMap, {
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -2324,7 +2320,6 @@ function Tab:AddColorPicker(Configs)
         })
     })
 
-    -- Map pointer
     local MapPointer = Create("Frame", ColorMap, {
         Size = UDim2.new(0, 8, 0, 8),
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -2347,7 +2342,6 @@ function Tab:AddColorPicker(Configs)
     Make("Corner", ValueSlider, UDim.new(0, 4))
     local ValueGradient = Create("UIGradient", ValueSlider)
 
-    -- Ponteiro com AnchorPoint para centralização perfeita sem vazar
     local ValuePointer = Create("Frame", ValueSlider, {
         Size = UDim2.new(0, 8, 0, 18),
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -2384,7 +2378,7 @@ function Tab:AddColorPicker(Configs)
     })
     Make("Corner", CancelButton, UDim.new(0, 6))
 
-    -- Variáveis
+    -- Variáveis locais por instância
     local currentHue, currentSat, currentVal = 0, 1, 1
     local previewColor = CPDefault
     local draggingMap, draggingSlider = false, false
@@ -2439,6 +2433,7 @@ function Tab:AddColorPicker(Configs)
             updateMapInput(input)
         end
     end)
+
     ValueSlider.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             draggingSlider = true
@@ -2446,16 +2441,22 @@ function Tab:AddColorPicker(Configs)
         end
     end)
 
-    UserInputService.InputEnded:Connect(function(input)
+    -- Apenas processa o arraste se ESTA instância específica estiver em dragging
+    local inputEndedConn, inputChangedConn
+    inputEndedConn = UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             draggingMap = false
             draggingSlider = false
         end
     end)
-    UserInputService.InputChanged:Connect(function(input)
+
+    inputChangedConn = UserInputService.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            if draggingMap then updateMapInput(input)
-            elseif draggingSlider then updateSliderInput(input) end
+            if draggingMap then 
+                updateMapInput(input)
+            elseif draggingSlider then 
+                updateSliderInput(input) 
+            end
         end
     end)
 
@@ -2499,6 +2500,7 @@ function Tab:AddColorPicker(Configs)
         Popup.Visible = false
         Blocker.Visible = false
     end)
+
     CancelButton.Activated:Connect(function()
         Popup.Visible = false
         Blocker.Visible = false
@@ -2538,12 +2540,18 @@ function Tab:AddColorPicker(Configs)
     function ColorPicker:Set(color) updateMainColor(color) end
     function ColorPicker:Get() return ColorButton.BackgroundColor3 end
     function ColorPicker:Visible(visible) Button.Visible = visible end
-    function ColorPicker:Destroy() Button:Destroy() Blocker:Destroy() end
+    function ColorPicker:Destroy() 
+        if inputEndedConn then inputEndedConn:Disconnect() end
+        if inputChangedConn then inputChangedConn:Disconnect() end
+        Button:Destroy() 
+        Blocker:Destroy() 
+    end
     function ColorPicker:SetTitle(title) LabelFunc:SetTitle(title) end
     function ColorPicker:SetDesc(desc) LabelFunc:SetDesc(desc) end
     function ColorPicker:Callback(func) CPCallback = func end
     return ColorPicker
 end
+
 
 
         function Tab:AddDropdown(Configs)
