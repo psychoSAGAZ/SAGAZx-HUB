@@ -1196,6 +1196,85 @@ function MyLibrary:SetMinimizeStrokeColor(colorInput)
     end
 end
 
+-- Tema e cores
+function MyLibrary:GetCurrentTheme()
+    return MyLibrary.Save.Theme
+end
+
+function MyLibrary:GetThemeColor(key)
+    local theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+    if theme and theme[key] then
+        return theme[key]
+    end
+    return nil
+end
+
+-- Imagens
+function MyLibrary:GetTopbarImage()
+    return CurrentImageSettings.TopbarImage
+end
+
+-- (Hub e Minimize já possuem getters)
+
+-- Fonte
+function MyLibrary:GetFont()
+    return MyLibrary.CurrentFont
+end
+
+-- Bordas
+function MyLibrary:GetStrokeColor()
+    return MyLibrary.Save.StrokeColor
+end
+
+function MyLibrary:GetStrokeTransparency()
+    return MyLibrary.Save.StrokeTransparency
+end
+
+function MyLibrary:GetMinimizeStrokeColor()
+    return MyLibrary.Save.MinimizeStrokeColor
+end
+
+-- Transparências
+function MyLibrary:GetGlobalTransparency()
+    return MyLibrary.Save.GlobalTransparency
+end
+
+function MyLibrary:GetHubTransparency()
+    return MyLibrary.Save.HubTransparency
+end
+
+function MyLibrary:GetHubImageTransparency()
+    return MyLibrary.Save.HubImageTransparency
+end
+
+-- Som
+function MyLibrary:GetClickSoundEnabled()
+    return MyLibrary.Save.ClickSoundEnabled
+end
+
+function MyLibrary:GetClickSoundId()
+    return MyLibrary.Save.ClickSoundId
+end
+
+function MyLibrary:GetClickSoundVolume()
+    return MyLibrary.Save.ClickSoundVolume
+end
+
+-- Toggle arco-íris
+function MyLibrary:GetRainbowToggleEnabled()
+    return MyLibrary.Save.RainbowToggleEnabled
+end
+
+-- Tecla
+function MyLibrary:GetToggleKey()
+    return MyLibrary.Save.ToggleKey
+end
+
+-- Escala
+function MyLibrary:GetScale()
+    return UIScale
+end
+
 function MyLibrary:SetFont(fontInput)
     if type(fontInput) == "string" then
         fontInput = Enum.Font[fontInput]
@@ -1420,118 +1499,6 @@ local Title = InsertTheme(Create("TextLabel", TopBar, {
     })
 
     SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
-    
-    -- Adicione isso dentro da função Window:MakeWindow, após criar os botões existentes
-
--- Botão de Configurações na TopBar
-local SettingsButton = Create("ImageButton", {
-    Size = UDim2.new(0, 14, 0, 14),
-    Position = UDim2.new(1, -60, 0.5),
-    AnchorPoint = Vector2.new(1, 0.5),
-    BackgroundTransparency = 1,
-    Image = "rbxassetid://10709751939", -- Ícone de engrenagem/configurações
-    AutoButtonColor = false,
-    Name = "Settings"
-})
-
-SetChildren(ButtonsFolder, {CloseButton, MinimizeButton, SettingsButton})
-
--- Função para criar a GUI de Edição
--- Modifique a função CreateEditHubGUI para garantir que apareça na frente
-
-local function CreateEditHubGUI()
-    -- Verifica se já existe uma GUI de edição aberta
-    if MainFrame:FindFirstChild("EditHubContainer") then
-        return
-    end
-    
-    -- Container para a GUI de edição (agora com ZIndex alto)
-    local EditHubContainer = Create("Frame", MainFrame, {
-        Size = UDim2.new(1, -20, 1, -50),
-        Position = UDim2.new(0.5, 0, 0.5, 25),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 35),
-        BackgroundTransparency = 0,
-        BorderSizePixel = 0,
-        Name = "EditHubContainer",
-        ZIndex = 1000,  -- ZIndex muito alto
-        Active = true,
-        ClipsDescendants = true
-    })
-    
-    -- Força o container a ficar na frente de tudo
-    EditHubContainer.ZIndex = 1000
-    
-    Make("Corner", EditHubContainer, UDim.new(0, 8))
-    ApplyBorder(EditHubContainer)
-    
-    -- Garante que todos os filhos tenham ZIndex alto
-    local function SetHighZIndex(parent)
-        for _, child in ipairs(parent:GetDescendants()) do
-            if child:IsA("GuiObject") then
-                child.ZIndex = 1000 + child.ZIndex
-            end
-        end
-    end
-    
-    -- Barra superior da GUI de edição
-    local EditTopBar = Create("Frame", EditHubContainer, {
-        Size = UDim2.new(1, 0, 0, 35),
-        BackgroundColor3 = Color3.fromRGB(45, 45, 55),
-        BorderSizePixel = 0,
-        Name = "EditTopBar",
-        ZIndex = 1001
-    })
-    Make("Corner", EditTopBar, UDim.new(0, 8))
-    
-    -- Título
-    local EditTitle = Create("TextLabel", EditTopBar, {
-        Size = UDim2.new(1, -45, 1, 0),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "Editar Hub",
-        TextColor3 = Theme["Color Text"],
-        TextSize = 16,
-        Font = MyLibrary.CurrentFont,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 1002
-    })
-    
-    -- Botão de fechar
-    local EditCloseButton = Create("TextButton", EditTopBar, {
-        Size = UDim2.new(0, 25, 0, 25),
-        Position = UDim2.new(1, -31, 0.5, -12),
-        BackgroundColor3 = Color3.fromRGB(220, 60, 60),
-        Text = "X",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        Font = Enum.Font.SourceSansBold,
-        BorderSizePixel = 0,
-        ZIndex = 1002
-    })
-    Make("Corner", EditCloseButton, UDim.new(0, 5))
-    
-    EditCloseButton.MouseButton1Click:Connect(function()
-        EditHubContainer:Destroy()
-    end)
-    
-    -- Resto do código permanece igual...
-    -- MAS adicione isso no final da função:
-    
-    -- Aplica ZIndex alto a todos os elementos
-    SetHighZIndex(EditHubContainer)
-    
-    -- Garante que o container fique na frente
-    task.spawn(function()
-        task.wait(0.1)  -- Pequena espera para garantir que tudo foi criado
-        EditHubContainer.ZIndex = 1000
-        for _, child in ipairs(EditHubContainer:GetDescendants()) do
-            if child:IsA("GuiObject") then
-                child.ZIndex = math.max(child.ZIndex, 1000)
-            end
-        end
-    end)
-end
 
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
@@ -2201,6 +2168,136 @@ function Tab:AddRainbowToggle(Configs)
         LabelFunc:SetDesc(desc)
     end
     return RainbowToggle
+end
+
+function Tab:AddColorPicker(Configs)
+    local TName = Configs[1] or Configs.Name or Configs.Title or "Color Picker"
+    local TDesc = Configs.Desc or Configs.Description or ""
+    local DefaultColor = Configs[2] or Configs.Default or Color3.fromRGB(255, 255, 255)
+    local Callback = Configs.Callback or function() end
+
+    -- Container principal do componente
+    local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
+
+    -- Botão de cor (mostra a cor atual)
+    local ColorButton = Create("ImageButton", Button, {
+        Size = UDim2.new(0, 28, 0, 18),
+        Position = UDim2.new(1, -10, 0.5),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundColor3 = DefaultColor,
+        AutoButtonColor = false,
+        Name = "ColorButton"
+    })
+    Make("Corner", ColorButton, UDim.new(0, 4))
+    ApplyBorder(ColorButton) -- aplica borda padrão da lib
+
+    -- Popup do Color Picker
+    local ColorPickerFrame = Create("Frame", Button, {
+        Size = UDim2.new(0, 230, 0, 230),
+        Position = UDim2.new(0.5, -115, 0.5, -115),
+        BackgroundColor3 = Theme["Color Hub 2"],
+        BorderSizePixel = 0,
+        Visible = false,
+        Active = true,
+        ZIndex = 10,
+        Name = "ColorPickerPopup"
+    })
+    Make("Corner", ColorPickerFrame, UDim.new(0, 8))
+    ApplyBorder(ColorPickerFrame)
+
+    -- (Aqui você pode adicionar os elementos do picker, adaptando o código original)
+    -- Para simplificar, vou usar um seletor básico com botões de cores predefinidas.
+
+    local currentColor = DefaultColor
+
+    local function UpdateColorButton()
+        ColorButton.BackgroundColor3 = currentColor
+        task.spawn(Callback, currentColor)
+    end
+
+    -- Função para mostrar/ocultar popup
+    local function TogglePopup()
+        ColorPickerFrame.Visible = not ColorPickerFrame.Visible
+    end
+
+    ColorButton.Activated:Connect(TogglePopup)
+
+    -- Grade de cores predefinidas (exemplo simples)
+    local presetColors = {
+        Color3.fromRGB(255, 0, 0), Color3.fromRGB(0, 255, 0), Color3.fromRGB(0, 0, 255),
+        Color3.fromRGB(255, 255, 0), Color3.fromRGB(0, 255, 255), Color3.fromRGB(255, 0, 255),
+        Color3.fromRGB(255, 128, 0), Color3.fromRGB(128, 0, 255), Color3.fromRGB(0, 200, 100),
+        Color3.fromRGB(255, 255, 255), Color3.fromRGB(120, 120, 120), Color3.fromRGB(0, 0, 0)
+    }
+
+    local PresetContainer = Create("Frame", ColorPickerFrame, {
+        Size = UDim2.new(1, -16, 0, 80),
+        Position = UDim2.new(0, 8, 0, 40),
+        BackgroundTransparency = 1,
+        ZIndex = 11
+    })
+    local Grid = Create("UIGridLayout", PresetContainer, {
+        CellSize = UDim2.new(0, 24, 0, 24),
+        CellPadding = UDim2.new(0, 5, 0, 5)
+    })
+
+    for _, presetColor in ipairs(presetColors) do
+        local ColorPresetButton = Create("TextButton", PresetContainer, {
+            Size = UDim2.new(0, 24, 0, 24),
+            BackgroundColor3 = presetColor,
+            Text = "",
+            BorderSizePixel = 0,
+            ZIndex = 11
+        })
+        Make("Corner", ColorPresetButton, UDim.new(0, 4))
+        ColorPresetButton.Activated:Connect(function()
+            currentColor = presetColor
+            UpdateColorButton()
+        end)
+    end
+
+    -- Botão para aplicar
+    local ApplyButton = Create("TextButton", ColorPickerFrame, {
+        Size = UDim2.new(0.6, -10, 0, 28),
+        Position = UDim2.new(0, 8, 1, -34),
+        BackgroundColor3 = Theme["Color Theme"],
+        Text = "Aplicar",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        Font = MyLibrary.CurrentFont,
+        TextSize = 12,
+        BorderSizePixel = 0,
+        ZIndex = 11
+    })
+    Make("Corner", ApplyButton, UDim.new(0, 6))
+    ApplyButton.Activated:Connect(function()
+        UpdateColorButton()
+        ColorPickerFrame.Visible = false
+    end)
+
+    -- Objeto de retorno
+    local ColorPicker = {}
+    function ColorPicker:Set(color)
+        currentColor = color
+        UpdateColorButton()
+    end
+    function ColorPicker:Get()
+        return currentColor
+    end
+    function ColorPicker:Visible(visible)
+        Button.Visible = visible
+    end
+    function ColorPicker:Destroy()
+        Button:Destroy()
+    end
+    function ColorPicker:SetTitle(title)
+        LabelFunc:SetTitle(title)
+    end
+    function ColorPicker:SetDesc(desc)
+        LabelFunc:SetDesc(desc)
+    end
+
+    UpdateColorButton()
+    return ColorPicker
 end
 
         function Tab:AddDropdown(Configs)
