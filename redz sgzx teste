@@ -2181,21 +2181,22 @@ function Tab:AddColorPicker(Configs)
         CPDefault = GetFlag(CPFlag) or CPDefault
     end
 
+    -- Frame principal do componente (usado para alinhar os campos à direita)
     local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -160))
 
-    -- Container transparente (sem fundo visível)
-    local ControlHolder = Create("Frame", Button, {
-        Size = UDim2.new(0, 150, 0, 18),
-        Position = UDim2.new(1, -10, 0.5),
-        AnchorPoint = Vector2.new(1, 0.5),
-        BackgroundTransparency = 1,  -- sem fundo
-        Name = "ControlHolder"
+    -- Container invisível para posicionar os campos (sem fundo)
+    local FieldsHolder = Create("Frame", Button, {
+        Size = UDim2.new(0, 150, 1, 0),
+        Position = UDim2.new(1, -10, 0, 0),
+        AnchorPoint = Vector2.new(1, 0),
+        BackgroundTransparency = 1,
+        Name = "ColorFields"
     })
 
-    -- RGB TextBox (movido para direita)
-    local RGBBox = InsertTheme(Create("TextBox", ControlHolder, {
-        Size = UDim2.new(0, 50, 0, 18),
-        Position = UDim2.new(0, 8, 0.5, -9),
+    -- TextBox RGB (alinhado à esquerda do holder)
+    local RGBBox = InsertTheme(Create("TextBox", FieldsHolder, {
+        Size = UDim2.new(0, 50, 0, 16),
+        Position = UDim2.new(0, 0, 0.5, -8),
         BackgroundColor3 = Color3.fromRGB(20, 20, 25),
         Text = "",
         TextColor3 = Color3.fromRGB(220, 220, 230),
@@ -2207,20 +2208,20 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", RGBBox, UDim.new(0, 3))
 
-    -- Botão de cor
-    local ColorButton = InsertTheme(Create("ImageButton", ControlHolder, {
-        Size = UDim2.new(0, 20, 0, 20),
-        Position = UDim2.new(0, 65, 0.5, -10),
+    -- Botão de cor (centralizado no holder)
+    local ColorButton = InsertTheme(Create("ImageButton", FieldsHolder, {
+        Size = UDim2.new(0, 18, 0, 18),
+        Position = UDim2.new(0, 55, 0.5, -9),
         BackgroundColor3 = CPDefault,
         AutoButtonColor = false,
         Image = ""
     }), "Frame")
     Make("Corner", ColorButton, UDim.new(0, 3))
 
-    -- Hex TextBox
-    local HexBox = InsertTheme(Create("TextBox", ControlHolder, {
-        Size = UDim2.new(0, 50, 0, 18),
-        Position = UDim2.new(0, 92, 0.5, -9),
+    -- TextBox Hex (alinhado à direita do holder)
+    local HexBox = InsertTheme(Create("TextBox", FieldsHolder, {
+        Size = UDim2.new(0, 50, 0, 16),
+        Position = UDim2.new(0, 78, 0.5, -8),
         BackgroundColor3 = Color3.fromRGB(20, 20, 25),
         Text = "",
         TextColor3 = CPDefault,
@@ -2232,17 +2233,7 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", HexBox, UDim.new(0, 3))
 
-    -- Bloqueador de cliques no Hub
-    local ClickBlocker = Create("TextButton", MainFrame, {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        Text = "",
-        Visible = false,
-        ZIndex = 99,
-        Name = "ClickBlocker"
-    })
-
-    -- Popup (agora centralizado no Hub, com gradiente de fundo)
+    -- Popup (inicialmente invisível, centralizado no Hub)
     local Popup = Create("Frame", MainFrame, {
         Size = UDim2.new(0, 230, 0, 230),
         Position = UDim2.new(0.5, -115, 0.5, -115),
@@ -2253,12 +2244,24 @@ function Tab:AddColorPicker(Configs)
         Name = "ColorPickerPopup"
     })
     Make("Corner", Popup, UDim.new(0, 8))
+    Make("Stroke", Popup)  -- borda
 
-    -- Gradiente de fundo usando cores do tema
-    local popupGradient = Make("Gradient", Popup, { Rotation = 45 })
+    -- Gradiente de fundo do popup usando as cores do tema
+    Make("Gradient", Popup, { Rotation = 45 })
 
-    -- Borda do popup
-    ApplyBorder(Popup)
+    -- Overlay para bloquear cliques fora do popup
+    local BlockOverlay = Create("TextButton", MainFrame, {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 0.5,
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        Visible = false,
+        Text = "",
+        ZIndex = 99,
+        Name = "ColorPickerBlock"
+    })
+    BlockOverlay.MouseButton1Click:Connect(function()
+        -- não faz nada, apenas bloqueia
+    end)
 
     -- Título do Popup
     local PopupTitle = InsertTheme(Create("TextLabel", Popup, {
@@ -2280,7 +2283,6 @@ function Tab:AddColorPicker(Configs)
         BackgroundTransparency = 1,
         ZIndex = 101
     })
-
     local PresetGrid = Create("UIGridLayout", PresetContainer, {
         CellSize = UDim2.new(0, 18, 0, 18),
         CellPadding = UDim2.new(0, 5, 0, 5)
@@ -2291,8 +2293,7 @@ function Tab:AddColorPicker(Configs)
         Size = UDim2.new(0, 130, 0, 120),
         Position = UDim2.new(0, 88, 0, 28),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        ZIndex = 101,
-        ClipsDescendants = true
+        ZIndex = 101
     })
     Make("Corner", ColorMap, UDim.new(0, 4))
 
@@ -2312,8 +2313,7 @@ function Tab:AddColorPicker(Configs)
     local SatOverlay = Create("Frame", ColorMap, {
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        ZIndex = 102,
-        ClipsDescendants = true
+        ZIndex = 102
     })
     Make("Corner", SatOverlay, UDim.new(0, 4))
     Create("UIGradient", SatOverlay, {
@@ -2331,25 +2331,24 @@ function Tab:AddColorPicker(Configs)
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
         BorderSizePixel = 1,
         BorderColor3 = Color3.fromRGB(0, 0, 0),
-        ZIndex = 103,
-        ClipsDescendants = false
+        ZIndex = 103
     })
     Make("Corner", MapPointer, UDim.new(1, 0))
 
-    -- Value slider
+    -- Value slider (barra de brilho)
     local ValueSlider = Create("Frame", Popup, {
         Size = UDim2.new(1, -16, 0, 14),
         Position = UDim2.new(0, 8, 0, 156),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        ZIndex = 101,
-        ClipsDescendants = false
+        ZIndex = 101
     })
     Make("Corner", ValueSlider, UDim.new(0, 4))
     local ValueGradient = Create("UIGradient", ValueSlider)
 
+    -- Ponteiro do slider (agora limitado corretamente)
     local ValuePointer = Create("Frame", ValueSlider, {
-        Size = UDim2.new(0, 8, 1, -2),
-        Position = UDim2.new(0, 0, 0.5, 0),
+        Size = UDim2.new(0, 8, 1, -4),
+        Position = UDim2.new(0.5, -4, 0.5, -2),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
         BorderSizePixel = 0,
         ZIndex = 102
@@ -2427,10 +2426,13 @@ function Tab:AddColorPicker(Configs)
         local absPos, absSize = ValueSlider.AbsolutePosition, ValueSlider.AbsoluteSize
         local mouseX = math.clamp(input.Position.X - absPos.X, 0, absSize.X)
         currentVal = mouseX / absSize.X
-        ValuePointer.Position = UDim2.new(0, mouseX-4, 0.5, -4)  -- ajuste para não sair
+        -- Limita a posição do ponteiro
+        local pointerX = math.clamp(mouseX - 4, 0, absSize.X - 8)
+        ValuePointer.Position = UDim2.new(0, pointerX, 0.5, -5)
         updatePickerVisuals()
     end
 
+    -- Eventos do ColorMap e ValueSlider
     ColorMap.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             draggingMap = true
@@ -2457,6 +2459,7 @@ function Tab:AddColorPicker(Configs)
         end
     end)
 
+    -- Presets
     local presetColors = {
         Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0), Color3.fromRGB(0,0,255),
         Color3.fromRGB(255,255,0), Color3.fromRGB(0,255,255), Color3.fromRGB(255,0,255),
@@ -2475,33 +2478,40 @@ function Tab:AddColorPicker(Configs)
             local h,s,v = color:ToHSV()
             currentHue, currentSat, currentVal = h, s, v
             MapPointer.Position = UDim2.new(currentHue, -4, 1-currentSat, -4)
-            ValuePointer.Position = UDim2.new(currentVal, -4, 0.5, -4)
+            local pointerX = math.clamp(currentVal * ValueSlider.AbsoluteSize.X - 4, 0, ValueSlider.AbsoluteSize.X - 8)
+            ValuePointer.Position = UDim2.new(0, pointerX, 0.5, -5)
             updatePickerVisuals()
         end)
     end
 
+    -- Abrir popup
     ColorButton.MouseButton1Click:Connect(function()
         local startColor = ColorButton.BackgroundColor3
         local h,s,v = startColor:ToHSV()
         currentHue, currentSat, currentVal = h, s, v
         MapPointer.Position = UDim2.new(currentHue, -4, 1-currentSat, -4)
-        ValuePointer.Position = UDim2.new(currentVal, -4, 0.5, -4)
+        local pointerX = math.clamp(currentVal * ValueSlider.AbsoluteSize.X - 4, 0, ValueSlider.AbsoluteSize.X - 8)
+        ValuePointer.Position = UDim2.new(0, pointerX, 0.5, -5)
         updatePickerVisuals()
+        BlockOverlay.Visible = true
         Popup.Visible = true
-        ClickBlocker.Visible = true  -- bloqueia cliques no Hub
     end)
 
-    local function ClosePopup()
+    local function closePopup()
+        BlockOverlay.Visible = false
         Popup.Visible = false
-        ClickBlocker.Visible = false
     end
 
+    -- Botões do popup
     OkButton.Activated:Connect(function()
         updateMainColor(previewColor)
-        ClosePopup()
+        closePopup()
     end)
-    CancelButton.Activated:Connect(ClosePopup)
+    CancelButton.Activated:Connect(function()
+        closePopup()
+    end)
 
+    -- Campos de texto
     RGBBox.FocusLost:Connect(function()
         local r,g,b = RGBBox.Text:match("(%d+),%s*(%d+),%s*(%d+)")
         if r and g and b then
@@ -2529,17 +2539,36 @@ function Tab:AddColorPicker(Configs)
         end
     end)
 
+    -- Inicializar
     updateMainColor(CPDefault)
     updatePickerVisuals()
 
+    -- API do componente
     local ColorPicker = {}
-    function ColorPicker:Set(color) updateMainColor(color) end
-    function ColorPicker:Get() return ColorButton.BackgroundColor3 end
-    function ColorPicker:Visible(visible) Button.Visible = visible end
-    function ColorPicker:Destroy() Button:Destroy(); Popup:Destroy(); ClickBlocker:Destroy() end
-    function ColorPicker:SetTitle(title) LabelFunc:SetTitle(title) end
-    function ColorPicker:SetDesc(desc) LabelFunc:SetDesc(desc) end
-    function ColorPicker:Callback(func) CPCallback = func end
+    function ColorPicker:Set(color)
+        updateMainColor(color)
+    end
+    function ColorPicker:Get()
+        return ColorButton.BackgroundColor3
+    end
+    function ColorPicker:Visible(visible)
+        Button.Visible = visible
+    end
+    function ColorPicker:Destroy()
+        Button:Destroy()
+        Popup:Destroy()
+        BlockOverlay:Destroy()
+    end
+    function ColorPicker:SetTitle(title)
+        LabelFunc:SetTitle(title)
+    end
+    function ColorPicker:SetDesc(desc)
+        LabelFunc:SetDesc(desc)
+    end
+    function ColorPicker:Callback(func)
+        CPCallback = func
+    end
+
     return ColorPicker
 end
 
