@@ -2183,10 +2183,10 @@ function Tab:AddColorPicker(Configs)
 
     local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -125))
 
-    -- === Área direita: RGB, cor e Hex (Movidas um pouco para a esquerda) ===
+    -- === Área direita: RGB, cor e Hex (Ajustado para -20) ===
     local RightArea = Create("Frame", Button, {
         Size = UDim2.new(0, 115, 1),
-        Position = UDim2.new(1, -10, 0.5), -- Alterado para -10 para deslocar à esquerda
+        Position = UDim2.new(1, -20, 0.5), -- Ajustado para -20 conforme solicitado
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundTransparency = 1
     })
@@ -2327,7 +2327,8 @@ function Tab:AddColorPicker(Configs)
     -- Map pointer
     local MapPointer = Create("Frame", ColorMap, {
         Size = UDim2.new(0, 8, 0, 8),
-        Position = UDim2.new(0.5, -4, 0.5, -4),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
         BorderSizePixel = 1,
         BorderColor3 = Color3.fromRGB(0, 0, 0),
@@ -2335,7 +2336,7 @@ function Tab:AddColorPicker(Configs)
     })
     Make("Corner", MapPointer, UDim.new(1, 0))
 
-    -- Value slider (Corrigido ClipsDescendants para o ponteiro não ser cortado)
+    -- Value slider
     local ValueSlider = Create("Frame", Popup, {
         Size = UDim2.new(1, -16, 0, 14),
         Position = UDim2.new(0, 8, 0, 156),
@@ -2346,9 +2347,11 @@ function Tab:AddColorPicker(Configs)
     Make("Corner", ValueSlider, UDim.new(0, 4))
     local ValueGradient = Create("UIGradient", ValueSlider)
 
+    -- Ponteiro com AnchorPoint para centralização perfeita sem vazar
     local ValuePointer = Create("Frame", ValueSlider, {
         Size = UDim2.new(0, 8, 0, 18),
-        Position = UDim2.new(0, 0, 0.5, -9),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(1, 0, 0.5, 0),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
         BorderSizePixel = 1,
         BorderColor3 = Color3.fromRGB(0, 0, 0),
@@ -2418,7 +2421,7 @@ function Tab:AddColorPicker(Configs)
         local mouseY = math.clamp(input.Position.Y - absPos.Y, 0, absSize.Y)
         currentHue = mouseX / absSize.X
         currentSat = 1 - (mouseY / absSize.Y)
-        MapPointer.Position = UDim2.new(0, mouseX-4, 0, mouseY-4)
+        MapPointer.Position = UDim2.new(currentHue, 0, 1 - currentSat, 0)
         updatePickerVisuals()
     end
 
@@ -2426,9 +2429,7 @@ function Tab:AddColorPicker(Configs)
         local absPos, absSize = ValueSlider.AbsolutePosition, ValueSlider.AbsoluteSize
         local mouseX = math.clamp(input.Position.X - absPos.X, 0, absSize.X)
         currentVal = mouseX / absSize.X
-        -- Limita o ponteiro exatamente dentro dos limites visuais do slider
-        local pointerX = math.clamp(mouseX - 4, 0, absSize.X - 8)
-        ValuePointer.Position = UDim2.new(0, pointerX, 0.5, -9)
+        ValuePointer.Position = UDim2.new(currentVal, 0, 0.5, 0)
         updatePickerVisuals()
     end
 
@@ -2476,9 +2477,8 @@ function Tab:AddColorPicker(Configs)
         pBtn.MouseButton1Click:Connect(function()
             local h,s,v = color:ToHSV()
             currentHue, currentSat, currentVal = h, s, v
-            MapPointer.Position = UDim2.new(currentHue, -4, 1-currentSat, -4)
-            local absWidth = ValueSlider.AbsoluteSize.X > 0 and ValueSlider.AbsoluteSize.X or 214
-            ValuePointer.Position = UDim2.new(0, math.clamp((currentVal * absWidth) - 4, 0, absWidth - 8), 0.5, -9)
+            MapPointer.Position = UDim2.new(currentHue, 0, 1 - currentSat, 0)
+            ValuePointer.Position = UDim2.new(currentVal, 0, 0.5, 0)
             updatePickerVisuals()
         end)
     end
@@ -2487,9 +2487,8 @@ function Tab:AddColorPicker(Configs)
         local startColor = ColorButton.BackgroundColor3
         local h,s,v = startColor:ToHSV()
         currentHue, currentSat, currentVal = h, s, v
-        MapPointer.Position = UDim2.new(currentHue, -4, 1-currentSat, -4)
-        local absWidth = ValueSlider.AbsoluteSize.X > 0 and ValueSlider.AbsoluteSize.X or 214
-        ValuePointer.Position = UDim2.new(0, math.clamp((currentVal * absWidth) - 4, 0, absWidth - 8), 0.5, -9)
+        MapPointer.Position = UDim2.new(currentHue, 0, 1 - currentSat, 0)
+        ValuePointer.Position = UDim2.new(currentVal, 0, 0.5, 0)
         updatePickerVisuals()
         Blocker.Visible = true
         Popup.Visible = true
