@@ -2183,10 +2183,10 @@ function Tab:AddColorPicker(Configs)
 
     local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -125))
 
-    -- === Área direita: RGB, cor e Hex ===
+    -- === Área direita: RGB, cor e Hex (Movidas um pouco para a esquerda) ===
     local RightArea = Create("Frame", Button, {
         Size = UDim2.new(0, 115, 1),
-        Position = UDim2.new(1, 0, 0.5),
+        Position = UDim2.new(1, -10, 0.5), -- Alterado para -10 para deslocar à esquerda
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundTransparency = 1
     })
@@ -2335,20 +2335,20 @@ function Tab:AddColorPicker(Configs)
     })
     Make("Corner", MapPointer, UDim.new(1, 0))
 
-    -- Value slider
+    -- Value slider (Corrigido ClipsDescendants para o ponteiro não ser cortado)
     local ValueSlider = Create("Frame", Popup, {
         Size = UDim2.new(1, -16, 0, 14),
         Position = UDim2.new(0, 8, 0, 156),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
         ZIndex = 101,
-        ClipsDescendants = true
+        ClipsDescendants = false
     })
     Make("Corner", ValueSlider, UDim.new(0, 4))
     local ValueGradient = Create("UIGradient", ValueSlider)
 
     local ValuePointer = Create("Frame", ValueSlider, {
         Size = UDim2.new(0, 8, 0, 18),
-        Position = UDim2.new(0, -4, 0.5, -9),
+        Position = UDim2.new(0, 0, 0.5, -9),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
         BorderSizePixel = 1,
         BorderColor3 = Color3.fromRGB(0, 0, 0),
@@ -2426,7 +2426,9 @@ function Tab:AddColorPicker(Configs)
         local absPos, absSize = ValueSlider.AbsolutePosition, ValueSlider.AbsoluteSize
         local mouseX = math.clamp(input.Position.X - absPos.X, 0, absSize.X)
         currentVal = mouseX / absSize.X
-        ValuePointer.Position = UDim2.new(0, mouseX-4, 0.5, -9)
+        -- Limita o ponteiro exatamente dentro dos limites visuais do slider
+        local pointerX = math.clamp(mouseX - 4, 0, absSize.X - 8)
+        ValuePointer.Position = UDim2.new(0, pointerX, 0.5, -9)
         updatePickerVisuals()
     end
 
@@ -2475,7 +2477,8 @@ function Tab:AddColorPicker(Configs)
             local h,s,v = color:ToHSV()
             currentHue, currentSat, currentVal = h, s, v
             MapPointer.Position = UDim2.new(currentHue, -4, 1-currentSat, -4)
-            ValuePointer.Position = UDim2.new(currentVal, -4, 0.5, -9)
+            local absWidth = ValueSlider.AbsoluteSize.X > 0 and ValueSlider.AbsoluteSize.X or 214
+            ValuePointer.Position = UDim2.new(0, math.clamp((currentVal * absWidth) - 4, 0, absWidth - 8), 0.5, -9)
             updatePickerVisuals()
         end)
     end
@@ -2485,7 +2488,8 @@ function Tab:AddColorPicker(Configs)
         local h,s,v = startColor:ToHSV()
         currentHue, currentSat, currentVal = h, s, v
         MapPointer.Position = UDim2.new(currentHue, -4, 1-currentSat, -4)
-        ValuePointer.Position = UDim2.new(currentVal, -4, 0.5, -9)
+        local absWidth = ValueSlider.AbsoluteSize.X > 0 and ValueSlider.AbsoluteSize.X or 214
+        ValuePointer.Position = UDim2.new(0, math.clamp((currentVal * absWidth) - 4, 0, absWidth - 8), 0.5, -9)
         updatePickerVisuals()
         Blocker.Visible = true
         Popup.Visible = true
@@ -2541,6 +2545,7 @@ function Tab:AddColorPicker(Configs)
     function ColorPicker:Callback(func) CPCallback = func end
     return ColorPicker
 end
+
 
         function Tab:AddDropdown(Configs)
             local DName = Configs[1] or Configs.Name or Configs.Title or "Dropdown"
