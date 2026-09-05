@@ -611,7 +611,7 @@ local function SaveJson(FileName, save)
 end
 
 -- ConfiguraÃ§Ãµes de imagem padrÃ£o
-local DEFAULT_HUB_IMAGE = ""
+local DEFAULT_HUB_IMAGE = "0"
 local DEFAULT_MINIMIZE_IMAGE = "rbxassetid://86050226751861"
 local DEFAULT_TOP_BAR_IMAGE = "rbxassetid://86050226751861"
 
