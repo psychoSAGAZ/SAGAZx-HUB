@@ -2043,6 +2043,7 @@ end)
         end
         
 
+
 function Tab:AddColorPicker(Configs)
     local CPName = Configs[1] or Configs.Name or Configs.Title or "Color Picker"
     local CPDesc = Configs.Desc or Configs.Description or ""
@@ -2079,14 +2080,14 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", RGBBox, UDim.new(0, 3))
 
-    -- Botão de cor
-    local ColorButton = InsertTheme(Create("ImageButton", RightArea, {
+    -- Botão de cor (Sem InsertTheme para não ter a cor sobrescrita pelo sistema de temas)
+    local ColorButton = Create("ImageButton", RightArea, {
         Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0, 50, 0.5, -9),
         BackgroundColor3 = CPDefault,
         AutoButtonColor = false,
         Image = ""
-    }), "Frame")
+    })
     Make("Corner", ColorButton, UDim.new(0, 3))
 
     -- Hex
@@ -2124,10 +2125,6 @@ function Tab:AddColorPicker(Configs)
         Name = "ColorPickerPopup"
     })
     Make("Corner", Popup, UDim.new(0, 8))
-
-    local PopupGradient = Create("UIGradient", Popup, {
-        Color = Theme["Color Hub 1"]
-    })
 
     Make("Stroke", Popup)
 
@@ -2249,7 +2246,7 @@ function Tab:AddColorPicker(Configs)
     local previewColor = CPDefault
     local draggingMap, draggingSlider = false, false
     local inputMapConn, inputSliderConn, inputEndConn
-    local isUpdating = false -- Trava de segurança contra recursão
+    local isUpdating = false
 
     local function colorToHex(c)
         return string.format("#%02X%02X%02X", math.round(c.R*255), math.round(c.G*255), math.round(c.B*255))
@@ -2418,7 +2415,6 @@ function Tab:AddColorPicker(Configs)
         end
     end)
 
-    -- Inicialização ignorando o callback para evitar inicializar o loop na criação
     updateMainColor(CPDefault, true)
     updatePickerVisuals()
 
@@ -2432,7 +2428,6 @@ function Tab:AddColorPicker(Configs)
     function ColorPicker:Callback(func) CPCallback = func end
     return ColorPicker
 end
-
 
 
         function Tab:AddDropdown(Configs)
