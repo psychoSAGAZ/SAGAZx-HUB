@@ -1275,6 +1275,148 @@ function MyLibrary:GetScale()
     return UIScale
 end
 
+-- Caminho do arquivo de temas salvos
+local CUSTOM_THEMES_FILE = LibFolder .. "/custom_themes.json"
+
+-- Função para salvar o tema atual com um nome
+function MyLibrary:SaveCurrentTheme(themeName)
+    if type(themeName) ~= "string" or themeName:gsub(" ", ""):len() == 0 then
+        warn("Nome do tema inválido.")
+        return false
+    end
+
+    -- Coleta todas as configurações atuais
+    local themeData = {
+        Colors = {},
+        Images = {},
+        Transparency = {}
+    }
+
+    -- Salva cores do tema
+    for key, _ in pairs(MyLibrary.Themes[MyLibrary.Save.Theme]) do
+        themeData.Colors[key] = SerializeThemeValue(Theme[key])
+    end
+
+    -- Salva cores de borda
+    themeData.Colors.StrokeColor = MyLibrary.Save.StrokeColor
+    themeData.Colors.MinimizeStrokeColor = MyLibrary.Save.MinimizeStrokeColor
+
+    -- Salva imagens
+    themeData.Images.HubImage = CurrentImageSettings.HubImage or ""
+    themeData.Images.MinimizeImage = CurrentImageSettings.MinimizeImage or ""
+    themeData.Images.TopbarImage = CurrentImageSettings.TopbarImage or ""
+
+    -- Salva transparências
+    themeData.Transparency.Global = MyLibrary.Save.GlobalTransparency
+    themeData.Transparency.Hub = MyLibrary.Save.HubTransparency
+    themeData.Transparency.HubImage = MyLibrary.Save.HubImageTransparency
+    themeData.Transparency.Stroke = MyLibrary.Save.StrokeTransparency
+
+    -- Carrega temas existentes
+    local allThemes = {}
+    if isfile and isfile(CUSTOM_THEMES_FILE) then
+        local ok, decoded = pcall(function()
+            return HttpService:JSONDecode(readfile(CUSTOM_THEMES_FILE))
+        end)
+        if ok and type(decoded) == "table" then
+            allThemes = decoded
+        end
+    end
+
+    -- Adiciona/substitui o tema
+    allThemes[themeName] = themeData
+
+    -- Salva no arquivo
+    local ok, err = pcall(function()
+        writefile(CUSTOM_THEMES_FILE, HttpService:JSONEncode(allThemes))
+    end)
+
+    if ok then
+        return true
+    else
+        warn("Erro ao salvar tema:", err)
+        return false
+    end
+end
+
+-- Função para carregar a lista de temas salvos
+function MyLibrary:GetSavedThemes()
+    if not isfile or not isfile(CUSTOM_THEMES_FILE) then
+        return {}
+    end
+
+    local ok, decoded = pcall(function()
+        return HttpService:JSONDecode(readfile(CUSTOM_THEMES_FILE))
+    end)
+
+    if ok and type(decoded) == "table" then
+        return decoded
+    end
+    return {}
+end
+
+-- Função para equipar um tema salvo
+function MyLibrary:LoadCustomTheme(themeName)
+    local themes = self:GetSavedThemes()
+    local themeData = themes[themeName]
+
+    if not themeData then
+        warn("Tema não encontrado:", tostring(themeName))
+        return false
+    end
+
+    -- Aplica cores
+    if themeData.Colors then
+        for key, serialized in pairs(themeData.Colors) do
+            if key == "StrokeColor" or key == "MinimizeStrokeColor" then
+                MyLibrary.Save[key] = serialized
+                SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+            else
+                local color = DeserializeThemeValue(serialized)
+                if color and Theme[key] ~= nil then
+                    Theme[key] = color
+                    MyLibrary.Save.CustomColors[key] = serialized
+                    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+                end
+            end
+        end
+    end
+
+    -- Aplica imagens
+    if themeData.Images then
+        if themeData.Images.HubImage and themeData.Images.HubImage ~= "" then
+            self:SetHubImage(themeData.Images.HubImage)
+        else
+            self:ResetHubImage()
+        end
+
+        if themeData.Images.MinimizeImage and themeData.Images.MinimizeImage ~= "" then
+            self:SetMinimizeImage(themeData.Images.MinimizeImage)
+        else
+            self:ResetMinimizeImage()
+        end
+
+        if themeData.Images.TopbarImage and themeData.Images.TopbarImage ~= "" then
+            self:SetTopbarImage(themeData.Images.TopbarImage)
+        else
+            self:ResetTopbarImage()
+        end
+    end
+
+    -- Aplica transparências
+    if themeData.Transparency then
+        self:SetGlobalTransparency(themeData.Transparency.Global or 0)
+        self:SetHubTransparency(themeData.Transparency.Hub or 0)
+        self:SetHubImageTransparency(themeData.Transparency.HubImage or 0)
+        self:SetStrokeTransparency(themeData.Transparency.Stroke or 0)
+    end
+
+    -- Atualiza elementos visuais
+    Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
+
+    return true
+end
+
 function MyLibrary:SetFont(fontInput)
     if type(fontInput) == "string" then
         fontInput = Enum.Font[fontInput]
@@ -3646,7 +3788,7 @@ function Tab:AddTextBox(Configs)
         TextColor3 = Theme["Color Text"],
         ClearTextOnFocus = TClearText,
         PlaceholderText = TPlaceholderText,
-        Text = TDefault  -- 👈 agora usa o Default
+        Text = TDefault  --  agora usa o Default
     }), "Text")
 
     local Pencil = Create("ImageLabel", SelectedFrame, {
@@ -3680,7 +3822,7 @@ function Tab:AddTextBox(Configs)
     TextBox.OnChanging = false
     function TextBox:Visible(...) Funcs:ToggleVisible(Button, ...) end
     function TextBox:Destroy() Button:Destroy() end
-    function TextBox:Set(NewText)  -- 👈 novo método para atualizar o texto
+    function TextBox:Set(NewText)  --  novo método para atualizar o texto
         if type(NewText) == "string" then
             TextBoxInput.Text = NewText
         end
