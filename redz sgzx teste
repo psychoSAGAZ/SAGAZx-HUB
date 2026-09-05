@@ -1298,65 +1298,7 @@ function MyLibrary:SetFont(fontInput)
     end
 end
 
-function MyLibrary:LoadCustomTheme(themeName)
-    local themes = self:GetSavedThemes()
-    local themeData = themes[themeName]
 
-    if not themeData then
-        warn("Tema não encontrado:", tostring(themeName))
-        return false
-    end
-
-    -- Aplica cores do tema
-    if themeData.Colors then
-        for key, serialized in pairs(themeData.Colors) do
-            if key == "StrokeColor" then
-                MyLibrary:SetStrokeColor(serialized)
-            elseif key == "MinimizeStrokeColor" then
-                MyLibrary:SetMinimizeStrokeColor(serialized)
-            else
-                local color = DeserializeThemeValue(serialized)
-                if color then
-                    MyLibrary:SetThemeColor(key, color)
-                end
-            end
-        end
-    end
-
-    -- Aplica imagens
-    if themeData.Images then
-        if themeData.Images.HubImage and themeData.Images.HubImage ~= "" then
-            self:SetHubImage(themeData.Images.HubImage)
-        else
-            self:ResetHubImage()
-        end
-
-        if themeData.Images.MinimizeImage and themeData.Images.MinimizeImage ~= "" then
-            self:SetMinimizeImage(themeData.Images.MinimizeImage)
-        else
-            self:ResetMinimizeImage()
-        end
-
-        if themeData.Images.TopbarImage and themeData.Images.TopbarImage ~= "" then
-            self:SetTopbarImage(themeData.Images.TopbarImage)
-        else
-            self:ResetTopbarImage()
-        end
-    end
-
-    -- Aplica transparências
-    if themeData.Transparency then
-        self:SetGlobalTransparency(themeData.Transparency.Global or 0)
-        self:SetHubTransparency(themeData.Transparency.Hub or 0)
-        self:SetHubImageTransparency(themeData.Transparency.HubImage or 0)
-        self:SetStrokeTransparency(themeData.Transparency.Stroke or 0)
-    end
-
-    -- Notifica mudança de tema (opcional)
-    Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
-
-    return true
-end
 
 function MyLibrary:SetRainbowToggleEnabled(enabled)
     MyLibrary.Save.RainbowToggleEnabled = enabled == true
