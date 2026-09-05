@@ -1275,87 +1275,29 @@ function MyLibrary:GetScale()
     return UIScale
 end
 
--- Caminho do arquivo de temas salvos
-local CUSTOM_THEMES_FILE = LibFolder .. "/custom_themes.json"
-
--- Função para salvar o tema atual com um nome
-function MyLibrary:SaveCurrentTheme(themeName)
-    if type(themeName) ~= "string" or themeName:gsub(" ", ""):len() == 0 then
-        warn("Nome do tema inválido.")
-        return false
+function MyLibrary:SetFont(fontInput)
+    if type(fontInput) == "string" then
+        fontInput = Enum.Font[fontInput]
     end
 
-    -- Coleta todas as configurações atuais
-    local themeData = {
-        Colors = {},
-        Images = {},
-        Transparency = {}
-    }
-
-    -- Salva cores do tema
-    for key, _ in pairs(MyLibrary.Themes[MyLibrary.Save.Theme]) do
-        themeData.Colors[key] = SerializeThemeValue(Theme[key])
+    if typeof(fontInput) ~= "EnumItem" or fontInput.EnumType ~= Enum.Font then
+        warn("Fonte invÃ¡lida. Use uma string ou Enum.Font.")
+        return
     end
 
-    -- Salva cores de borda
-    themeData.Colors.StrokeColor = MyLibrary.Save.StrokeColor
-    themeData.Colors.MinimizeStrokeColor = MyLibrary.Save.MinimizeStrokeColor
+    MyLibrary.Save.Font = fontInput.Name
+    MyLibrary.CurrentFont = fontInput
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
 
-    -- Salva imagens
-    themeData.Images.HubImage = CurrentImageSettings.HubImage or ""
-    themeData.Images.MinimizeImage = CurrentImageSettings.MinimizeImage or ""
-    themeData.Images.TopbarImage = CurrentImageSettings.TopbarImage or ""
-
-    -- Salva transparências
-    themeData.Transparency.Global = MyLibrary.Save.GlobalTransparency
-    themeData.Transparency.Hub = MyLibrary.Save.HubTransparency
-    themeData.Transparency.HubImage = MyLibrary.Save.HubImageTransparency
-    themeData.Transparency.Stroke = MyLibrary.Save.StrokeTransparency
-
-    -- Carrega temas existentes
-    local allThemes = {}
-    if isfile and isfile(CUSTOM_THEMES_FILE) then
-        local ok, decoded = pcall(function()
-            return HttpService:JSONDecode(readfile(CUSTOM_THEMES_FILE))
-        end)
-        if ok and type(decoded) == "table" then
-            allThemes = decoded
+    -- Atualiza todos os textos existentes
+    for _, val in ipairs(MyLibrary.Instances) do
+        local inst = val.Instance
+        if inst:IsA("TextLabel") or inst:IsA("TextButton") or inst:IsA("TextBox") then
+            inst.Font = fontInput
         end
     end
-
-    -- Adiciona/substitui o tema
-    allThemes[themeName] = themeData
-
-    -- Salva no arquivo
-    local ok, err = pcall(function()
-        writefile(CUSTOM_THEMES_FILE, HttpService:JSONEncode(allThemes))
-    end)
-
-    if ok then
-        return true
-    else
-        warn("Erro ao salvar tema:", err)
-        return false
-    end
 end
 
--- Função para carregar a lista de temas salvos
-function MyLibrary:GetSavedThemes()
-    if not isfile or not isfile(CUSTOM_THEMES_FILE) then
-        return {}
-    end
-
-    local ok, decoded = pcall(function()
-        return HttpService:JSONDecode(readfile(CUSTOM_THEMES_FILE))
-    end)
-
-    if ok and type(decoded) == "table" then
-        return decoded
-    end
-    return {}
-end
-
--- Função para equipar um tema salvo
 function MyLibrary:LoadCustomTheme(themeName)
     local themes = self:GetSavedThemes()
     local themeData = themes[themeName]
@@ -1365,18 +1307,17 @@ function MyLibrary:LoadCustomTheme(themeName)
         return false
     end
 
-    -- Aplica cores
+    -- Aplica cores do tema
     if themeData.Colors then
         for key, serialized in pairs(themeData.Colors) do
-            if key == "StrokeColor" or key == "MinimizeStrokeColor" then
-                MyLibrary.Save[key] = serialized
-                SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+            if key == "StrokeColor" then
+                MyLibrary:SetStrokeColor(serialized)
+            elseif key == "MinimizeStrokeColor" then
+                MyLibrary:SetMinimizeStrokeColor(serialized)
             else
                 local color = DeserializeThemeValue(serialized)
-                if color and Theme[key] ~= nil then
-                    Theme[key] = color
-                    MyLibrary.Save.CustomColors[key] = serialized
-                    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+                if color then
+                    MyLibrary:SetThemeColor(key, color)
                 end
             end
         end
@@ -1411,33 +1352,10 @@ function MyLibrary:LoadCustomTheme(themeName)
         self:SetStrokeTransparency(themeData.Transparency.Stroke or 0)
     end
 
-    -- Atualiza elementos visuais
+    -- Notifica mudança de tema (opcional)
     Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
 
     return true
-end
-
-function MyLibrary:SetFont(fontInput)
-    if type(fontInput) == "string" then
-        fontInput = Enum.Font[fontInput]
-    end
-
-    if typeof(fontInput) ~= "EnumItem" or fontInput.EnumType ~= Enum.Font then
-        warn("Fonte invÃ¡lida. Use uma string ou Enum.Font.")
-        return
-    end
-
-    MyLibrary.Save.Font = fontInput.Name
-    MyLibrary.CurrentFont = fontInput
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-
-    -- Atualiza todos os textos existentes
-    for _, val in ipairs(MyLibrary.Instances) do
-        local inst = val.Instance
-        if inst:IsA("TextLabel") or inst:IsA("TextButton") or inst:IsA("TextBox") then
-            inst.Font = fontInput
-        end
-    end
 end
 
 function MyLibrary:SetRainbowToggleEnabled(enabled)
