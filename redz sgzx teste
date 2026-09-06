@@ -44,6 +44,7 @@ Save = {
     ClickSoundId = "rbxassetid://18998603679",
     ClickSoundVolume = 0.1,
     RainbowToggleEnabled = false,
+    SaveRainbowStates = false,  -- se true, salva estado dos toggles rainbow
 },
     Settings = {},
     Connection = {},
@@ -162,6 +163,9 @@ if rawget(decoded, "ClickSoundVolume") then
 end
 if rawget(decoded, "RainbowToggleEnabled") then
     MyLibrary.Save.RainbowToggleEnabled = decoded.RainbowToggleEnabled == true
+end
+if rawget(decoded, "SaveRainbowStates") then
+    MyLibrary.Save.SaveRainbowStates = decoded.SaveRainbowStates == true
 end
     end
 end
@@ -1301,7 +1305,14 @@ function MyLibrary:SetFont(fontInput)
     end
 end
 
+function MyLibrary:SetSaveRainbowStates(enabled)
+    MyLibrary.Save.SaveRainbowStates = enabled == true
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+end
 
+function MyLibrary:GetSaveRainbowStates()
+    return MyLibrary.Save.SaveRainbowStates
+end
 
 function MyLibrary:SetRainbowToggleEnabled(enabled)
     MyLibrary.Save.RainbowToggleEnabled = enabled == true
@@ -2051,11 +2062,11 @@ function Tab:AddRainbowToggle(Configs)
 
     -- Se não tiver flag, usa um valor temporário (não salva)
     local Default = false
-    if Flag and MyLibrary.Save[Flag] ~= nil then
-        Default = MyLibrary.Save[Flag] == true
-    else
-        Default = Configs.Default or false
-    end
+if Flag and MyLibrary.Save.SaveRainbowStates and MyLibrary.Save[Flag] ~= nil then
+    Default = MyLibrary.Save[Flag] == true
+else
+    Default = Configs.Default or false
+end
 
     -- Se tiver flag, inicializa no Save
     if Flag then
@@ -2132,10 +2143,10 @@ function Tab:AddRainbowToggle(Configs)
 
         Default = state
 
-        if Flag then
-            MyLibrary.Save[Flag] = state
-            SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-        end
+if Flag and MyLibrary.Save.SaveRainbowStates then
+    MyLibrary.Save[Flag] = state
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+end
 
         UpdateRainbowAppearance(state)
         task.spawn(Callback, state)
