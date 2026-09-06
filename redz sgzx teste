@@ -1577,7 +1577,7 @@ end)
         WaitClick = false
     end
 
--- ==================== SISTEMA DE CONFIGURAÇÕES ====================
+-- ==================== SISTEMA DE CONFIGURAÇÕES (SIMPLIFICADO) ====================
 local SettingsOpen = false
 local SettingsFrame = nil
 local SettingsTabs = {}
@@ -1587,16 +1587,16 @@ function Window:CreateSettingsWindow(Configs)
     local SWTitle = Configs and (Configs.Title or Configs.Name) or "Configurações"
     local SWSize = Configs and Configs.Size or {400, 300}
     
-    SettingsFrame = InsertTheme(Create("Frame", ScreenGui, {
+    -- Cria o frame PRINCIPAL da janela de configurações
+    SettingsFrame = Create("Frame", ScreenGui, {
         Size = UDim2.fromOffset(SWSize[1], SWSize[2]),
         Position = UDim2.new(0.5, -SWSize[1]/2, 0.5, -SWSize[2]/2),
-        BackgroundTransparency = 0.03,
         BackgroundColor3 = Theme["Color Hub 2"],
         Name = "SettingsWindow",
         Visible = false,
-        ZIndex = 10
-    }), "Main")
-    
+        ZIndex = 10,
+        Active = true
+    })
     Make("Gradient", SettingsFrame, { Rotation = 45 })
     ApplyBorder(SettingsFrame)
     MakeDrag(SettingsFrame)
@@ -1609,7 +1609,8 @@ function Window:CreateSettingsWindow(Configs)
         Name = "SettingsTopBar"
     })
     
-    local SettingsTitle = InsertTheme(Create("TextLabel", SettingsTopBar, {
+    -- Título
+    local SettingsTitle = Create("TextLabel", SettingsTopBar, {
         Position = UDim2.new(0, 10, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         AutomaticSize = "XY",
@@ -1619,54 +1620,51 @@ function Window:CreateSettingsWindow(Configs)
         TextColor3 = Theme["Color Text"],
         BackgroundTransparency = 1,
         Font = MyLibrary.CurrentFont
-    }), "Text")
+    })
     
+    -- Botão fechar
     local SettingsClose = Create("ImageButton", SettingsTopBar, {
         Size = UDim2.new(0, 12, 0, 12),
         Position = UDim2.new(1, -10, 0.5),
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundTransparency = 1,
         Image = "rbxassetid://10747384394",
-        AutoButtonColor = false,
-        Name = "SettingsClose"
+        AutoButtonColor = false
     })
-    
     SettingsClose.Activated:Connect(function()
-        Window:ToggleSettingsWindow(false)
+        SettingsFrame.Visible = false
     end)
     
-    -- Scroll de tabs (IGUAL ao MainScroll original)
-    local SettingsTabScroll = InsertTheme(Create("ScrollingFrame", SettingsFrame, {
-        Size = UDim2.new(0, 120, 1, -SettingsTopBar.Size.Y.Offset),
+    -- Scroll de Tabs (esquerda)
+    local SettingsTabScroll = Create("ScrollingFrame", SettingsFrame, {
+        Size = UDim2.new(0, 120, 1, -30),
         Position = UDim2.new(0, 0, 1, 0),
         AnchorPoint = Vector2.new(0, 1),
-        ScrollBarImageColor3 = Theme["Color Theme"],
-        ScrollBarThickness = 1.5,
+        ScrollBarThickness = 1,
         BackgroundTransparency = 1,
-        ScrollBarImageTransparency = 0.2,
         CanvasSize = UDim2.new(),
         AutomaticCanvasSize = "Y",
         ScrollingDirection = "Y",
-        BorderSizePixel = 0,
-        Name = "SettingsTabScroll"
-    }, {
-        Create("UIPadding", {
-            PaddingLeft = UDim.new(0, 8),
-            PaddingRight = UDim.new(0, 8),
-            PaddingTop = UDim.new(0, 8),
-            PaddingBottom = UDim.new(0, 8)
-        }),
-        Create("UIListLayout", { Padding = UDim.new(0, 4) })
-    }), "ScrollBar")
+        BorderSizePixel = 0
+    })
     
-    -- Container das tabs (IGUAL ao Containers original)
+    local TabList = Create("UIListLayout", SettingsTabScroll, {
+        Padding = UDim.new(0, 4)
+    })
+    local TabPadding = Create("UIPadding", SettingsTabScroll, {
+        PaddingLeft = UDim.new(0, 8),
+        PaddingRight = UDim.new(0, 8),
+        PaddingTop = UDim.new(0, 8),
+        PaddingBottom = UDim.new(0, 8)
+    })
+    
+    -- Container dos componentes (direita)
     local SettingsContainers = Create("Frame", SettingsFrame, {
-        Size = UDim2.new(1, -SettingsTabScroll.Size.X.Offset, 1, -SettingsTopBar.Size.Y.Offset),
+        Size = UDim2.new(1, -120, 1, -30),
         AnchorPoint = Vector2.new(1, 1),
         Position = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
-        ClipsDescendants = true,
-        Name = "SettingsContainers"
+        ClipsDescendants = true
     })
     
     local SettingsWindowObj = {}
@@ -1678,173 +1676,101 @@ function Window:CreateSettingsWindow(Configs)
         else
             SettingsFrame.Visible = visible
         end
-        SettingsOpen = SettingsFrame.Visible
     end
     
     function SettingsWindowObj:MakeTab(Configs)
         local STName = Configs and (Configs.Title or Configs.Name or "Tab") or "Tab"
-        local STIcon = Configs and Configs.Icon or ""
         
-        STIcon = MyLibrary:GetIcon(STIcon)
-        if not STIcon or not STIcon:find("rbxassetid://") then
-            STIcon = false
-        end
-        
-        -- IGUAL ao TabSelect original
-        local TabSelect = Make("Button", SettingsTabScroll, {
+        -- Botão da Tab
+        local TabButton = Make("Button", SettingsTabScroll, {
             Size = UDim2.new(1, 0, 0, 24)
         })
-        ApplyBorder(TabSelect)
-        Make("Corner", TabSelect)
+        Make("Corner", TabButton, UDim.new(0, 4))
         
-        local LabelTitle = InsertTheme(Create("TextLabel", TabSelect, {
-            Size = UDim2.new(1, STIcon and -25 or -15, 1),
-            Position = UDim2.fromOffset(STIcon and 25 or 15),
+        local TabLabel = Create("TextLabel", TabButton, {
+            Size = UDim2.new(1, -10, 1),
+            Position = UDim2.new(0, 10, 0),
             BackgroundTransparency = 1,
             Font = MyLibrary.CurrentFont,
             Text = STName,
             TextColor3 = Theme["Color Text"],
             TextSize = 10,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            TextTransparency = (SettingsFirstTab and 0.3) or 0,
-            TextTruncate = "AtEnd"
-        }), "Text")
+            TextXAlignment = "Left"
+        })
         
-        local LabelIcon
-        if STIcon then
-            LabelIcon = InsertTheme(Create("ImageLabel", TabSelect, {
-                Position = UDim2.new(0, 8, 0.5),
-                Size = UDim2.new(0, 13, 0, 13),
-                AnchorPoint = Vector2.new(0, 0.5),
-                Image = STIcon,
-                BackgroundTransparency = 1,
-                ImageTransparency = (SettingsFirstTab and 0.3) or 0
-            }), "Text")
-        end
-        
-        local Selected = InsertTheme(Create("Frame", TabSelect, {
-            Size = SettingsFirstTab and UDim2.new(0, 4, 0, 4) or UDim2.new(0, 4, 0, 13),
-            Position = UDim2.new(0, 1, 0.5),
-            AnchorPoint = Vector2.new(0, 0.5),
-            BackgroundColor3 = Theme["Color Theme"],
-            BackgroundTransparency = SettingsFirstTab and 1 or 0
-        }), "Theme")
-        Make("Corner", Selected, UDim.new(0.5, 0))
-        
-        -- IGUAL ao Container original
-        local Container = InsertTheme(Create("ScrollingFrame", {
+        -- Container da Tab
+        local Container = Create("ScrollingFrame", {
             Size = UDim2.new(1, 0, 1, 0),
             Position = UDim2.new(0, 0, 1),
             AnchorPoint = Vector2.new(0, 1),
             ScrollBarThickness = 1.5,
             BackgroundTransparency = 1,
-            ScrollBarImageTransparency = 0.2,
             ScrollBarImageColor3 = Theme["Color Theme"],
             AutomaticCanvasSize = "Y",
             ScrollingDirection = "Y",
             BorderSizePixel = 0,
-            CanvasSize = UDim2.new(),
-            Name = ("SettingsContainer_%s"):format(STName)
-        }, {
-            Create("UIPadding", {
-                PaddingLeft = UDim.new(0, 10),
-                PaddingRight = UDim.new(0, 10),
-                PaddingTop = UDim.new(0, 10),
-                PaddingBottom = UDim.new(0, 10)
-            }),
-            Create("UIListLayout", { Padding = UDim.new(0, 5) })
-        }), "ScrollBar")
-        ApplyBorder(Container)
+            CanvasSize = UDim2.new()
+        })
+        
+        local ContainerList = Create("UIListLayout", Container, {
+            Padding = UDim.new(0, 5)
+        })
+        local ContainerPadding = Create("UIPadding", Container, {
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
+        })
         
         table.insert(SettingsContainerList, Container)
-        if not SettingsFirstTab then
+        if #SettingsContainerList == 1 then
             Container.Parent = SettingsContainers
         end
         
-        -- Função de troca de tabs (IGUAL ao original)
-        local function Tabs()
-            if Container.Parent then return end
-            for _, Frame in pairs(SettingsContainerList) do
-                if Frame:IsA("ScrollingFrame") and Frame ~= Container then
-                    Frame.Parent = nil
+        TabButton.Activated:Connect(function()
+            for _, c in ipairs(SettingsContainerList) do
+                if c ~= Container then
+                    c.Parent = nil
                 end
             end
             Container.Parent = SettingsContainers
-            Container.Size = UDim2.new(1, 0, 1, 150)
-            table.foreach(SettingsTabs, function(_, Tab)
-                if Tab.Cont ~= Container then
-                    Tab.func:Disable()
-                end
-            end)
-            CreateTween({Container, "Size", UDim2.new(1, 0, 1, 0), 0.3})
-            CreateTween({LabelTitle, "TextTransparency", 0, 0.35})
-            if LabelIcon then
-                CreateTween({LabelIcon, "ImageTransparency", 0, 0.35})
-            end
-            CreateTween({Selected, "Size", UDim2.new(0, 4, 0, 13), 0.35})
-            CreateTween({Selected, "BackgroundTransparency", 0, 0.35})
-        end
-        TabSelect.Activated:Connect(Tabs)
+        end)
         
-        SettingsFirstTab = true
         local Tab = {}
-        table.insert(SettingsTabs, {func = Tab, Cont = Container})
         Tab.Cont = Container
         
-        function Tab:Disable()
-            Container.Parent = nil
-            CreateTween({LabelTitle, "TextTransparency", 0.3, 0.35})
-            if LabelIcon then
-                CreateTween({LabelIcon, "ImageTransparency", 0.3, 0.35})
-            end
-            CreateTween({Selected, "Size", UDim2.new(0, 4, 0, 4), 0.35})
-            CreateTween({Selected, "BackgroundTransparency", 1, 0.35})
-        end
-        
-        function Tab:Enable()
-            Tabs()
-        end
-        
-        -- MÉTODOS IDÊNTICOS AOS DA TAB ORIGINAL
+        -- ===== MÉTODOS DA TAB =====
         function Tab:AddSection(Configs)
             local SectionName = type(Configs) == "string" and Configs or Configs[1] or Configs.Name or Configs.Title or "Section"
             
             local SectionFrame = Create("Frame", Container, {
                 Size = UDim2.new(1, 0, 0, 20),
-                BackgroundTransparency = 1,
-                Name = "Option"
+                BackgroundTransparency = 1
             })
-            Make("Corner", SectionFrame, UDim.new(0, 6))
             
-            local SectionLabel = InsertTheme(Create("TextLabel", SectionFrame, {
+            local SectionLabel = Create("TextLabel", SectionFrame, {
                 Font = MyLibrary.CurrentFont,
                 Text = SectionName,
                 TextColor3 = Theme["Color Text"],
                 Size = UDim2.new(1, -25, 1, 0),
                 Position = UDim2.new(0, 5),
                 BackgroundTransparency = 1,
-                TextTruncate = "AtEnd",
                 TextSize = 11,
                 TextXAlignment = "Left"
-            }), "Text")
+            })
             
             local Section = {}
-            function Section:Visible(Bool)
-                SectionFrame.Visible = Bool ~= nil and Bool or not SectionFrame.Visible
-            end
+            function Section:Visible(Bool) SectionFrame.Visible = Bool ~= nil and Bool or not SectionFrame.Visible end
             function Section:Destroy() SectionFrame:Destroy() end
-            function Section:Set(New)
-                if New then SectionLabel.Text = GetStr(New) end
-            end
+            function Section:Set(New) if New then SectionLabel.Text = GetStr(New) end end
             return Section
         end
         
         function Tab:AddButton(Configs)
             local BName = Configs[1] or Configs.Name or Configs.Title or "Button"
-            local BDesc = Configs.Desc or Configs.Description or ""
             local Callback = Funcs:GetCallback(Configs, 2)
             
-            local FButton, LabelFunc = ButtonFrame(Container, BName, BDesc, UDim2.new(1, -20))
+            local FButton, LabelFunc = ButtonFrame(Container, BName, "", UDim2.new(1, -20))
             FButton.Activated:Connect(function()
                 Funcs:FireCallback(Callback)
             end)
@@ -1852,49 +1778,32 @@ function Window:CreateSettingsWindow(Configs)
             local Button = {}
             function Button:Visible(...) Funcs:ToggleVisible(FButton, ...) end
             function Button:Destroy() FButton:Destroy() end
-            function Button:Set(Val1, Val2)
-                if type(Val1) == "string" and type(Val2) == "string" then
-                    LabelFunc:SetTitle(Val1)
-                    LabelFunc:SetDesc(Val2)
-                elseif type(Val1) == "string" then
-                    LabelFunc:SetTitle(Val1)
-                end
-            end
             return Button
         end
         
         function Tab:AddToggle(Configs)
             local TName = Configs[1] or Configs.Name or Configs.Title or "Toggle"
-            local TDesc = Configs.Desc or Configs.Description or ""
             local Callback = Funcs:GetCallback(Configs, 3)
             local Flag = Configs[4] or Configs.Flag or false
             local Default = Configs[2] or Configs.Default or false
             if CheckFlag(Flag) then Default = GetFlag(Flag) end
             
-            local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
+            local Button, LabelFunc = ButtonFrame(Container, TName, "", UDim2.new(1, -38))
             
-            local ToggleHolder = InsertTheme(Create("Frame", Button, {
+            local ToggleHolder = Create("Frame", Button, {
                 Size = UDim2.new(0, 35, 0, 18),
                 Position = UDim2.new(1, -10, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundColor3 = Theme["Color Stroke"]
-            }), "Stroke")
-            AddTransparency(ToggleHolder)
+            })
             Make("Corner", ToggleHolder, UDim.new(0.5, 0))
             
-            local Slider = Create("Frame", ToggleHolder, {
-                BackgroundTransparency = 1,
-                Size = UDim2.new(0.8, 0, 0.8, 0),
-                Position = UDim2.new(0.5, 0, 0.5, 0),
-                AnchorPoint = Vector2.new(0.5, 0.5)
-            })
-            
-            local Toggle = InsertTheme(Create("Frame", Slider, {
+            local Toggle = Create("Frame", ToggleHolder, {
                 Size = UDim2.new(0, 12, 0, 12),
-                Position = UDim2.new(0, 0, 0.5),
+                Position = UDim2.new(0, 3, 0.5),
                 AnchorPoint = Vector2.new(0, 0.5),
                 BackgroundColor3 = Theme["Color Theme"]
-            }), "Theme")
+            })
             Make("Corner", Toggle, UDim.new(0.5, 0))
             
             local function SetToggle(Val)
@@ -1903,11 +1812,11 @@ function Window:CreateSettingsWindow(Configs)
                 Funcs:FireCallback(Callback, Default)
                 
                 if Default then
-                    CreateTween({Toggle, "Position", UDim2.new(1, 0, 0.5), 0.25})
-                    CreateTween({Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.25})
+                    CreateTween({Toggle, "Position", UDim2.new(1, -3, 0.5), 0.2})
+                    CreateTween({Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.2})
                 else
-                    CreateTween({Toggle, "Position", UDim2.new(0, 0, 0.5), 0.25})
-                    CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.25})
+                    CreateTween({Toggle, "Position", UDim2.new(0, 3, 0.5), 0.2})
+                    CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.2})
                 end
             end
             
@@ -1918,66 +1827,49 @@ function Window:CreateSettingsWindow(Configs)
             end)
             
             local ToggleObj = {}
-            function ToggleObj:Set(Val1, Val2)
-                if type(Val1) == "boolean" then
-                    SetToggle(Val1)
-                elseif type(Val1) == "string" then
-                    LabelFunc:SetTitle(Val1)
-                    if Val2 then LabelFunc:SetDesc(Val2) end
-                end
-            end
+            function ToggleObj:Set(Val) if type(Val) == "boolean" then SetToggle(Val) end end
             return ToggleObj
         end
         
         function Tab:AddSlider(Configs)
             local SName = Configs[1] or Configs.Name or Configs.Title or "Slider"
-            local SDesc = Configs.Desc or Configs.Description or ""
             local Min = Configs[2] or Configs.Min or 0
             local Max = Configs[3] or Configs.Max or 100
             local Default = Configs[4] or Configs.Default or 50
             local Callback = Funcs:GetCallback(Configs, 5)
             
-            local Button, LabelFunc = ButtonFrame(Container, SName, SDesc, UDim2.new(1, -100))
+            local Button, LabelFunc = ButtonFrame(Container, SName, "", UDim2.new(1, -100))
             
-            local SliderHolder = Create("TextButton", Button, {
-                Size = UDim2.new(0.45, 0, 1),
-                Position = UDim2.new(1),
-                AnchorPoint = Vector2.new(1, 0),
-                AutoButtonColor = false,
-                Text = "",
-                BackgroundTransparency = 1
+            local SliderBar = Create("Frame", Button, {
+                Size = UDim2.new(0, 80, 0, 5),
+                Position = UDim2.new(1, -10, 0.5),
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundColor3 = Theme["Color Stroke"]
             })
-            
-            local SliderBar = InsertTheme(Create("Frame", SliderHolder, {
-                BackgroundColor3 = Theme["Color Stroke"],
-                Size = UDim2.new(1, -20, 0, 5),
-                Position = UDim2.new(0.5, 0, 0.5),
-                AnchorPoint = Vector2.new(0.5, 0.5)
-            }), "Stroke")
-            AddTransparency(SliderBar)
             Make("Corner", SliderBar)
-            
-            local Indicator = InsertTheme(Create("Frame", SliderBar, {
-                BackgroundColor3 = Theme["Color Theme"],
-                Size = UDim2.fromScale(0.5, 1),
-                BorderSizePixel = 0
-            }), "Theme")
-            Make("Corner", Indicator)
             
             local SliderIcon = Create("Frame", SliderBar, {
                 Size = UDim2.new(0, 5, 0, 10),
-                BackgroundColor3 = Color3.fromRGB(220, 220, 220),
                 Position = UDim2.fromScale(0.5, 0.5),
-                AnchorPoint = Vector2.new(0.5, 0.5)
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                BackgroundColor3 = Color3.fromRGB(220, 220, 220)
             })
             Make("Corner", SliderIcon)
             
             local function UpdateValue()
                 local percent = SliderIcon.Position.X.Scale
                 local value = Min + (Max - Min) * percent
-                value = math.floor(value * 10) / 10
-                Funcs:FireCallback(Callback, value)
+                Funcs:FireCallback(Callback, math.floor(value))
             end
+            
+            local SliderHolder = Create("TextButton", Button, {
+                Size = UDim2.new(0, 80, 0, 20),
+                Position = UDim2.new(1, -10, 0.5),
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundTransparency = 1,
+                Text = "",
+                AutoButtonColor = false
+            })
             
             SliderHolder.MouseButton1Down:Connect(function()
                 while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
@@ -1986,70 +1878,13 @@ function Window:CreateSettingsWindow(Configs)
                     local barSize = SliderBar.AbsoluteSize.X
                     local relativePos = (mousePos.X - barPos) / barSize
                     SliderIcon.Position = UDim2.new(math.clamp(relativePos, 0, 1), 0, 0.5, 0)
-                    Indicator.Size = UDim2.new(SliderIcon.Position.X.Scale, 0, 1, 0)
                     task.wait()
                 end
                 UpdateValue()
             end)
             
             local Slider = {}
-            function Slider:Set(NewVal)
-                if type(NewVal) == "number" then
-                    local percent = (NewVal - Min) / (Max - Min)
-                    SliderIcon.Position = UDim2.new(math.clamp(percent, 0, 1), 0, 0.5, 0)
-                    Indicator.Size = UDim2.new(SliderIcon.Position.X.Scale, 0, 1, 0)
-                    UpdateValue()
-                end
-            end
             return Slider
-        end
-        
-        function Tab:AddDropdown(Configs)
-            local DName = Configs[1] or Configs.Name or Configs.Title or "Dropdown"
-            local DOptions = Configs[2] or Configs.Options or {}
-            local Default = Configs[3] or Configs.Default or ""
-            local Callback = Funcs:GetCallback(Configs, 4)
-            
-            local Button, LabelFunc = ButtonFrame(Container, DName, "", UDim2.new(1, -100))
-            
-            local SelectedFrame = InsertTheme(Create("Frame", Button, {
-                Size = UDim2.new(0, 80, 0, 16),
-                Position = UDim2.new(1, -8, 0.5),
-                AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
-            }), "Stroke")
-            Make("Corner", SelectedFrame, UDim.new(0, 3))
-            
-            local ActiveLabel = Create("TextLabel", SelectedFrame, {
-                Size = UDim2.new(0.8, 0, 0.8, 0),
-                AnchorPoint = Vector2.new(0.5, 0.5),
-                Position = UDim2.new(0.5, 0, 0.5, 0),
-                BackgroundTransparency = 1,
-                Font = MyLibrary.CurrentFont,
-                TextScaled = true,
-                TextColor3 = Theme["Color Text"],
-                Text = Default or "Select..."
-            })
-            
-            Button.Activated:Connect(function()
-                local currentIndex = 0
-                for i, opt in ipairs(DOptions) do
-                    if opt == Default then currentIndex = i break end
-                end
-                currentIndex = currentIndex % #DOptions + 1
-                Default = DOptions[currentIndex]
-                ActiveLabel.Text = Default
-                Funcs:FireCallback(Callback, Default)
-            end)
-            
-            local Dropdown = {}
-            function Dropdown:Set(NewVal)
-                if type(NewVal) == "string" then
-                    Default = NewVal
-                    ActiveLabel.Text = NewVal
-                end
-            end
-            return Dropdown
         end
         
         return Tab
@@ -2058,16 +1893,14 @@ function Window:CreateSettingsWindow(Configs)
     return SettingsWindowObj
 end
 
--- Função para alternar a janela de configurações
+-- Função para alternar
 function Window:ToggleSettingsWindow(visible)
     if not SettingsFrame then return end
-    
     if visible == nil then
         SettingsFrame.Visible = not SettingsFrame.Visible
     else
         SettingsFrame.Visible = visible
     end
-    SettingsOpen = SettingsFrame.Visible
 end
 
 function Window:Minimize()
