@@ -35,11 +35,11 @@ Save = {
     GlobalTransparency = 0,  -- 0 = opaco, 1 = totalmente transparente
     HubTransparency = 0,
     HubImageTransparency = 0,
-    StrokeColor = "#8A2BE2",   -- cor padrão da borda (roxo)
+    StrokeColor = "#8A2BE2",   -- cor padrÃ£o da borda (roxo)
     StrokeTransparency = 0,    -- 0 = opaco, 1 = totalmente transparente
     MinimizeStrokeColor = "#8A2BE2",
     Font = "Gotham",
-    TopbarImage = "rbxassetid://86050226751861", -- 👈 imagem padrão (pode trocar)
+    TopbarImage = "rbxassetid://86050226751861", -- ðŸ‘ˆ imagem padrÃ£o (pode trocar)
     ClickSoundEnabled = false,
     ClickSoundId = "rbxassetid://18998603679",
     ClickSoundVolume = 0.1,
@@ -54,8 +54,8 @@ Save = {
     TransparencyInstances = {},  -- lista para elementos controlados
     Icons = (function()
         return {
-            -- ... (todos os ícones mantidos, omitidos aqui por brevidade)
-            -- Cole a lista completa de ícones que você já tinha no original
+            -- ... (todos os Ã­cones mantidos, omitidos aqui por brevidade)
+            -- Cole a lista completa de Ã­cones que vocÃª jÃ¡ tinha no original
             ["accessibility"] = "rbxassetid://10709751939",
             -- ... etc ...
             ["zoomout"] = "rbxassetid://10747384679"
@@ -65,7 +65,7 @@ Save = {
 
 MyLibrary.CurrentFont = Enum.Font[MyLibrary.Save.Font] or Enum.Font.Gotham
 
--- Criar pasta da biblioteca (coloque isso logo após a definição da tabela MyLibrary)
+-- Criar pasta da biblioteca (coloque isso logo apÃ³s a definiÃ§Ã£o da tabela MyLibrary)
 local LibFolder = "SAGAZx HUB Lib"
 pcall(function()
     if makefolder then
@@ -73,16 +73,16 @@ pcall(function()
     end
 end)
 
--- Função auxiliar para montar caminho completo
+-- FunÃ§Ã£o auxiliar para montar caminho completo
 local function GetFullPath(fileName)
     if type(fileName) ~= "string" then
         return fileName
     end
-    -- Se já tiver barra, considera como caminho absoluto/relativo do executor
+    -- Se jÃ¡ tiver barra, considera como caminho absoluto/relativo do executor
     if fileName:find("/") or fileName:find("\\") then
         return fileName
     end
-    -- Caso contrário, coloca dentro da pasta da lib
+    -- Caso contrÃ¡rio, coloca dentro da pasta da lib
     return LibFolder .. "/" .. fileName
 end
 
@@ -90,7 +90,7 @@ local function VerifyTheme(Theme)
     return MyLibrary.Themes[Theme] ~= nil
 end
 
--- Função auxiliar para registrar elementos que terão transparência controlada
+-- FunÃ§Ã£o auxiliar para registrar elementos que terÃ£o transparÃªncia controlada
 local function AddTransparency(instance)
     if not instance or typeof(instance) ~= "Instance" then return end
     for _, v in ipairs(MyLibrary.TransparencyInstances) do
@@ -98,7 +98,7 @@ local function AddTransparency(instance)
     end
     table.insert(MyLibrary.TransparencyInstances, instance)
 
-    -- Aplica imediatamente a transparência global salva
+    -- Aplica imediatamente a transparÃªncia global salva
     local transparency = MyLibrary.Save.GlobalTransparency or 0
     if instance:IsA("Frame") or instance:IsA("TextButton") or instance:IsA("ImageButton") or instance:IsA("ScrollingFrame") then
         instance.BackgroundTransparency = transparency
@@ -167,7 +167,7 @@ pcall(Save, "SAGAZx HUB lib.json")
 -- Lista para armazenar os UIStrokes aplicados
 MyLibrary.StrokeInstances = {}
 
--- Função para atualizar um UIStroke específico
+-- FunÃ§Ã£o para atualizar um UIStroke especÃ­fico
 local function UpdateStroke(stroke)
     if not stroke then return end
     local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
@@ -177,7 +177,7 @@ local function UpdateStroke(stroke)
     stroke.Transparency = transparency
 end
 
--- Função para aplicar borda a um GuiObject
+-- FunÃ§Ã£o para aplicar borda a um GuiObject
 local function ApplyBorder(guiObject)
     if not guiObject or not guiObject:IsA("GuiObject") then return end
 
@@ -464,7 +464,7 @@ local function HookClickSound(obj)
     obj.Activated:Connect(PlayClickSound)
 end
 
--- Conectar aos bot�es j� existentes e futuros
+-- Conectar aos botï¿½es jï¿½ existentes e futuros
 ScreenGui.DescendantAdded:Connect(function(obj)
     if obj:IsA("TextButton") or obj:IsA("ImageButton") then
         HookClickSound(obj)
@@ -609,7 +609,7 @@ local function SaveJson(FileName, save)
     end
 end
 
--- Configurações de imagem padrão
+-- ConfiguraÃ§Ãµes de imagem padrÃ£o
 local DEFAULT_HUB_IMAGE = "0"
 local DEFAULT_MINIMIZE_IMAGE = "rbxassetid://86050226751861"
 local DEFAULT_TOP_BAR_IMAGE = "rbxassetid://86050226751861"
@@ -625,11 +625,11 @@ pcall(function()
     end
 end)
 
--- Funções de requisição
+-- FunÃ§Ãµes de requisiÃ§Ã£o
 local requestFunc = request or http_request or (syn and syn.request)
 local getAssetFunc = getcustomasset or getsynasset
 
--- Carrega as configurações de imagem do JSON
+-- Carrega as configuraÃ§Ãµes de imagem do JSON
 local function LoadImageSettings()
     local defaultData = {
     HubImage = DEFAULT_HUB_IMAGE,
@@ -644,17 +644,17 @@ local function LoadImageSettings()
             return decoded
         end
     else
-        SaveJson(JSON_FILE_PATH, defaultData) -- usa a função existente
+        SaveJson(JSON_FILE_PATH, defaultData) -- usa a funÃ§Ã£o existente
     end
     return defaultData
 end
 
--- Salva as configurações de imagem no JSON
+-- Salva as configuraÃ§Ãµes de imagem no JSON
 local function SaveImageSettings(data)
     SaveJson(JSON_FILE_PATH, data)
 end
 
--- Função auxiliar para processar e aplicar imagem
+-- FunÃ§Ã£o auxiliar para processar e aplicar imagem
 local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
     if not objectTarget or type(imageInput) ~= "string" or imageInput == "" then
         if objectTarget and (objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton")) then
@@ -665,7 +665,7 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
 
     if imageInput:find("https://") or imageInput:find("http://") then
         if not requestFunc or not getAssetFunc then
-            warn("Executor não suporta request/getcustomasset.")
+            warn("Executor nÃ£o suporta request/getcustomasset.")
             return imageInput
         end
 
@@ -709,7 +709,7 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
     end
 end
 
--- Variáveis de configuração atuais
+-- VariÃ¡veis de configuraÃ§Ã£o atuais
 local CurrentImageSettings = LoadImageSettings()
 
 local function ApplyCustomColorsToTheme(targetTheme)
@@ -733,9 +733,9 @@ local function Make(Ele, Instance, props, ...)
     return Element
 end
 
--- ==================== CORREÇÕES IMPORTANTES ====================
+-- ==================== CORREÃ‡Ã•ES IMPORTANTES ====================
 AddEle("Corner", function(parent, CornerRadius)
-    -- Removida referência à variável `props` que não existia
+    -- Removida referÃªncia Ã  variÃ¡vel `props` que nÃ£o existia
     local New = SetProps(Create("UICorner", parent, {
         CornerRadius = CornerRadius or UDim.new(0, 7)
     }), nil)
@@ -765,12 +765,12 @@ AddEle("Button", function(parent, props, ...)
     ApplyBorder(New)
 
     New.MouseEnter:Connect(function()
-        -- Usa a transparência global como base, mas deixa um pouco mais clara ao passar o mouse
+        -- Usa a transparÃªncia global como base, mas deixa um pouco mais clara ao passar o mouse
         local base = MyLibrary.Save.GlobalTransparency or 0
         New.BackgroundTransparency = math.max(0.4, base)
     end)
     New.MouseLeave:Connect(function()
-        -- Restaura a transparência global definida
+        -- Restaura a transparÃªncia global definida
         New.BackgroundTransparency = MyLibrary.Save.GlobalTransparency or 0
     end)
     if args[1] then
@@ -869,7 +869,7 @@ local function ButtonFrame(Instance, Title, Description, HolderSize)
     return Frame, Label
 end
 
--- ==================== CORREÇÃO: GetColor agora reconhece TextBox ====================
+-- ==================== CORREÃ‡ÃƒO: GetColor agora reconhece TextBox ====================
 local function GetColor(Instance)
     if Instance:IsA("Frame") then
         return "BackgroundColor3"
@@ -908,7 +908,7 @@ end
 function MyLibrary:SetThemeColor(key, value)
     local currentTheme = MyLibrary.Themes[MyLibrary.Save.Theme]
     if not currentTheme or currentTheme[key] == nil then
-        warn("Chave de cor inválida:", tostring(key))
+        warn("Chave de cor invÃ¡lida:", tostring(key))
         return
     end
 
@@ -927,7 +927,7 @@ function MyLibrary:SetThemeColor(key, value)
     end
 
     if value == nil then
-        -- Remove a customização e restaura a cor original
+        -- Remove a customizaÃ§Ã£o e restaura a cor original
         MyLibrary.Save.CustomColors[key] = nil
         currentTheme[key] = OriginalThemes[MyLibrary.Save.Theme][key]
     else
@@ -938,7 +938,7 @@ function MyLibrary:SetThemeColor(key, value)
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
 
-    -- Atualiza os elementos já criados
+    -- Atualiza os elementos jÃ¡ criados
     for _, Val in ipairs(MyLibrary.Instances) do
         pcall(function()
             if Val.Type == "Gradient" then
@@ -1041,8 +1041,8 @@ function MyLibrary:SetClickSoundVolume(volume)
 end
 
 function MyLibrary:ResetClickSound()
-    ClickSoundId = "rbxassetid://18998603679"  -- ID padr�o
-    ClickSoundVolume = 0.1                     -- volume padr�o
+    ClickSoundId = "rbxassetid://18998603679"  -- ID padrï¿½o
+    ClickSoundVolume = 0.1                     -- volume padrï¿½o
     MyLibrary.Save.ClickSoundId = ClickSoundId
     MyLibrary.Save.ClickSoundVolume = ClickSoundVolume
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
@@ -1064,7 +1064,7 @@ end
 
 function MyLibrary:SetTopbarImage(imageInput)
     local imageLabel = MyLibrary.TopbarImageLabel
-    if not imageLabel then warn("TopbarImageLabel n�o encontrado.") return end
+    if not imageLabel then warn("TopbarImageLabel nï¿½o encontrado.") return end
     local result = ProcessAndApplyImage(imageLabel, imageInput, "ImageTopbar")
     -- Salve sempre, independente do resultado
     CurrentImageSettings.TopbarImage = imageInput
@@ -1095,7 +1095,7 @@ end
 
 function MyLibrary:SetHubImage(imageInput)
     local imageLabel = MyLibrary.HubImageLabel
-    if not imageLabel then warn("HubImageLabel não encontrado.") return end
+    if not imageLabel then warn("HubImageLabel nÃ£o encontrado.") return end
     local result = ProcessAndApplyImage(imageLabel, imageInput, "Hub")
     if result ~= "" then
         CurrentImageSettings.HubImage = imageInput
@@ -1108,7 +1108,7 @@ end
 function MyLibrary:SetMinimizeImage(imageInput)
     local minimizeBtn = ScreenGui:FindFirstChild("MinimizeExternalButton")
     if not minimizeBtn then
-        warn("MinimizeExternalButton não encontrado.")
+        warn("MinimizeExternalButton nÃ£o encontrado.")
         return
     end
     local result = ProcessAndApplyImage(minimizeBtn, imageInput, "minizebutton")
@@ -1185,7 +1185,7 @@ function MyLibrary:SetMinimizeStrokeColor(colorInput)
     MyLibrary.Save.MinimizeStrokeColor = colorInput
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
 
-    -- Atualiza o stroke do botão de minimizar
+    -- Atualiza o stroke do botÃ£o de minimizar
     local minimizeBtn = MyLibrary.MinimizeExternalButton
     if minimizeBtn then
         local stroke = minimizeBtn:FindFirstChild("LibMinimizeBorder")
@@ -1213,7 +1213,7 @@ function MyLibrary:GetTopbarImage()
     return CurrentImageSettings.TopbarImage
 end
 
--- (Hub e Minimize j� possuem getters)
+-- (Hub e Minimize jï¿½ possuem getters)
 
 -- Fonte
 function MyLibrary:GetFont()
@@ -1233,7 +1233,7 @@ function MyLibrary:GetMinimizeStrokeColor()
     return MyLibrary.Save.MinimizeStrokeColor
 end
 
--- Transpar�ncias
+-- Transparï¿½ncias
 function MyLibrary:GetGlobalTransparency()
     return MyLibrary.Save.GlobalTransparency
 end
@@ -1275,7 +1275,7 @@ function MyLibrary:SetFont(fontInput)
     end
 
     if typeof(fontInput) ~= "EnumItem" or fontInput.EnumType ~= Enum.Font then
-        warn("Fonte inválida. Use uma string ou Enum.Font.")
+        warn("Fonte invÃ¡lida. Use uma string ou Enum.Font.")
         return
     end
 
@@ -1356,7 +1356,7 @@ ApplyBorder(HubImageLabel)
 -- Imagem da TopBar
 local TopbarImageLabel = Create("ImageLabel", TopBar, {
     Size = UDim2.new(0, 26, 0, 26),   --  tamanho 26x26
-    Position = UDim2.new(0, 5, 0, 6), --  posi��o ajustada
+    Position = UDim2.new(0, 5, 0, 6), --  posiï¿½ï¿½o ajustada
     BackgroundTransparency = 1,
     Image = "",
     Name = "TopbarImage"
@@ -1364,7 +1364,7 @@ local TopbarImageLabel = Create("ImageLabel", TopBar, {
 Make("Corner", TopbarImageLabel, UDim.new(0, 5))
 MyLibrary.TopbarImageLabel = TopbarImageLabel
 
--- Título (movido para a direita)
+-- TÃ­tulo (movido para a direita)
 local Title = InsertTheme(Create("TextLabel", TopBar, {
     Position = UDim2.new(0, 35, 0.5, 0),
     AnchorPoint = Vector2.new(0, 0.5),
@@ -1486,6 +1486,20 @@ local Title = InsertTheme(Create("TextLabel", TopBar, {
     })
 
     SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
+    
+    -- Botão de Configurações
+local SettingsButton = Create("ImageButton", {
+    Size = UDim2.new(0, 14, 0, 14),
+    Position = UDim2.new(1, -60, 0.5),  -- Posição antes do minimize
+    AnchorPoint = Vector2.new(1, 0.5),
+    BackgroundTransparency = 1,
+    Image = "rbxassetid://10709751939", -- Ícone de engrenagem
+    AutoButtonColor = false,
+    Name = "Settings"
+})
+
+-- Atualiza a lista de botões
+SetChildren(ButtonsFolder, { CloseButton, MinimizeButton, SettingsButton })
 
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
@@ -1496,7 +1510,7 @@ local Title = InsertTheme(Create("TextLabel", TopBar, {
     end
 
     if typeof(KeyCode) ~= "EnumItem" or KeyCode.EnumType ~= Enum.KeyCode then
-        warn("KeyCode inválido. Use uma string ou Enum.KeyCode.")
+        warn("KeyCode invÃ¡lido. Use uma string ou Enum.KeyCode.")
         return
     end
 
@@ -1518,7 +1532,7 @@ local Title = InsertTheme(Create("TextLabel", TopBar, {
     end)
 end
 
--- Inicializa a hotkey padrão
+-- Inicializa a hotkey padrÃ£o
 local DefaultKey = Enum.KeyCode[MyLibrary.Save.ToggleKey] or Enum.KeyCode.RightShift
 MyLibrary._ToggleConnection = UserInputService.InputBegan:Connect(function(Input, GPE)
     if GPE then return end
@@ -1563,9 +1577,394 @@ end)
         WaitClick = false
     end
 
+-- ==================== SISTEMA DE CONFIGURAÇÕES ====================
+local SettingsOpen = false
+local SettingsFrame = nil
+local SettingsTabs = {}
+
+function Window:CreateSettingsWindow(Configs)
+    local SWTitle = Configs and (Configs.Title or Configs.Name) or "Configurações"
+    local SWSize = Configs and Configs.Size or {400, 300}
+    
+    -- Cria o frame principal de configurações
+    SettingsFrame = InsertTheme(Create("Frame", MainFrame, {
+        Size = UDim2.fromOffset(SWSize[1], SWSize[2]),
+        Position = UDim2.new(0.5, -SWSize[1]/2, 0.5, -SWSize[2]/2),
+        BackgroundTransparency = 0.03,
+        BackgroundColor3 = Theme["Color Hub 2"],
+        Name = "SettingsWindow",
+        Visible = false,
+        ZIndex = 50
+    }), "Main")
+    
+    Make("Gradient", SettingsFrame, { Rotation = 45 })
+    ApplyBorder(SettingsFrame)
+    MakeDrag(SettingsFrame)
+    Make("Corner", SettingsFrame, UDim.new(0, 8))
+    
+    -- Top bar
+    local SettingsTopBar = Create("Frame", SettingsFrame, {
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundTransparency = 1,
+        Name = "SettingsTopBar"
+    })
+    
+    local SettingsTitle = InsertTheme(Create("TextLabel", SettingsTopBar, {
+        Position = UDim2.new(0, 10, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        AutomaticSize = "XY",
+        Text = SWTitle,
+        TextXAlignment = "Left",
+        TextSize = 14,
+        TextColor3 = Theme["Color Text"],
+        BackgroundTransparency = 1,
+        Font = MyLibrary.CurrentFont
+    }), "Text")
+    
+    local SettingsClose = Create("ImageButton", SettingsTopBar, {
+        Size = UDim2.new(0, 12, 0, 12),
+        Position = UDim2.new(1, -10, 0.5),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://10747384394",
+        AutoButtonColor = false,
+        Name = "SettingsClose"
+    })
+    
+    SettingsClose.Activated:Connect(function()
+        Window:ToggleSettingsWindow(false)
+    end)
+    
+    -- Scroll de tabs
+    local SettingsTabScroll = InsertTheme(Create("ScrollingFrame", SettingsFrame, {
+        Size = UDim2.new(0, 120, 1, -SettingsTopBar.Size.Y.Offset),
+        Position = UDim2.new(0, 0, 1, 0),
+        AnchorPoint = Vector2.new(0, 1),
+        ScrollBarImageColor3 = Theme["Color Theme"],
+        ScrollBarThickness = 1.5,
+        BackgroundTransparency = 1,
+        ScrollBarImageTransparency = 0.2,
+        CanvasSize = UDim2.new(),
+        AutomaticCanvasSize = "Y",
+        ScrollingDirection = "Y",
+        BorderSizePixel = 0,
+        Name = "SettingsTabScroll"
+    }, {
+        Create("UIPadding", {
+            PaddingLeft = UDim.new(0, 8),
+            PaddingRight = UDim.new(0, 8),
+            PaddingTop = UDim.new(0, 8),
+            PaddingBottom = UDim.new(0, 8)
+        }),
+        Create("UIListLayout", { Padding = UDim.new(0, 4) })
+    }), "ScrollBar")
+    
+    -- Container das tabs
+    local SettingsContainers = Create("Frame", SettingsFrame, {
+        Size = UDim2.new(1, -SettingsTabScroll.Size.X.Offset, 1, -SettingsTopBar.Size.Y.Offset),
+        AnchorPoint = Vector2.new(1, 1),
+        Position = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        ClipsDescendants = true,
+        Name = "SettingsContainers"
+    })
+    
+    local SettingsWindowObj = {}
+    
+    function SettingsWindowObj:Toggle(visible)
+        if visible == nil then
+            SettingsFrame.Visible = not SettingsFrame.Visible
+        else
+            SettingsFrame.Visible = visible
+        end
+        SettingsOpen = SettingsFrame.Visible
+    end
+    
+    function SettingsWindowObj:MakeTab(Configs)
+        local STName = Configs and (Configs.Title or Configs.Name or "Tab") or "Tab"
+        
+        local TabButton = Make("Button", SettingsTabScroll, {
+            Size = UDim2.new(1, 0, 0, 22)
+        })
+        ApplyBorder(TabButton)
+        Make("Corner", TabButton, UDim.new(0, 4))
+        
+        local TabLabel = InsertTheme(Create("TextLabel", TabButton, {
+            Size = UDim2.new(1, -10, 1),
+            Position = UDim2.fromOffset(10),
+            BackgroundTransparency = 1,
+            Font = MyLibrary.CurrentFont,
+            Text = STName,
+            TextColor3 = Theme["Color Text"],
+            TextSize = 9,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextTruncate = "AtEnd"
+        }), "Text")
+        
+        local Container = InsertTheme(Create("ScrollingFrame", {
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 1),
+            AnchorPoint = Vector2.new(0, 1),
+            ScrollBarThickness = 1.5,
+            BackgroundTransparency = 1,
+            ScrollBarImageTransparency = 0.2,
+            ScrollBarImageColor3 = Theme["Color Theme"],
+            AutomaticCanvasSize = "Y",
+            ScrollingDirection = "Y",
+            BorderSizePixel = 0,
+            CanvasSize = UDim2.new(),
+            Name = "SettingsContainer_" .. STName
+        }, {
+            Create("UIPadding", {
+                PaddingLeft = UDim.new(0, 8),
+                PaddingRight = UDim.new(0, 8),
+                PaddingTop = UDim.new(0, 8),
+                PaddingBottom = UDim.new(0, 8)
+            }),
+            Create("UIListLayout", { Padding = UDim.new(0, 4) })
+        }), "ScrollBar")
+        
+        local Tab = {}
+        Tab.Cont = Container
+        table.insert(SettingsTabs, Tab)
+        
+        if #SettingsTabs == 1 then
+            Container.Parent = SettingsContainers
+        end
+        
+        function Tab:Enable()
+            for _, t in ipairs(SettingsTabs) do
+                if t ~= Tab and t.Cont.Parent then
+                    t.Cont.Parent = nil
+                end
+            end
+            Container.Parent = SettingsContainers
+        end
+        
+        TabButton.Activated:Connect(function()
+            Tab:Enable()
+        end)
+        
+        -- Adiciona os mesmos métodos da tab normal
+        function Tab:AddSection(Configs)
+            local SectionName = type(Configs) == "string" and Configs or Configs[1] or Configs.Name or Configs.Title or "Section"
+            
+            local SectionFrame = Create("Frame", Container, {
+                Size = UDim2.new(1, 0, 0, 18),
+                BackgroundTransparency = 1,
+                Name = "SettingsSection"
+            })
+            
+            local SectionLabel = InsertTheme(Create("TextLabel", SectionFrame, {
+                Font = MyLibrary.CurrentFont,
+                Text = SectionName,
+                TextColor3 = Theme["Color Text"],
+                Size = UDim2.new(1, -20, 1, 0),
+                Position = UDim2.new(0, 5),
+                BackgroundTransparency = 1,
+                TextTruncate = "AtEnd",
+                TextSize = 10,
+                TextXAlignment = "Left"
+            }), "Text")
+            
+            local Section = {}
+            function Section:Visible(Bool)
+                SectionFrame.Visible = Bool ~= nil and Bool or not SectionFrame.Visible
+            end
+            function Section:Destroy() SectionFrame:Destroy() end
+            function Section:Set(New)
+                if New then SectionLabel.Text = GetStr(New) end
+            end
+            return Section
+        end
+        
+        function Tab:AddButton(Configs)
+            local BName = Configs[1] or Configs.Name or Configs.Title or "Button"
+            local BDesc = Configs.Desc or Configs.Description or ""
+            local Callback = Funcs:GetCallback(Configs, 2)
+            
+            local FButton, LabelFunc = ButtonFrame(Container, BName, BDesc, UDim2.new(1, -20))
+            FButton.Activated:Connect(function()
+                Funcs:FireCallback(Callback)
+            end)
+            
+            local Button = {}
+            function Button:Visible(...) Funcs:ToggleVisible(FButton, ...) end
+            function Button:Destroy() FButton:Destroy() end
+            function Button:Set(Val1, Val2)
+                if type(Val1) == "string" and type(Val2) == "string" then
+                    LabelFunc:SetTitle(Val1)
+                    LabelFunc:SetDesc(Val2)
+                elseif type(Val1) == "string" then
+                    LabelFunc:SetTitle(Val1)
+                end
+            end
+            return Button
+        end
+        
+        function Tab:AddToggle(Configs)
+            local TName = Configs[1] or Configs.Name or Configs.Title or "Toggle"
+            local TDesc = Configs.Desc or Configs.Description or ""
+            local Callback = Funcs:GetCallback(Configs, 3)
+            local Flag = Configs[4] or Configs.Flag or false
+            local Default = Configs[2] or Configs.Default or false
+            
+            if CheckFlag(Flag) then Default = GetFlag(Flag) end
+            
+            local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
+            
+            local ToggleHolder = InsertTheme(Create("Frame", Button, {
+                Size = UDim2.new(0, 32, 0, 16),
+                Position = UDim2.new(1, -8, 0.5),
+                AnchorPoint = Vector2.new(1, 0.5),
+                BackgroundColor3 = Theme["Color Stroke"]
+            }), "Stroke")
+            AddTransparency(ToggleHolder)
+            Make("Corner", ToggleHolder, UDim.new(0.5, 0))
+            
+            local Slider = Create("Frame", ToggleHolder, {
+                BackgroundTransparency = 1,
+                Size = UDim2.new(0.8, 0, 0.8, 0),
+                Position = UDim2.new(0.5, 0, 0.5, 0),
+                AnchorPoint = Vector2.new(0.5, 0.5)
+            })
+            
+            local Toggle = InsertTheme(Create("Frame", Slider, {
+                Size = UDim2.new(0, 10, 0, 10),
+                Position = UDim2.new(0, 0, 0.5),
+                AnchorPoint = Vector2.new(0, 0.5),
+                BackgroundColor3 = Theme["Color Theme"]
+            }), "Theme")
+            Make("Corner", Toggle, UDim.new(0.5, 0))
+            
+            local function SetToggle(Val)
+                Default = Val
+                SetFlag(Flag, Default)
+                Funcs:FireCallback(Callback, Default)
+                
+                if Default then
+                    CreateTween({Toggle, "Position", UDim2.new(1, 0, 0.5), 0.25})
+                    CreateTween({Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.25})
+                else
+                    CreateTween({Toggle, "Position", UDim2.new(0, 0, 0.5), 0.25})
+                    CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.25})
+                end
+            end
+            
+            task.spawn(SetToggle, Default)
+            
+            Button.Activated:Connect(function()
+                SetToggle(not Default)
+            end)
+            
+            local ToggleObj = {}
+            function ToggleObj:Set(Val1, Val2)
+                if type(Val1) == "boolean" then
+                    SetToggle(Val1)
+                elseif type(Val1) == "string" then
+                    LabelFunc:SetTitle(Val1)
+                    if Val2 then LabelFunc:SetDesc(Val2) end
+                end
+            end
+            return ToggleObj
+        end
+        
+        function Tab:AddSlider(Configs)
+            local SName = Configs[1] or Configs.Name or Configs.Title or "Slider"
+            local SDesc = Configs.Desc or Configs.Description or ""
+            local Min = Configs[2] or Configs.Min or 0
+            local Max = Configs[3] or Configs.Max or 100
+            local Default = Configs[4] or Configs.Default or 50
+            local Callback = Funcs:GetCallback(Configs, 5)
+            
+            local Button, LabelFunc = ButtonFrame(Container, SName, SDesc, UDim2.new(1, -100))
+            
+            local SliderHolder = Create("TextButton", Button, {
+                Size = UDim2.new(0.45, 0, 1),
+                Position = UDim2.new(1),
+                AnchorPoint = Vector2.new(1, 0),
+                AutoButtonColor = false,
+                Text = "",
+                BackgroundTransparency = 1
+            })
+            
+            local SliderBar = InsertTheme(Create("Frame", SliderHolder, {
+                BackgroundColor3 = Theme["Color Stroke"],
+                Size = UDim2.new(1, -20, 0, 5),
+                Position = UDim2.new(0.5, 0, 0.5),
+                AnchorPoint = Vector2.new(0.5, 0.5)
+            }), "Stroke")
+            AddTransparency(SliderBar)
+            Make("Corner", SliderBar)
+            
+            local Indicator = InsertTheme(Create("Frame", SliderBar, {
+                BackgroundColor3 = Theme["Color Theme"],
+                Size = UDim2.fromScale(0.5, 1),
+                BorderSizePixel = 0
+            }), "Theme")
+            Make("Corner", Indicator)
+            
+            local SliderIcon = Create("Frame", SliderBar, {
+                Size = UDim2.new(0, 5, 0, 10),
+                BackgroundColor3 = Color3.fromRGB(220, 220, 220),
+                Position = UDim2.fromScale(0.5, 0.5),
+                AnchorPoint = Vector2.new(0.5, 0.5)
+            })
+            Make("Corner", SliderIcon)
+            
+            local function UpdateValue()
+                local percent = SliderIcon.Position.X.Scale
+                local value = Min + (Max - Min) * percent
+                value = math.floor(value * 10) / 10
+                Funcs:FireCallback(Callback, value)
+            end
+            
+            SliderHolder.MouseButton1Down:Connect(function()
+                while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                    local mousePos = UserInputService:GetMouseLocation()
+                    local barPos = SliderBar.AbsolutePosition.X
+                    local barSize = SliderBar.AbsoluteSize.X
+                    local relativePos = (mousePos.X - barPos) / barSize
+                    SliderIcon.Position = UDim2.new(math.clamp(relativePos, 0, 1), 0, 0.5, 0)
+                    Indicator.Size = UDim2.new(SliderIcon.Position.X.Scale, 0, 1, 0)
+                    task.wait()
+                end
+                UpdateValue()
+            end)
+            
+            local Slider = {}
+            function Slider:Set(NewVal)
+                if type(NewVal) == "number" then
+                    local percent = (NewVal - Min) / (Max - Min)
+                    SliderIcon.Position = UDim2.new(math.clamp(percent, 0, 1), 0, 0.5, 0)
+                    Indicator.Size = UDim2.new(SliderIcon.Position.X.Scale, 0, 1, 0)
+                    UpdateValue()
+                end
+            end
+            return Slider
+        end
+        
+        return Tab
+    end
+    
+    return SettingsWindowObj
+end
+
+-- Função para alternar a janela de configurações
+function Window:ToggleSettingsWindow(visible)
+    if not SettingsFrame then return end
+    
+    if visible == nil then
+        SettingsFrame.Visible = not SettingsFrame.Visible
+    else
+        SettingsFrame.Visible = visible
+    end
+    SettingsOpen = SettingsFrame.Visible
+end
+
 function Window:Minimize()
     MainFrame.Visible = not MainFrame.Visible
-    -- Atualiza a borda do botão de minimizar conforme a visibilidade do Hub
+    -- Atualiza a borda do botÃ£o de minimizar conforme a visibilidade do Hub
     local minimizeBtn = MyLibrary.MinimizeExternalButton
     if minimizeBtn then
         local stroke = minimizeBtn:FindFirstChild("LibMinimizeBorder")
@@ -1575,18 +1974,18 @@ function Window:Minimize()
     end
 end
 
--- Cria automaticamente o botão de minimizar externo
+-- Cria automaticamente o botÃ£o de minimizar externo
 local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Size = UDim2.fromOffset(35, 35),
     Position = UDim2.fromScale(0.15, 0.15),
     BackgroundTransparency = 0,
     AutoButtonColor = false,
-    Image = "rbxassetid://86050226751861",  -- imagem padrão
+    Image = "rbxassetid://86050226751861",  -- imagem padrÃ£o
     Name = "MinimizeExternalButton"
 }))
 Make("Corner", MinimizeExternalButton, UDim.new(0, 8))  -- cantos arredondados
 ApplyMinimizeBorder(MinimizeExternalButton)
-MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta à função de minimizar
+MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta Ã  funÃ§Ã£o de minimizar
 
 MyLibrary.MinimizeExternalButton = MinimizeExternalButton
 
@@ -2044,7 +2443,7 @@ function Tab:AddColorPicker(Configs)
 
     local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -125))
 
-    -- === �rea direita: RGB, cor e Hex ===
+    -- === ï¿½rea direita: RGB, cor e Hex ===
     local RightArea = Create("Frame", Button, {
         Size = UDim2.new(0, 115, 1),
         Position = UDim2.new(1, -20, 0.5),
@@ -2067,7 +2466,7 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", RGBBox, UDim.new(0, 3))
 
-    -- Bot�o de cor (Sem InsertTheme para n�o ter a cor sobrescrita pelo sistema de temas)
+    -- Botï¿½o de cor (Sem InsertTheme para nï¿½o ter a cor sobrescrita pelo sistema de temas)
     local ColorButton = Create("ImageButton", RightArea, {
         Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0, 50, 0.5, -9),
@@ -2761,7 +3160,7 @@ end
             return Dropdown
         end
 
-        -- Dropdown de Jogadores (com busca) — também corrigido
+        -- Dropdown de Jogadores (com busca) â€” tambÃ©m corrigido
         function Tab:AddDropdownPlayer(Configs)
             local DName = Configs[1] or Configs.Name or Configs.Title or "..."
             local DDesc = Configs.Desc or Configs.Description or ""
@@ -3098,7 +3497,7 @@ end
             return Dropdown
         end
 
-        -- Dropdown com Busca (genérico) — corrigido
+        -- Dropdown com Busca (genÃ©rico) â€” corrigido
         function Tab:AddDropdownSearch(Configs)
             local DName = Configs[1] or Configs.Name or Configs.Title or "Dropdown"
             local DDesc = Configs.Desc or Configs.Description or ""
@@ -3655,7 +4054,7 @@ function Tab:AddTextBox(Configs)
     end
 
     TextBoxInput.FocusLost:Connect(Input)
-    -- N�o chamar Input() automaticamente para evitar callback inicial indevido
+    -- Nï¿½o chamar Input() automaticamente para evitar callback inicial indevido
 
     TextBoxInput.FocusLost:Connect(function()
         CreateTween({Pencil, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
@@ -3667,7 +4066,7 @@ function Tab:AddTextBox(Configs)
     TextBox.OnChanging = false
     function TextBox:Visible(...) Funcs:ToggleVisible(Button, ...) end
     function TextBox:Destroy() Button:Destroy() end
-    function TextBox:Set(NewText)  --  novo m�todo para atualizar o texto
+    function TextBox:Set(NewText)  --  novo mï¿½todo para atualizar o texto
         if type(NewText) == "string" then
             TextBoxInput.Text = NewText
         end
@@ -3784,13 +4183,16 @@ end
 
     CloseButton.Activated:Connect(Window.CloseBtn)
     MinimizeButton.Activated:Connect(Window.MinimizeBtn)
+    SettingsButton.Activated:Connect(function()
+    Window:ToggleSettingsWindow()
+end)
     
-    -- Aplica a transparência global salva
+    -- Aplica a transparÃªncia global salva
 if MyLibrary.Save.GlobalTransparency and MyLibrary.Save.GlobalTransparency > 0 then
     MyLibrary:SetGlobalTransparency(MyLibrary.Save.GlobalTransparency)
 end
 
--- Aplica cor e transparência da borda em todos os elementos registrados
+-- Aplica cor e transparÃªncia da borda em todos os elementos registrados
 for _, stroke in ipairs(MyLibrary.StrokeInstances) do
     if stroke and stroke.Parent then
         UpdateStroke(stroke)
