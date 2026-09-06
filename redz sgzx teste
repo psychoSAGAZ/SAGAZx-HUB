@@ -1479,27 +1479,24 @@ local Title = InsertTheme(Create("TextLabel", TopBar, {
         Name = "Close"
     })
 
-    local MinimizeButton = SetProps(CloseButton:Clone(), {
-        Position = UDim2.new(1, -35, 0.5),
-        Image = "rbxassetid://10734896206",
-        Name = "Minimize"
-    })
-
-    SetChildren(ButtonsFolder, { CloseButton, MinimizeButton })
-    
-    -- Botão de Configurações
-local SettingsButton = Create("ImageButton", {
-    Size = UDim2.new(0, 14, 0, 14),
-    Position = UDim2.new(1, -60, 0.5),  -- Posição antes do minimize
-    AnchorPoint = Vector2.new(1, 0.5),
-    BackgroundTransparency = 1,
-    Image = "rbxassetid://10709751939", -- Ícone de engrenagem
-    AutoButtonColor = false,
-    Name = "Settings"
+local MinimizeButton = SetProps(CloseButton:Clone(), {
+    Position = UDim2.new(1, -35, 0.5),
+    Image = "rbxassetid://10734896206",
+    Name = "Minimize"
 })
 
--- Atualiza a lista de botões
-SetChildren(ButtonsFolder, { CloseButton, MinimizeButton, SettingsButton })
+-- Botão para abrir/fechar janela secundária
+local SecondaryToggleButton = Create("ImageButton", {
+    Size = UDim2.new(0, 14, 0, 14),
+    Position = UDim2.new(1, -60, 0.5),
+    AnchorPoint = Vector2.new(1, 0.5),
+    BackgroundTransparency = 1,
+    Image = "rbxassetid://10709751939", -- Ícone
+    AutoButtonColor = false,
+    Name = "SecondaryToggle"
+})
+
+SetChildren(ButtonsFolder, { CloseButton, MinimizeButton, SecondaryToggleButton })
 
     local Minimized, SaveSize, WaitClick
     local Window, FirstTab = {}, false
@@ -1577,332 +1574,6 @@ end)
         WaitClick = false
     end
 
--- ==================== SISTEMA DE CONFIGURAÇÕES (SIMPLIFICADO) ====================
-local SettingsOpen = false
-local SettingsFrame = nil
-local SettingsTabs = {}
-local SettingsFirstTab = false
-
-function Window:CreateSettingsWindow(Configs)
-    local SWTitle = Configs and (Configs.Title or Configs.Name) or "Configurações"
-    local SWSize = Configs and Configs.Size or {400, 300}
-    
-    -- Cria o frame PRINCIPAL da janela de configurações
-    SettingsFrame = Create("Frame", ScreenGui, {
-        Size = UDim2.fromOffset(SWSize[1], SWSize[2]),
-        Position = UDim2.new(0.5, -SWSize[1]/2, 0.5, -SWSize[2]/2),
-        BackgroundColor3 = Theme["Color Hub 2"],
-        Name = "SettingsWindow",
-        Visible = false,
-        ZIndex = 10,
-        Active = true
-    })
-    Make("Gradient", SettingsFrame, { Rotation = 45 })
-    ApplyBorder(SettingsFrame)
-    MakeDrag(SettingsFrame)
-    Make("Corner", SettingsFrame, UDim.new(0, 8))
-    
-    -- Top bar
-    local SettingsTopBar = Create("Frame", SettingsFrame, {
-        Size = UDim2.new(1, 0, 0, 30),
-        BackgroundTransparency = 1,
-        Name = "SettingsTopBar"
-    })
-    
-    -- Título
-    local SettingsTitle = Create("TextLabel", SettingsTopBar, {
-        Position = UDim2.new(0, 10, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        AutomaticSize = "XY",
-        Text = SWTitle,
-        TextXAlignment = "Left",
-        TextSize = 14,
-        TextColor3 = Theme["Color Text"],
-        BackgroundTransparency = 1,
-        Font = MyLibrary.CurrentFont
-    })
-    
-    -- Botão fechar
-    local SettingsClose = Create("ImageButton", SettingsTopBar, {
-        Size = UDim2.new(0, 12, 0, 12),
-        Position = UDim2.new(1, -10, 0.5),
-        AnchorPoint = Vector2.new(1, 0.5),
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://10747384394",
-        AutoButtonColor = false
-    })
-    SettingsClose.Activated:Connect(function()
-        SettingsFrame.Visible = false
-    end)
-    
-    -- Scroll de Tabs (esquerda)
-    local SettingsTabScroll = Create("ScrollingFrame", SettingsFrame, {
-        Size = UDim2.new(0, 120, 1, -30),
-        Position = UDim2.new(0, 0, 1, 0),
-        AnchorPoint = Vector2.new(0, 1),
-        ScrollBarThickness = 1,
-        BackgroundTransparency = 1,
-        CanvasSize = UDim2.new(),
-        AutomaticCanvasSize = "Y",
-        ScrollingDirection = "Y",
-        BorderSizePixel = 0
-    })
-    
-    local TabList = Create("UIListLayout", SettingsTabScroll, {
-        Padding = UDim.new(0, 4)
-    })
-    local TabPadding = Create("UIPadding", SettingsTabScroll, {
-        PaddingLeft = UDim.new(0, 8),
-        PaddingRight = UDim.new(0, 8),
-        PaddingTop = UDim.new(0, 8),
-        PaddingBottom = UDim.new(0, 8)
-    })
-    
-    -- Container dos componentes (direita)
-    local SettingsContainers = Create("Frame", SettingsFrame, {
-        Size = UDim2.new(1, -120, 1, -30),
-        AnchorPoint = Vector2.new(1, 1),
-        Position = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        ClipsDescendants = true
-    })
-    
-    local SettingsWindowObj = {}
-    local SettingsContainerList = {}
-    
-    function SettingsWindowObj:Toggle(visible)
-        if visible == nil then
-            SettingsFrame.Visible = not SettingsFrame.Visible
-        else
-            SettingsFrame.Visible = visible
-        end
-    end
-    
-    function SettingsWindowObj:MakeTab(Configs)
-        local STName = Configs and (Configs.Title or Configs.Name or "Tab") or "Tab"
-        
-        -- Botão da Tab
-        local TabButton = Make("Button", SettingsTabScroll, {
-            Size = UDim2.new(1, 0, 0, 24)
-        })
-        Make("Corner", TabButton, UDim.new(0, 4))
-        
-        local TabLabel = Create("TextLabel", TabButton, {
-            Size = UDim2.new(1, -10, 1),
-            Position = UDim2.new(0, 10, 0),
-            BackgroundTransparency = 1,
-            Font = MyLibrary.CurrentFont,
-            Text = STName,
-            TextColor3 = Theme["Color Text"],
-            TextSize = 10,
-            TextXAlignment = "Left"
-        })
-        
-        -- Container da Tab
-        local Container = Create("ScrollingFrame", {
-            Size = UDim2.new(1, 0, 1, 0),
-            Position = UDim2.new(0, 0, 1),
-            AnchorPoint = Vector2.new(0, 1),
-            ScrollBarThickness = 1.5,
-            BackgroundTransparency = 1,
-            ScrollBarImageColor3 = Theme["Color Theme"],
-            AutomaticCanvasSize = "Y",
-            ScrollingDirection = "Y",
-            BorderSizePixel = 0,
-            CanvasSize = UDim2.new()
-        })
-        
-        local ContainerList = Create("UIListLayout", Container, {
-            Padding = UDim.new(0, 5)
-        })
-        local ContainerPadding = Create("UIPadding", Container, {
-            PaddingLeft = UDim.new(0, 10),
-            PaddingRight = UDim.new(0, 10),
-            PaddingTop = UDim.new(0, 10),
-            PaddingBottom = UDim.new(0, 10)
-        })
-        
-        table.insert(SettingsContainerList, Container)
-        if #SettingsContainerList == 1 then
-            Container.Parent = SettingsContainers
-        end
-        
-        TabButton.Activated:Connect(function()
-            for _, c in ipairs(SettingsContainerList) do
-                if c ~= Container then
-                    c.Parent = nil
-                end
-            end
-            Container.Parent = SettingsContainers
-        end)
-        
-        local Tab = {}
-        Tab.Cont = Container
-        
-        -- ===== MÉTODOS DA TAB =====
-        function Tab:AddSection(Configs)
-            local SectionName = type(Configs) == "string" and Configs or Configs[1] or Configs.Name or Configs.Title or "Section"
-            
-            local SectionFrame = Create("Frame", Container, {
-                Size = UDim2.new(1, 0, 0, 20),
-                BackgroundTransparency = 1
-            })
-            
-            local SectionLabel = Create("TextLabel", SectionFrame, {
-                Font = MyLibrary.CurrentFont,
-                Text = SectionName,
-                TextColor3 = Theme["Color Text"],
-                Size = UDim2.new(1, -25, 1, 0),
-                Position = UDim2.new(0, 5),
-                BackgroundTransparency = 1,
-                TextSize = 11,
-                TextXAlignment = "Left"
-            })
-            
-            local Section = {}
-            function Section:Visible(Bool) SectionFrame.Visible = Bool ~= nil and Bool or not SectionFrame.Visible end
-            function Section:Destroy() SectionFrame:Destroy() end
-            function Section:Set(New) if New then SectionLabel.Text = GetStr(New) end end
-            return Section
-        end
-        
-        function Tab:AddButton(Configs)
-            local BName = Configs[1] or Configs.Name or Configs.Title or "Button"
-            local Callback = Funcs:GetCallback(Configs, 2)
-            
-            local FButton, LabelFunc = ButtonFrame(Container, BName, "", UDim2.new(1, -20))
-            FButton.Activated:Connect(function()
-                Funcs:FireCallback(Callback)
-            end)
-            
-            local Button = {}
-            function Button:Visible(...) Funcs:ToggleVisible(FButton, ...) end
-            function Button:Destroy() FButton:Destroy() end
-            return Button
-        end
-        
-        function Tab:AddToggle(Configs)
-            local TName = Configs[1] or Configs.Name or Configs.Title or "Toggle"
-            local Callback = Funcs:GetCallback(Configs, 3)
-            local Flag = Configs[4] or Configs.Flag or false
-            local Default = Configs[2] or Configs.Default or false
-            if CheckFlag(Flag) then Default = GetFlag(Flag) end
-            
-            local Button, LabelFunc = ButtonFrame(Container, TName, "", UDim2.new(1, -38))
-            
-            local ToggleHolder = Create("Frame", Button, {
-                Size = UDim2.new(0, 35, 0, 18),
-                Position = UDim2.new(1, -10, 0.5),
-                AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
-            })
-            Make("Corner", ToggleHolder, UDim.new(0.5, 0))
-            
-            local Toggle = Create("Frame", ToggleHolder, {
-                Size = UDim2.new(0, 12, 0, 12),
-                Position = UDim2.new(0, 3, 0.5),
-                AnchorPoint = Vector2.new(0, 0.5),
-                BackgroundColor3 = Theme["Color Theme"]
-            })
-            Make("Corner", Toggle, UDim.new(0.5, 0))
-            
-            local function SetToggle(Val)
-                Default = Val
-                SetFlag(Flag, Default)
-                Funcs:FireCallback(Callback, Default)
-                
-                if Default then
-                    CreateTween({Toggle, "Position", UDim2.new(1, -3, 0.5), 0.2})
-                    CreateTween({Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.2})
-                else
-                    CreateTween({Toggle, "Position", UDim2.new(0, 3, 0.5), 0.2})
-                    CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.2})
-                end
-            end
-            
-            task.spawn(SetToggle, Default)
-            
-            Button.Activated:Connect(function()
-                SetToggle(not Default)
-            end)
-            
-            local ToggleObj = {}
-            function ToggleObj:Set(Val) if type(Val) == "boolean" then SetToggle(Val) end end
-            return ToggleObj
-        end
-        
-        function Tab:AddSlider(Configs)
-            local SName = Configs[1] or Configs.Name or Configs.Title or "Slider"
-            local Min = Configs[2] or Configs.Min or 0
-            local Max = Configs[3] or Configs.Max or 100
-            local Default = Configs[4] or Configs.Default or 50
-            local Callback = Funcs:GetCallback(Configs, 5)
-            
-            local Button, LabelFunc = ButtonFrame(Container, SName, "", UDim2.new(1, -100))
-            
-            local SliderBar = Create("Frame", Button, {
-                Size = UDim2.new(0, 80, 0, 5),
-                Position = UDim2.new(1, -10, 0.5),
-                AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
-            })
-            Make("Corner", SliderBar)
-            
-            local SliderIcon = Create("Frame", SliderBar, {
-                Size = UDim2.new(0, 5, 0, 10),
-                Position = UDim2.fromScale(0.5, 0.5),
-                AnchorPoint = Vector2.new(0.5, 0.5),
-                BackgroundColor3 = Color3.fromRGB(220, 220, 220)
-            })
-            Make("Corner", SliderIcon)
-            
-            local function UpdateValue()
-                local percent = SliderIcon.Position.X.Scale
-                local value = Min + (Max - Min) * percent
-                Funcs:FireCallback(Callback, math.floor(value))
-            end
-            
-            local SliderHolder = Create("TextButton", Button, {
-                Size = UDim2.new(0, 80, 0, 20),
-                Position = UDim2.new(1, -10, 0.5),
-                AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundTransparency = 1,
-                Text = "",
-                AutoButtonColor = false
-            })
-            
-            SliderHolder.MouseButton1Down:Connect(function()
-                while UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
-                    local mousePos = UserInputService:GetMouseLocation()
-                    local barPos = SliderBar.AbsolutePosition.X
-                    local barSize = SliderBar.AbsoluteSize.X
-                    local relativePos = (mousePos.X - barPos) / barSize
-                    SliderIcon.Position = UDim2.new(math.clamp(relativePos, 0, 1), 0, 0.5, 0)
-                    task.wait()
-                end
-                UpdateValue()
-            end)
-            
-            local Slider = {}
-            return Slider
-        end
-        
-        return Tab
-    end
-    
-    return SettingsWindowObj
-end
-
--- Função para alternar
-function Window:ToggleSettingsWindow(visible)
-    if not SettingsFrame then return end
-    if visible == nil then
-        SettingsFrame.Visible = not SettingsFrame.Visible
-    else
-        SettingsFrame.Visible = visible
-    end
-end
-
 function Window:Minimize()
     MainFrame.Visible = not MainFrame.Visible
     -- Atualiza a borda do botÃ£o de minimizar conforme a visibilidade do Hub
@@ -1929,6 +1600,91 @@ ApplyMinimizeBorder(MinimizeExternalButton)
 MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta Ã  funÃ§Ã£o de minimizar
 
 MyLibrary.MinimizeExternalButton = MinimizeExternalButton
+
+-- ==================== JANELA SECUNDÁRIA ====================
+local SecondaryWindow = Create("Frame", MainFrame, {
+    Size = UDim2.new(0, 280, 0, 220),
+    Position = UDim2.new(0.5, -140, 0.5, -110),
+    BackgroundColor3 = Theme["Color Hub 2"],
+    BackgroundTransparency = MyLibrary.Save.GlobalTransparency or 0,
+    Visible = false,
+    ZIndex = 50,
+    Name = "SecondaryWindow"
+})
+AddTransparency(SecondaryWindow)
+Make("Corner", SecondaryWindow, UDim.new(0, 8))
+ApplyBorder(SecondaryWindow)
+
+local SecondaryGradient = Make("Gradient", SecondaryWindow, { Rotation = 45 })
+
+local SecondaryTopBar = Create("Frame", SecondaryWindow, {
+    Size = UDim2.new(1, 0, 0, 28),
+    BackgroundTransparency = 1,
+    Name = "SecondaryTopBar"
+})
+
+local SecondaryTitle = InsertTheme(Create("TextLabel", SecondaryTopBar, {
+    Position = UDim2.new(0, 10, 0.5, 0),
+    AnchorPoint = Vector2.new(0, 0.5),
+    AutomaticSize = "XY",
+    Text = "Janela Secundária",
+    TextXAlignment = "Left",
+    TextSize = 13,
+    TextColor3 = Theme["Color Text"],
+    BackgroundTransparency = 1,
+    Font = MyLibrary.CurrentFont
+}), "Text")
+
+local SecondaryCloseButton = Create("ImageButton", SecondaryTopBar, {
+    Size = UDim2.new(0, 12, 0, 12),
+    Position = UDim2.new(1, -10, 0.5),
+    AnchorPoint = Vector2.new(1, 0.5),
+    BackgroundTransparency = 1,
+    Image = "rbxassetid://10747384394",
+    AutoButtonColor = false
+})
+
+local SecondaryScroll = InsertTheme(Create("ScrollingFrame", SecondaryWindow, {
+    Size = UDim2.new(1, 0, 1, -28),
+    Position = UDim2.new(0, 0, 0, 28),
+    ScrollBarImageColor3 = Theme["Color Theme"],
+    ScrollBarThickness = 1.5,
+    BackgroundTransparency = 1,
+    ScrollBarImageTransparency = 0.2,
+    CanvasSize = UDim2.new(),
+    AutomaticCanvasSize = "Y",
+    ScrollingDirection = "Y",
+    BorderSizePixel = 0,
+    Name = "SecondaryScroll"
+}, {
+    Create("UIPadding", {
+        PaddingLeft = UDim.new(0, 8),
+        PaddingRight = UDim.new(0, 8),
+        PaddingTop = UDim.new(0, 8),
+        PaddingBottom = UDim.new(0, 8)
+    }),
+    Create("UIListLayout", { Padding = UDim.new(0, 5) })
+}), "ScrollBar")
+
+local SecondaryOpen = false
+local function ToggleSecondaryWindow()
+    SecondaryOpen = not SecondaryOpen
+    
+    if SecondaryOpen then
+        SecondaryWindow.Visible = true
+        SecondaryWindow.Size = UDim2.new(0, 0, 0, 0)
+        CreateTween({SecondaryWindow, "Size", UDim2.new(0, 280, 0, 220), 0.3})
+        CreateTween({SecondaryWindow, "Position", UDim2.new(0.5, -140, 0.5, -110), 0.3})
+    else
+        CreateTween({SecondaryWindow, "Size", UDim2.new(0, 0, 0, 0), 0.2, true})
+        SecondaryWindow.Visible = false
+        SecondaryWindow.Size = UDim2.new(0, 280, 0, 220)
+        SecondaryWindow.Position = UDim2.new(0.5, -140, 0.5, -110)
+    end
+end
+
+SecondaryToggleButton.Activated:Connect(ToggleSecondaryWindow)
+SecondaryCloseButton.Activated:Connect(ToggleSecondaryWindow)
 
 -- Aplica as imagens salvas automaticamente
 task.spawn(function()
@@ -2058,6 +1814,183 @@ end)
         end)
         return Dialog
     end
+    
+    function Window:AddToSecondaryWindow()
+    local SecElements = {}
+    
+    function SecElements:AddToggle(Configs)
+        local TName = Configs[1] or Configs.Name or Configs.Title or "Toggle"
+        local TDesc = Configs.Desc or Configs.Description or ""
+        local Callback = Funcs:GetCallback(Configs, 3)
+        local Flag = Configs[4] or Configs.Flag or false
+        local Default = Configs[2] or Configs.Default or false
+        if CheckFlag(Flag) then Default = GetFlag(Flag) end
+        
+        local Button, LabelFunc = ButtonFrame(SecondaryScroll, TName, TDesc, UDim2.new(1, -38))
+        
+        local ToggleHolder = InsertTheme(Create("Frame", Button, {
+            Size = UDim2.new(0, 35, 0, 18),
+            Position = UDim2.new(1, -10, 0.5),
+            AnchorPoint = Vector2.new(1, 0.5),
+            BackgroundColor3 = Theme["Color Stroke"]
+        }), "Stroke")
+        AddTransparency(ToggleHolder)
+        Make("Corner", ToggleHolder, UDim.new(0.5, 0))
+        
+        local Toggle = InsertTheme(Create("Frame", ToggleHolder, {
+            Size = UDim2.new(0, 12, 0, 12),
+            Position = UDim2.new(0, 0, 0.5),
+            AnchorPoint = Vector2.new(0, 0.5),
+            BackgroundColor3 = Theme["Color Theme"]
+        }), "Theme")
+        Make("Corner", Toggle, UDim.new(0.5, 0))
+        
+        local function SetToggle(Val)
+            SetFlag(Flag, Val)
+            Funcs:FireCallback(Callback, Val)
+            if Val then
+                CreateTween({Toggle, "Position", UDim2.new(1, 0, 0.5), 0.25})
+                CreateTween({Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.25})
+            else
+                CreateTween({Toggle, "Position", UDim2.new(0, 0, 0.5), 0.25})
+                CreateTween({Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.25})
+            end
+        end
+        
+        Button.Activated:Connect(function()
+            Default = not Default
+            SetToggle(Default)
+        end)
+        
+        task.spawn(SetToggle, Default)
+        
+        local ToggleObj = {}
+        function ToggleObj:Visible(...) Funcs:ToggleVisible(Button, ...) end
+        function ToggleObj:Destroy() Button:Destroy() end
+        function ToggleObj:Set(Val) SetToggle(Val) end
+        return ToggleObj
+    end
+    
+    function SecElements:AddButton(Configs)
+        local BName = Configs[1] or Configs.Name or Configs.Title or "Button"
+        local BDesc = Configs.Desc or Configs.Description or ""
+        local Callback = Funcs:GetCallback(Configs, 2)
+        
+        local Button, LabelFunc = ButtonFrame(SecondaryScroll, BName, BDesc, UDim2.new(1, -20))
+        
+        Button.Activated:Connect(function()
+            Funcs:FireCallback(Callback)
+        end)
+        
+        local ButtonObj = {}
+        function ButtonObj:Visible(...) Funcs:ToggleVisible(Button, ...) end
+        function ButtonObj:Destroy() Button:Destroy() end
+        return ButtonObj
+    end
+    
+    function SecElements:AddSlider(Configs)
+        local SName = Configs[1] or Configs.Name or Configs.Title or "Slider"
+        local SDesc = Configs.Desc or Configs.Description or ""
+        local Min = Configs[2] or Configs.Min or 0
+        local Max = Configs[3] or Configs.Max or 100
+        local Default = Configs[5] or Configs.Default or 50
+        local Callback = Funcs:GetCallback(Configs, 6)
+        
+        local Button, LabelFunc = ButtonFrame(SecondaryScroll, SName, SDesc, UDim2.new(1, -80))
+        
+        local SliderHolder = Create("TextButton", Button, {
+            Size = UDim2.new(0.4, 0, 1),
+            Position = UDim2.new(1),
+            AnchorPoint = Vector2.new(1, 0),
+            AutoButtonColor = false,
+            Text = "",
+            BackgroundTransparency = 1
+        })
+        
+        local SliderBar = InsertTheme(Create("Frame", SliderHolder, {
+            BackgroundColor3 = Theme["Color Stroke"],
+            Size = UDim2.new(1, -20, 0, 4),
+            Position = UDim2.new(0.5, 0, 0.5),
+            AnchorPoint = Vector2.new(0.5, 0.5)
+        }), "Stroke")
+        Make("Corner", SliderBar)
+        
+        local SliderIcon = Create("Frame", SliderBar, {
+            Size = UDim2.new(0, 8, 0, 8),
+            BackgroundColor3 = Theme["Color Theme"],
+            Position = UDim2.fromScale(0.5, 0.5),
+            AnchorPoint = Vector2.new(0.5, 0.5)
+        })
+        Make("Corner", SliderIcon, UDim.new(0.5, 0))
+        
+        local LabelVal = InsertTheme(Create("TextLabel", SliderHolder, {
+            Size = UDim2.new(0, 25, 0, 10),
+            AnchorPoint = Vector2.new(1, 0.5),
+            Position = UDim2.new(0, 0, 0.5),
+            BackgroundTransparency = 1,
+            TextColor3 = Theme["Color Text"],
+            Font = MyLibrary.CurrentFont,
+            TextSize = 9,
+            Text = tostring(Default)
+        }), "Text")
+        
+        local function UpdateSlider(input)
+            local mouseX = input.Position.X - SliderBar.AbsolutePosition.X
+            local percent = math.clamp(mouseX / SliderBar.AbsoluteSize.X, 0, 1)
+            SliderIcon.Position = UDim2.fromScale(percent, 0.5)
+            
+            local value = Min + (Max - Min) * percent
+            value = math.floor(value * 100) / 100
+            LabelVal.Text = tostring(value)
+            Funcs:FireCallback(Callback, value)
+        end
+        
+        SliderHolder.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                local connection
+                connection = UserInputService.InputChanged:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseMovement then
+                        UpdateSlider(input)
+                    end
+                end)
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        connection:Disconnect()
+                    end
+                end)
+                UpdateSlider(input)
+            end
+        end)
+        
+        local SliderObj = {}
+        function SliderObj:Visible(...) Funcs:ToggleVisible(Button, ...) end
+        function SliderObj:Destroy() Button:Destroy() end
+        function SliderObj:Set(val)
+            local percent = (val - Min) / (Max - Min)
+            SliderIcon.Position = UDim2.fromScale(math.clamp(percent, 0, 1), 0.5)
+            LabelVal.Text = tostring(val)
+        end
+        return SliderObj
+    end
+    
+    return SecElements
+end
+
+function Window:ToggleSecondary()
+    ToggleSecondaryWindow()
+end
+
+function Window:OpenSecondary()
+    if not SecondaryOpen then
+        ToggleSecondaryWindow()
+    end
+end
+
+function Window:CloseSecondary()
+    if SecondaryOpen then
+        ToggleSecondaryWindow()
+    end
+end
 
     function Window:SelectTab(TabSelect)
         if type(TabSelect) == "number" then
@@ -4124,9 +4057,6 @@ end
 
     CloseButton.Activated:Connect(Window.CloseBtn)
     MinimizeButton.Activated:Connect(Window.MinimizeBtn)
-    SettingsButton.Activated:Connect(function()
-    Window:ToggleSettingsWindow()
-end)
     
     -- Aplica a transparÃªncia global salva
 if MyLibrary.Save.GlobalTransparency and MyLibrary.Save.GlobalTransparency > 0 then
