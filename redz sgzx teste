@@ -43,8 +43,6 @@ Save = {
     ClickSoundEnabled = false,
     ClickSoundId = "rbxassetid://18998603679",
     ClickSoundVolume = 0.1,
-    RainbowToggleEnabled = false,
-    SaveRainbowStates = false,  -- se true, salva estado dos toggles rainbow
 },
     Settings = {},
     Connection = {},
@@ -160,12 +158,6 @@ if rawget(decoded, "ClickSoundId") and type(decoded.ClickSoundId) == "string" th
 end
 if rawget(decoded, "ClickSoundVolume") then
     MyLibrary.Save.ClickSoundVolume = tonumber(decoded.ClickSoundVolume) or 0.1
-end
-if rawget(decoded, "RainbowToggleEnabled") then
-    MyLibrary.Save.RainbowToggleEnabled = decoded.RainbowToggleEnabled == true
-end
-if rawget(decoded, "SaveRainbowStates") then
-    MyLibrary.Save.SaveRainbowStates = decoded.SaveRainbowStates == true
 end
     end
 end
@@ -1267,11 +1259,6 @@ function MyLibrary:GetClickSoundVolume()
     return MyLibrary.Save.ClickSoundVolume
 end
 
--- Toggle arco-�ris
-function MyLibrary:GetRainbowToggleEnabled()
-    return MyLibrary.Save.RainbowToggleEnabled
-end
-
 -- Tecla
 function MyLibrary:GetToggleKey()
     return MyLibrary.Save.ToggleKey
@@ -1305,19 +1292,7 @@ function MyLibrary:SetFont(fontInput)
     end
 end
 
-function MyLibrary:SetSaveRainbowStates(enabled)
-    MyLibrary.Save.SaveRainbowStates = enabled == true
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-end
 
-function MyLibrary:GetSaveRainbowStates()
-    return MyLibrary.Save.SaveRainbowStates
-end
-
-function MyLibrary:SetRainbowToggleEnabled(enabled)
-    MyLibrary.Save.RainbowToggleEnabled = enabled == true
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-end
 
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "SAGAZx"
@@ -2054,143 +2029,7 @@ end)
             return ToggleObj
         end
         
-function Tab:AddRainbowToggle(Configs)
-    local TName = Configs[1] or Configs.Name or Configs.Title or "Rainbow Toggle"
-    local TDesc = Configs.Desc or Configs.Description or ""
-    local Callback = Configs.Callback or function() end
-    local Flag = Configs.Flag or nil  -- flag único para persistência
 
-    -- Se não tiver flag, usa um valor temporário (não salva)
-    local Default = false
-if Flag and MyLibrary.Save.SaveRainbowStates and MyLibrary.Save[Flag] ~= nil then
-    Default = MyLibrary.Save[Flag] == true
-else
-    Default = Configs.Default or false
-end
-
-    -- Se tiver flag, inicializa no Save
-    if Flag then
-        MyLibrary.Save[Flag] = Default
-        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-    end
-
-    local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
-
-    local ToggleHolder = InsertTheme(Create("Frame", Button, {
-        Size = UDim2.new(0, 35, 0, 18),
-        Position = UDim2.new(1, -10, 0.5),
-        AnchorPoint = Vector2.new(1, 0.5),
-        BackgroundColor3 = Theme["Color Stroke"]
-    }), "Stroke")
-    Make("Corner", ToggleHolder, UDim.new(0.5, 0))
-
-    local Slider = Create("Frame", ToggleHolder, {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(0.8, 0, 0.8, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5)
-    })
-
-    local Ball = Create("Frame", Slider, {
-        Size = UDim2.new(0, 12, 0, 12),
-        Position = UDim2.new(0, 0, 0.5),
-        AnchorPoint = Vector2.new(0, 0.5),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        Name = "RainbowBall"
-    })
-    Make("Corner", Ball, UDim.new(0.5, 0))
-
-    local rainbowGradient = Create("UIGradient", Ball, {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-            ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 165, 0)),
-            ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)),
-            ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 0)),
-            ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(128, 0, 128))
-        }),
-        Rotation = 45
-    })
-
-    local function UpdateRainbowAppearance(enabled)
-        if enabled then
-            rainbowGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-                ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 165, 0)),
-                ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)),
-                ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 0)),
-                ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 255)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(128, 0, 128))
-            })
-        else
-            rainbowGradient.Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 0, 0)),
-                ColorSequenceKeypoint.new(0.2, Color3.fromRGB(80, 50, 0)),
-                ColorSequenceKeypoint.new(0.4, Color3.fromRGB(80, 80, 0)),
-                ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 80, 0)),
-                ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 80)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 0, 40))
-            })
-        end
-    end
-
-    UpdateRainbowAppearance(Default)
-
-    local WaitClick = false
-    local function SetToggleState(state)
-        if WaitClick then return end
-        WaitClick = true
-
-        Default = state
-
-if Flag and MyLibrary.Save.SaveRainbowStates then
-    MyLibrary.Save[Flag] = state
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-end
-
-        UpdateRainbowAppearance(state)
-        task.spawn(Callback, state)
-
-        if state then
-            CreateTween({Ball, "Position", UDim2.new(1, 0, 0.5), 0.25})
-            CreateTween({Ball, "AnchorPoint", Vector2.new(1, 0.5), 0.25, false})
-        else
-            CreateTween({Ball, "Position", UDim2.new(0, 0, 0.5), 0.25})
-            CreateTween({Ball, "AnchorPoint", Vector2.new(0, 0.5), 0.25, false})
-        end
-
-        WaitClick = false
-    end
-
-    task.spawn(function()
-        if Default then
-            Ball.Position = UDim2.new(1, 0, 0.5)
-            Ball.AnchorPoint = Vector2.new(1, 0.5)
-        end
-    end)
-
-    Button.Activated:Connect(function()
-        SetToggleState(not Default)
-    end)
-
-    local RainbowToggle = {}
-    function RainbowToggle:Set(state)
-        SetToggleState(state == true)
-    end
-    function RainbowToggle:Visible(visible)
-        Button.Visible = visible
-    end
-    function RainbowToggle:Destroy()
-        Button:Destroy()
-    end
-    function RainbowToggle:SetTitle(title)
-        LabelFunc:SetTitle(title)
-    end
-    function RainbowToggle:SetDesc(desc)
-        LabelFunc:SetDesc(desc)
-    end
-    return RainbowToggle
-end
 
 function Tab:AddColorPicker(Configs)
     local CPName = Configs[1] or Configs.Name or Configs.Title or "Color Picker"
