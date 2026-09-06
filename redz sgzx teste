@@ -2047,7 +2047,21 @@ function Tab:AddRainbowToggle(Configs)
     local TName = Configs[1] or Configs.Name or Configs.Title or "Rainbow Toggle"
     local TDesc = Configs.Desc or Configs.Description or ""
     local Callback = Configs.Callback or function() end
-    local Default = MyLibrary.Save.RainbowToggleEnabled or false
+    local Flag = Configs.Flag or nil  -- flag único para persistência
+
+    -- Se não tiver flag, usa um valor temporário (não salva)
+    local Default = false
+    if Flag and MyLibrary.Save[Flag] ~= nil then
+        Default = MyLibrary.Save[Flag] == true
+    else
+        Default = Configs.Default or false
+    end
+
+    -- Se tiver flag, inicializa no Save
+    if Flag then
+        MyLibrary.Save[Flag] = Default
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    end
 
     local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
 
@@ -2117,8 +2131,11 @@ function Tab:AddRainbowToggle(Configs)
         WaitClick = true
 
         Default = state
-        MyLibrary.Save.RainbowToggleEnabled = state
-        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+
+        if Flag then
+            MyLibrary.Save[Flag] = state
+            SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+        end
 
         UpdateRainbowAppearance(state)
         task.spawn(Callback, state)
