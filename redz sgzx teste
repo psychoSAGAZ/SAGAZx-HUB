@@ -160,6 +160,9 @@ end
 if rawget(decoded, "ClickSoundVolume") then
     MyLibrary.Save.ClickSoundVolume = tonumber(decoded.ClickSoundVolume) or 0.1
 end
+if rawget(decoded, "RainbowToggleEnabled") then
+    MyLibrary.Save.RainbowToggleEnabled = decoded.RainbowToggleEnabled == true
+end
     end
 end
 
@@ -1303,10 +1306,6 @@ end
 function MyLibrary:SetRainbowToggleEnabled(enabled)
     MyLibrary.Save.RainbowToggleEnabled = enabled == true
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-
-    -- Atualiza visualmente o toggle correspondente (se existir)
-    -- Para simplificar, voc� pode armazenar a refer�ncia do toggle criado.
-    -- Mas como o toggle tamb�m salva ao ser clicado, n�o � obrigat�rio.
 end
 
 function MyLibrary:MakeWindow(Configs)
