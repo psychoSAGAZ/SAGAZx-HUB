@@ -1604,7 +1604,8 @@ local SecondaryFrame = InsertTheme(Create("ImageButton", MainFrame, {
     BackgroundTransparency = 0.03,
     Visible = false,
     Name = "SecondaryWindow",
-    ZIndex = 1
+    ZIndex = 1,
+    ClipsDescendants = true -- Impede que tabs saiam da janela
 }), "Main")
 
 MyLibrary.SecondaryGradient = Make("Gradient", SecondaryFrame, { Rotation = 45 })
@@ -1643,34 +1644,32 @@ local SecondaryCloseButton = Create("ImageButton", SecondaryTopBar, {
     Name = "SecondaryClose"
 })
 
--- Container de tabs da janela secundária (Frame normal, sem scroll)
+-- Container de tabs da janela secundária (sem scroll, com quebra de linha)
 local SecondaryTabContainer = Create("Frame", SecondaryFrame, {
-    Size = UDim2.new(1, 0, 0, 60), -- Aumentado para acomodar 2 linhas de tabs
+    Size = UDim2.new(1, 0, 0, 35), -- Altura fixa de 35px
     Position = UDim2.new(0, 0, 0, 30),
     BackgroundTransparency = 1,
-    ClipsDescendants = true, -- Impede que tabs saiam da janela
+    ClipsDescendants = true, -- Impede que tabs saiam visualmente
     Name = "SecondaryTabContainer"
 }, {
     Create("UIPadding", {
         PaddingLeft = UDim.new(0, 5),
         PaddingRight = UDim.new(0, 5),
-        PaddingTop = UDim.new(0, 5),
-        PaddingBottom = UDim.new(0, 5)
+        PaddingTop = UDim.new(0, 5)
     }),
-    Create("UIGridLayout", {
-        CellSize = UDim2.new(0, 110, 0, 25),
+    Create("UIGridLayout", { -- Usa GridLayout para organizar em grade
+        CellSize = UDim2.new(0, 80, 0, 25),
         CellPadding = UDim2.new(0, 5, 0, 5),
-        SortOrder = "LayoutOrder",
-        FillDirection = "Horizontal",
-        HorizontalAlignment = "Left",
-        VerticalAlignment = "Top"
+        FillDirection = Enum.FillDirection.Horizontal,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        StartCorner = Enum.StartCorner.TopLeft
     })
 })
 
 -- Container da janela secundária
 local SecondaryContainers = Create("Frame", SecondaryFrame, {
-    Size = UDim2.new(1, 0, 1, -90), -- Ajustado para acomodar tabs maiores
-    Position = UDim2.new(0, 0, 0, 90),
+    Size = UDim2.new(1, 0, 1, -65),
+    Position = UDim2.new(0, 0, 0, 65),
     BackgroundTransparency = 1,
     ClipsDescendants = true,
     Name = "SecondaryContainers"
@@ -1700,6 +1699,24 @@ SecondaryCloseButton.Activated:Connect(function()
     SecondaryFrame.Visible = false
 end)
 
+-- Função para atualizar cores das tabs quando o tema muda
+local function UpdateAllSecondaryTabColors()
+    for _, tab in pairs(SecondaryTabs) do
+        if tab.Cont and tab.Cont.Parent then
+            -- Tab ativa
+            tab.tabButton.BackgroundColor3 = Theme["Color Theme"]
+        else
+            -- Tab inativa
+            tab.tabButton.BackgroundColor3 = Theme["Color Hub 2"]
+        end
+    end
+end
+
+-- Conecta ao evento de mudança de tema
+Connection.ThemeChanged:Connect(function()
+    UpdateAllSecondaryTabColors()
+end)
+
 -- Função para criar tabs na janela secundária
 function Window:MakeSecondaryTab(Configs)
     if type(Configs) == "table" then
@@ -1713,11 +1730,11 @@ function Window:MakeSecondaryTab(Configs)
         
         -- Botão da tab sem borda
         local TabSelect = Make("Button", SecondaryTabContainer, {
-            Size = UDim2.new(0, 110, 0, 25),
+            Size = UDim2.new(0, 80, 0, 25),
             BackgroundColor3 = Theme["Color Hub 2"] -- Cor padrão quando não selecionada
         })
         Make("Corner", TabSelect, UDim.new(0, 4))
-        -- Removido ApplyBorder(TabSelect) - sem borda
+        -- Sem ApplyBorder - sem borda
         
         local LabelTitle = InsertTheme(Create("TextLabel", TabSelect, {
             Size = UDim2.new(1, -10, 1),
@@ -1730,11 +1747,6 @@ function Window:MakeSecondaryTab(Configs)
             TextXAlignment = "Left",
             TextTruncate = "AtEnd"
         }), "Text")
-        
-        -- Registrar a tab no sistema de temas para atualização automática
-        InsertTheme(TabSelect, "Frame")
-        TabSelect.TabType = "SecondaryTab"
-        TabSelect.IsActive = false
         
         local Container = InsertTheme(Create("ScrollingFrame", {
             Size = UDim2.new(1, 0, 1, 0),
@@ -1768,12 +1780,10 @@ function Window:MakeSecondaryTab(Configs)
             for _, tab in pairs(SecondaryTabs) do
                 if tab.Cont == Container then
                     -- Tab ativa - cor do tema
-                    TabSelect.BackgroundColor3 = Theme["Color Theme"]
-                    TabSelect.IsActive = true
+                    tab.tabButton.BackgroundColor3 = Theme["Color Theme"]
                 else
                     -- Tab inativa - cor padrão
                     tab.tabButton.BackgroundColor3 = Theme["Color Hub 2"]
-                    tab.tabButton.IsActive = false
                 end
             end
         end
@@ -1799,15 +1809,11 @@ function Window:MakeSecondaryTab(Configs)
         table.insert(SecondaryTabs, {func = Tab, Cont = Container, tabButton = TabSelect})
         
         -- Atualiza cores inicialmente
-        if SecondaryFirstTab then
-            TabSelect.BackgroundColor3 = Theme["Color Theme"]
-            TabSelect.IsActive = true
-        end
+        UpdateTabColors()
         
         function Tab:Disable()
             Container.Parent = nil
             TabSelect.BackgroundColor3 = Theme["Color Hub 2"]
-            TabSelect.IsActive = false
         end
         
         function Tab:Enable()
@@ -1829,9 +1835,7 @@ function Window:MakeSecondaryTab(Configs)
         end
         
         -- ============ ELEMENTOS DA JANELA SECUNDÁRIA ============
-        -- Aqui você pode adicionar todas as funções Add... 
-        -- Elas são idênticas às da janela principal, mas usam "Container" da secundária
-        
+
         function Tab:AddSection(Configs)
             local SectionName = type(Configs) == "string" and Configs or Configs[1] or Configs.Name or Configs.Title or Configs.Section
 
@@ -3650,7 +3654,7 @@ function Tab:AddTextBox(Configs)
     end
     return TextBox
 end
-
+        
         return Tab
     end
 end
