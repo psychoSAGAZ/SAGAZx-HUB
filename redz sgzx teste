@@ -1643,9 +1643,9 @@ local SecondaryCloseButton = Create("ImageButton", SecondaryTopBar, {
     Name = "SecondaryClose"
 })
 
--- Container de tabs da janela secundária (Frame normal, sem scroll)
+-- Container de tabs da janela secundária (2 linhas de 3 botões)
 local SecondaryTabContainer = Create("Frame", SecondaryFrame, {
-    Size = UDim2.new(1, 0, 0, 35),
+    Size = UDim2.new(1, 0, 0, 60),  -- Aumentado para 60px (2 linhas de 22px + espaçamento)
     Position = UDim2.new(0, 0, 0, 30),
     BackgroundTransparency = 1,
     Name = "SecondaryTabContainer"
@@ -1653,19 +1653,22 @@ local SecondaryTabContainer = Create("Frame", SecondaryFrame, {
     Create("UIPadding", {
         PaddingLeft = UDim.new(0, 5),
         PaddingRight = UDim.new(0, 5),
-        PaddingTop = UDim.new(0, 5)
+        PaddingTop = UDim.new(0, 5),
+        PaddingBottom = UDim.new(0, 5)
     }),
-    Create("UIListLayout", {
-        Padding = UDim.new(0, 5),
+    Create("UIGridLayout", {  -- Grid para organizar em 2 linhas de 3 botões
+        CellSize = UDim2.new(0, 75, 0, 22),  -- 3 botões de 75px = 225px + paddings
+        CellPadding = UDim2.new(0, 5, 0, 5),
         FillDirection = "Horizontal",
-        SortOrder = "LayoutOrder"
+        SortOrder = "LayoutOrder",
+        HorizontalAlignment = "Center"
     })
 })
 
--- Container da janela secundária
+-- Container da janela secundária (ajustado para nova altura das tabs)
 local SecondaryContainers = Create("Frame", SecondaryFrame, {
-    Size = UDim2.new(1, 0, 1, -65),
-    Position = UDim2.new(0, 0, 0, 65),
+    Size = UDim2.new(1, 0, 1, -90),  -- 30 TopBar + 60 Tabs = 90
+    Position = UDim2.new(0, 0, 0, 90),
     BackgroundTransparency = 1,
     ClipsDescendants = true,
     Name = "SecondaryContainers"
@@ -1706,34 +1709,38 @@ function Window:MakeSecondaryTab(Configs)
             TIcon = false
         end
         
-        -- Botão da tab
+        -- Botão da tab (menor, 75x22)
         local TabSelect = Make("Button", SecondaryTabContainer, {
-            Size = UDim2.new(0, 80, 0, 25),
+            Size = UDim2.new(0, 75, 0, 22),
             BackgroundColor3 = Theme["Color Hub 2"]
         })
         Make("Corner", TabSelect, UDim.new(0, 4))
         
-        -- Frame indicador de seleção (usará a cor do tema)
+        -- Frame indicador de seleção (do tamanho do botão, semi-transparente)
         local SelectionIndicator = InsertTheme(Create("Frame", TabSelect, {
-            Size = UDim2.new(0, 3, 0, 15),
-            Position = UDim2.new(0, 2, 0.5),
-            AnchorPoint = Vector2.new(0, 0.5),
+            Size = UDim2.new(1, -6, 1, -6),  -- Quase do tamanho do botão (com margem de 3px)
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            AnchorPoint = Vector2.new(0.5, 0.5),
             BackgroundColor3 = Theme["Color Theme"],
+            BackgroundTransparency = 0.7,  -- Semi-transparente para não esconder o texto
             Visible = false,
-            Name = "SelectionIndicator"
+            Name = "SelectionIndicator",
+            ZIndex = 1  -- Atrás do texto
         }), "Theme")
-        Make("Corner", SelectionIndicator, UDim.new(0.5, 0))
+        Make("Corner", SelectionIndicator, UDim.new(0, 3))
         
+        -- Label do título (ZIndex maior para ficar acima do indicador)
         local LabelTitle = InsertTheme(Create("TextLabel", TabSelect, {
-            Size = UDim2.new(1, -12, 1),
-            Position = UDim2.new(0, 8, 0),
+            Size = UDim2.new(1, -10, 1),
+            Position = UDim2.new(0, 5, 0),
             BackgroundTransparency = 1,
             Font = MyLibrary.CurrentFont,
             Text = TName,
             TextColor3 = Theme["Color Text"],
             TextSize = 9,
             TextXAlignment = "Left",
-            TextTruncate = "AtEnd"
+            TextTruncate = "AtEnd",
+            ZIndex = 2  -- Acima do indicador
         }), "Text")
         
         local Container = InsertTheme(Create("ScrollingFrame", {
