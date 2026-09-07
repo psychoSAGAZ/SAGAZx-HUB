@@ -2930,6 +2930,11 @@ function Tab:AddTextBox(Configs)
     return TextBox
 end
 
+        return Tab
+    end
+end
+
+
 -- Função para mostrar/ocultar a janela secundária
 function Window:ToggleSecondaryWindow()
     SecondaryFrame.Visible = not SecondaryFrame.Visible
