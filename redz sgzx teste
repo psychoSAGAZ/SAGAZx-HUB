@@ -1716,18 +1716,17 @@ function Window:MakeSecondaryTab(Configs)
         })
         Make("Corner", TabSelect, UDim.new(0, 4))
         
-        -- Frame indicador de seleção (do tamanho do botão, semi-transparente)
-        local SelectionIndicator = InsertTheme(Create("Frame", TabSelect, {
-            Size = UDim2.new(1, -6, 1, -6),  -- Quase do tamanho do botão (com margem de 3px)
-            Position = UDim2.new(0.5, 0, 0.5, 0),
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            BackgroundColor3 = Theme["Color Theme"],
-            BackgroundTransparency = 0.7,  -- Semi-transparente para não esconder o texto
-            Visible = false,
-            Name = "SelectionIndicator",
-            ZIndex = 1  -- Atrás do texto
-        }), "Theme")
-        Make("Corner", SelectionIndicator, UDim.new(0, 3))
+ -- Frame indicador de seleção (do tamanho exato do botão, opaco)
+local SelectionIndicator = InsertTheme(Create("Frame", TabSelect, {
+    Size = UDim2.new(1, 0, 1, 0),  -- Tamanho exato do botão
+    Position = UDim2.new(0, 0, 0, 0),  -- Posição 0,0 (canto superior esquerdo)
+    BackgroundColor3 = Theme["Color Theme"],
+    BackgroundTransparency = 0,  -- Totalmente opaco
+    Visible = false,
+    Name = "SelectionIndicator",
+    ZIndex = 1  -- Atrás do texto
+}), "Theme")
+Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado do botão
         
         -- Label do título (ZIndex maior para ficar acima do indicador)
         local LabelTitle = InsertTheme(Create("TextLabel", TabSelect, {
