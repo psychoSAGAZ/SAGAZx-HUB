@@ -2964,6 +2964,939 @@ function Window:ToggleSecondaryWindow()
     SecondaryFrame.Visible = not SecondaryFrame.Visible
 end
 
+local CoresTab = Window:MakeSecondaryTab({
+    Title = "Cores",
+    Icon = "settings"
+})
+
+local ImageTab = Window:MakeSecondaryTab({
+    Title = "Imagens",
+    Icon = "settings"
+})
+
+local ThemesTab = Window:MakeSecondaryTab({
+    Title = "Temas",
+    Icon = "settings"
+})
+
+local FontesTab = Window:MakeSecondaryTab({
+    Title = "Fontes",
+    Icon = "settings"
+})
+
+local ExtrasTab = Window:MakeSecondaryTab({
+    Title = "Extras",
+    Icon = "settings"
+})
+
+local ConfigTab = Window:MakeSecondaryTab({
+    Title = "Config",
+    Icon = "settings"
+})
+
+CoresTab:AddSection({"Cor do Hub"})
+
+CoresTab:AddColorPicker({
+    Name = "Cor do Hub - Inicio",
+    Default = MyLibrary:GetThemeColor("Color Hub 1").Keypoints[1].Value,
+    Callback = function(color)
+        local grad = MyLibrary:GetThemeColor("Color Hub 1")
+        MyLibrary:SetThemeColor("Color Hub 1", {
+            color,                        
+            grad.Keypoints[2].Value,      
+            grad.Keypoints[3].Value       
+        })
+    end
+})
+
+CoresTab:AddColorPicker({
+    Name = "Cor do Hub - Meio",
+    Default = MyLibrary:GetThemeColor("Color Hub 1").Keypoints[2].Value,
+    Callback = function(color)
+        local grad = MyLibrary:GetThemeColor("Color Hub 1")
+        MyLibrary:SetThemeColor("Color Hub 1", {
+            grad.Keypoints[1].Value,   
+            color,                        
+            grad.Keypoints[3].Value      
+        })
+    end
+})
+
+CoresTab:AddColorPicker({
+    Name = "Cor do Hub - Fim",
+    Default = MyLibrary:GetThemeColor("Color Hub 1").Keypoints[3].Value,
+    Callback = function(color)
+        local grad = MyLibrary:GetThemeColor("Color Hub 1")
+        MyLibrary:SetThemeColor("Color Hub 1", {
+            grad.Keypoints[1].Value,      
+            grad.Keypoints[2].Value,      
+            color                        
+        })
+    end
+})
+
+CoresTab:AddSection({"Componentes"})
+
+CoresTab:AddColorPicker({
+    Name = "Cor de Fundo dos Componentes",
+    Default = MyLibrary:GetThemeColor("Color Hub 2"),
+    Callback = function(color)
+        MyLibrary:SetThemeColor("Color Hub 2", color)
+    end
+})
+
+CoresTab:AddColorPicker({
+    Name = "Cor do Contorno Interno",
+    Default = MyLibrary:GetThemeColor("Color Stroke"),
+    Callback = function(color)
+        MyLibrary:SetThemeColor("Color Stroke", color)
+    end
+})
+
+CoresTab:AddColorPicker({
+    Name = "Cor de Destaque",
+    Default = MyLibrary:GetThemeColor("Color Theme"),
+    Callback = function(color)
+        MyLibrary:SetThemeColor("Color Theme", color)
+    end
+})
+
+CoresTab:AddSection({"Texto"})
+
+CoresTab:AddColorPicker({
+    Name = "Cor do Texto",
+    Desc = "Cor dos Textos Principais",
+    Default = MyLibrary:GetThemeColor("Color Text"),
+    Callback = function(color)
+        MyLibrary:SetThemeColor("Color Text", color)
+    end
+})
+
+CoresTab:AddColorPicker({
+    Name = "Cor das Descrições",
+    Default = MyLibrary:GetThemeColor("Color Dark Text"),
+    Callback = function(color)
+        MyLibrary:SetThemeColor("Color Dark Text", color)
+    end
+})
+
+CoresTab:AddSection({"Bordas"})
+
+CoresTab:AddColorPicker({
+    Name = "Cor do Contorno do Minimize",
+    Default = MyLibrary:GetMinimizeStrokeColor() and Color3.fromHex(MyLibrary:GetMinimizeStrokeColor()) or Color3.fromRGB(138, 43, 226),
+    Callback = function(color)
+        MyLibrary:SetMinimizeStrokeColor(color)
+    end
+})
+
+CoresTab:AddColorPicker({
+    Name = "Cor dos Contornos",
+    Default = MyLibrary:GetStrokeColor() and Color3.fromHex(MyLibrary:GetStrokeColor()) or Color3.fromRGB(138, 43, 226),
+    Callback = function(color)
+        MyLibrary:SetStrokeColor(color)
+    end
+})
+
+
+
+-- Hub
+local hubImageTextBox = ImageTab:AddTextBox({
+    Name = "Imagem do Hub",
+    Default = MyLibrary:GetHubImage() or "",
+    PlaceholderText = "ID ou link...",
+    Callback = function(text)
+        MyLibrary:SetHubImage(text)
+    end
+})
+
+
+
+-- Minimize
+local minimizeImageTextBox = ImageTab:AddTextBox({
+    Name = "Imagem do Minimize",
+    Default = MyLibrary:GetMinimizeImage() or "",
+    PlaceholderText = "ID ou link...",
+    Callback = function(text)
+        MyLibrary:SetMinimizeImage(text)
+    end
+})
+
+ImageTab:AddButton({
+    Name = "Resetar Imagem do Minimize",
+    Callback = function()
+        MyLibrary:ResetMinimizeImage()
+        if minimizeImageTextBox and minimizeImageTextBox.Set then
+            minimizeImageTextBox:Set(MyLibrary:GetMinimizeImage())
+        end
+    end
+})
+
+-- TopBar
+local topbarImageTextBox = ImageTab:AddTextBox({
+    Name = "Imagem da TopBar",
+    Default = MyLibrary:GetTopbarImage() or "",
+    PlaceholderText = "ID ou link...",
+    Callback = function(text)
+        MyLibrary:SetTopbarImage(text)
+    end
+})
+
+ImageTab:AddButton({
+    Name = "Resetar Imagem da TopBar",
+    Callback = function()
+        MyLibrary:ResetTopbarImage()
+        if topbarImageTextBox and topbarImageTextBox.Set then
+            topbarImageTextBox:Set(MyLibrary:GetTopbarImage())
+        end
+    end
+})
+
+ImageTab:AddSlider({
+    Name = "Transparencia da Imagem do Hub",
+    Min = 0,
+    Max = 1,
+    Increase = 0.01,
+    Default = MyLibrary:GetHubImageTransparency(),
+    Callback = function(value)
+        MyLibrary:SetHubImageTransparency(value)
+    end
+})
+
+ImageTab:AddSlider({
+    Name = "Transparencia do Hub",
+    Min = 0,
+    Max = 1,
+    Increase = 0.01,
+    Default = MyLibrary:GetHubTransparency(),
+    Callback = function(value)
+        MyLibrary:SetHubTransparency(value)
+    end
+})
+
+ImageTab:AddSlider({
+    Name = "Transparencia Global",
+    Min = 0,
+    Max = 1,
+    Increase = 0.01,
+    Default = MyLibrary:GetGlobalTransparency(),
+    Callback = function(value)
+        MyLibrary:SetGlobalTransparency(value)
+    end
+})
+
+ImageTab:AddSlider({
+    Name = "Transparencia das Bordas",
+    Min = 0,
+    Max = 1,
+    Increase = 0.01,
+    Default = MyLibrary:GetStrokeTransparency(),
+    Callback = function(value)
+        MyLibrary:SetStrokeTransparency(value)
+    end
+})
+
+
+
+
+-- Criar pasta de temas se nao existir
+local ThemesFolder = "SAGAZx HUB Lib/Themes"
+if makefolder and not isfolder(ThemesFolder) then
+    makefolder(ThemesFolder)
+end
+
+-- Variaveis de controle de Estado
+local currentThemeName = ""
+local selectedTheme = ""
+local themesDropdown = nil
+
+-- Funcao auxiliar segura para converter Color3 em Hexadecimal
+local function Color3ToHex(color)
+    if typeof(color) ~= "Color3" then
+        return "#FFFFFF"
+    end
+    return string.format("#%02X%02X%02X", 
+        math.round(color.R * 255), 
+        math.round(color.G * 255), 
+        math.round(color.B * 255)
+    )
+end
+
+-- Funcao para listar os arquivos de temas salvos
+local function GetThemesList()
+    local themes = {}
+    if not isfolder or not isfolder(ThemesFolder) then return themes end
+    
+    local ok, files = pcall(listfiles, ThemesFolder)
+    if ok and files then
+        for _, file in ipairs(files) do
+            local fileName = file:match("([^/]+)%.json$")
+            if fileName then
+                table.insert(themes, fileName)
+            end
+        end
+    end
+    return themes
+end
+
+-- Funcao para Salvar o Tema
+local function SaveTheme(themeName)
+    if not themeName or themeName:gsub("%s+", "") == "" then
+        return false
+    end
+    
+    -- Trata a captura de cor de gradiente de forma segura
+    local hub1Color = MyLibrary:GetThemeColor("Color Hub 1")
+    local gStart, gMiddle, gEnd = "#FFFFFF", "#FFFFFF", "#FFFFFF"
+    
+    if typeof(hub1Color) == "ColorSequence" and hub1Color.Keypoints then
+        gStart = Color3ToHex(hub1Color.Keypoints[1] and hub1Color.Keypoints[1].Value or Color3.new(1,1,1))
+        gMiddle = Color3ToHex(hub1Color.Keypoints[2] and hub1Color.Keypoints[2].Value or Color3.new(1,1,1))
+        gEnd = Color3ToHex(hub1Color.Keypoints[#hub1Color.Keypoints] and hub1Color.Keypoints[#hub1Color.Keypoints].Value or Color3.new(1,1,1))
+    elseif typeof(hub1Color) == "Color3" then
+        gStart = Color3ToHex(hub1Color)
+        gMiddle = gStart
+        gEnd = gStart
+    end
+
+    local themeData = {
+        GradientStart = gStart,
+        GradientMiddle = gMiddle,
+        GradientEnd = gEnd,
+        
+        ColorHub2 = Color3ToHex(MyLibrary:GetThemeColor("Color Hub 2")),
+        ColorStroke = Color3ToHex(MyLibrary:GetThemeColor("Color Stroke")),
+        ColorTheme = Color3ToHex(MyLibrary:GetThemeColor("Color Theme")),
+        ColorText = Color3ToHex(MyLibrary:GetThemeColor("Color Text")),
+        ColorDarkText = Color3ToHex(MyLibrary:GetThemeColor("Color Dark Text")),
+        
+        StrokeColor = MyLibrary:GetStrokeColor(),
+        MinimizeStrokeColor = MyLibrary:GetMinimizeStrokeColor(),
+        StrokeTransparency = MyLibrary:GetStrokeTransparency(),
+        
+        HubImage = MyLibrary:GetHubImage(),
+        MinimizeImage = MyLibrary:GetMinimizeImage(),
+        TopbarImage = MyLibrary:GetTopbarImage(),
+        
+        GlobalTransparency = MyLibrary:GetGlobalTransparency(),
+        HubTransparency = MyLibrary:GetHubTransparency(),
+        HubImageTransparency = MyLibrary:GetHubImageTransparency(),
+        
+        ClickSoundEnabled = MyLibrary:GetClickSoundEnabled(),
+        ClickSoundId = MyLibrary:GetClickSoundId(),
+        ClickSoundVolume = MyLibrary:GetClickSoundVolume(),
+        
+        Font = tostring(MyLibrary:GetFont())
+    }
+    
+    local success = pcall(function()
+        local json = game:GetService("HttpService"):JSONEncode(themeData)
+        writefile(ThemesFolder .. "/" .. themeName .. ".json", json)
+    end)
+    
+    if success then
+        print("Tema '" .. themeName .. "' salvo com sucesso!")
+        return true
+    else
+        print("Erro ao salvar o tema!")
+        return false
+    end
+end
+
+-- Funcao para Carregar o Tema
+local function LoadTheme(themeName)
+    if not themeName or themeName == "" then return false end
+    
+    local path = ThemesFolder .. "/" .. themeName .. ".json"
+    if not isfile or not isfile(path) then return false end
+    
+    local success, themeData = pcall(function()
+        return game:GetService("HttpService"):JSONDecode(readfile(path))
+    end)
+    
+    if not success or type(themeData) ~= "table" then return false end
+    
+    -- Aplicacao dos dados salvos
+    if themeData.GradientStart and themeData.GradientMiddle and themeData.GradientEnd then
+        pcall(function()
+            MyLibrary:SetThemeColor("Color Hub 1", {
+                Color3.fromHex(themeData.GradientStart),
+                Color3.fromHex(themeData.GradientMiddle),
+                Color3.fromHex(themeData.GradientEnd)
+            })
+        end)
+    end
+    
+    if themeData.ColorHub2 then MyLibrary:SetThemeColor("Color Hub 2", Color3.fromHex(themeData.ColorHub2)) end
+    if themeData.ColorStroke then MyLibrary:SetThemeColor("Color Stroke", Color3.fromHex(themeData.ColorStroke)) end
+    if themeData.ColorTheme then MyLibrary:SetThemeColor("Color Theme", Color3.fromHex(themeData.ColorTheme)) end
+    if themeData.ColorText then MyLibrary:SetThemeColor("Color Text", Color3.fromHex(themeData.ColorText)) end
+    if themeData.ColorDarkText then MyLibrary:SetThemeColor("Color Dark Text", Color3.fromHex(themeData.ColorDarkText)) end
+    
+    if themeData.StrokeColor then MyLibrary:SetStrokeColor(themeData.StrokeColor) end
+    if themeData.MinimizeStrokeColor then MyLibrary:SetMinimizeStrokeColor(themeData.MinimizeStrokeColor) end
+    if themeData.StrokeTransparency then MyLibrary:SetStrokeTransparency(themeData.StrokeTransparency) end
+    
+    if themeData.HubImage and themeData.HubImage ~= "" then MyLibrary:SetHubImage(themeData.HubImage) end
+    if themeData.MinimizeImage and themeData.MinimizeImage ~= "" then MyLibrary:SetMinimizeImage(themeData.MinimizeImage) end
+    if themeData.TopbarImage and themeData.TopbarImage ~= "" then MyLibrary:SetTopbarImage(themeData.TopbarImage) end
+    
+    if themeData.GlobalTransparency then MyLibrary:SetGlobalTransparency(themeData.GlobalTransparency) end
+    if themeData.HubTransparency then MyLibrary:SetHubTransparency(themeData.HubTransparency) end
+    if themeData.HubImageTransparency then MyLibrary:SetHubImageTransparency(themeData.HubImageTransparency) end
+    
+    if themeData.ClickSoundEnabled ~= nil then MyLibrary:SetClickSoundEnabled(themeData.ClickSoundEnabled) end
+    if themeData.ClickSoundId then MyLibrary:SetClickSoundId(themeData.ClickSoundId) end
+    if themeData.ClickSoundVolume then MyLibrary:SetClickSoundVolume(themeData.ClickSoundVolume) end
+    if themeData.Font then MyLibrary:SetFont(themeData.Font) end
+    
+    print("Tema '" .. themeName .. "' carregado com sucesso!")
+    return true
+end
+
+-- Funcao para Excluir o Tema
+local function DeleteTheme(themeName)
+    if not themeName or themeName == "" then return false end
+    local path = ThemesFolder .. "/" .. themeName .. ".json"
+    if isfile and isfile(path) then
+        local ok = pcall(delfile, path)
+        return ok
+    end
+    return false
+end
+
+-- Funcao auxiliar para atualizar as opcoes do Dropdown dinamicamente
+local function RefreshDropdownOptions()
+    if not themesDropdown then return end
+    local list = GetThemesList()
+    
+    if themesDropdown.SetOptions then
+        themesDropdown:SetOptions(list)
+    elseif themesDropdown.Set then
+        themesDropdown:Set(list)
+    elseif themesDropdown.Refresh then
+        themesDropdown:Refresh(list)
+    end
+end
+
+-- 
+-- Construção DA INTERFACE
+-- 
+
+ThemesTab:AddSection({"Gerenciamento de Temas"})
+
+-- TextBox
+ThemesTab:AddTextBox({
+    Name = "Nome do Tema",
+    Default = "",
+    PlaceholderText = "Digite o nome do tema...",
+    ClearText = false,
+    Callback = function(text)
+        currentThemeName = text
+    end
+})
+
+-- Dropdown (com o callback integrado corretamente)
+themesDropdown = ThemesTab:AddDropdown({
+    Name = "Temas Salvos",
+    Options = GetThemesList(),
+    Default = "",
+    Callback = function(value)
+        selectedTheme = value
+    end
+})
+
+-- Botao Salvar
+ThemesTab:AddButton({
+    Name = "Salvar Tema Atual",
+    Callback = function()
+        if currentThemeName and currentThemeName:gsub("%s+", "") ~= "" then
+            if SaveTheme(currentThemeName) then
+                RefreshDropdownOptions()
+            end
+        else
+            print("Digite um nome para o tema primeiro!")
+        end
+    end
+})
+
+-- Botao Carregar
+ThemesTab:AddButton({
+    Name = "Carregar Tema Selecionado",
+    Desc = "Carrega o tema selecionado no dropdown",
+    Callback = function()
+        if selectedTheme and selectedTheme ~= "" then
+            LoadTheme(selectedTheme)
+        else
+        end
+    end
+})
+
+-- Botao Excluir
+ThemesTab:AddButton({
+    Name = "Excluir Tema Selecionado",
+    Callback = function()
+        if selectedTheme and selectedTheme ~= "" then
+            if DeleteTheme(selectedTheme) then
+                print("Tema removido com sucesso!")
+                selectedTheme = ""
+                RefreshDropdownOptions()
+            end
+        else
+            print("Selecione um tema para excluir!")
+        end
+    end
+})
+
+
+
+FontesTab:AddSection({"Escolha uma Fonte"})
+
+-- Tabela com as principais fontes suportadas no Roblox
+local ListaDeFontes = {
+    {"Source Sans ", Enum.Font.SourceSans},
+    {"Gotham", Enum.Font.Gotham},
+    {"Gotham Bold", Enum.Font.GothamBold},
+    {"Gotham Black", Enum.Font.GothamBlack},
+    {"Fredoka One", Enum.Font.FredokaOne},
+    {"Luckiest Guy(Padrao)", Enum.Font.LuckiestGuy},
+    {"Arcade", Enum.Font.Arcade},
+    {"Builder Sans", Enum.Font.BuilderSans},
+    {"Builder Sans Bold", Enum.Font.BuilderSansBold},
+    {"Roboto", Enum.Font.Roboto},
+    {"Roboto Mono", Enum.Font.RobotoMono},
+    {"Amatic SC", Enum.Font.AmaticSC},
+    {"Special Elite", Enum.Font.SpecialElite},
+    {"Creepster", Enum.Font.Creepster},
+    {"Indie Flower", Enum.Font.IndieFlower},
+    {"Kalam", Enum.Font.Kalam},
+    {"SciFi", Enum.Font.SciFi},
+    {"Fantasy", Enum.Font.Fantasy},
+    {"Ubuntu", Enum.Font.Ubuntu},
+    {"Michroma", Enum.Font.Michroma}
+}
+
+-- Funcao para aplicar a fonte de forma segura
+local function ApplyFont(fontEnum, fontName)
+    local success = pcall(function()
+        -- Tenta aplicar pelo Enum direto ou pela string do nome
+        if typeof(fontEnum) == "EnumItem" then
+            MyLibrary:SetFont(fontEnum)
+        else
+            MyLibrary:SetFont(fontName)
+        end
+    end)
+    
+    if success then
+    else
+    end
+end
+
+-- Criando os botoes na aba
+for _, info in ipairs(ListaDeFontes) do
+    local nomeExibicao = info[1]
+    local enumFonte = info[2]
+
+    FontesTab:AddButton({
+        Name = nomeExibicao,
+        Callback = function()
+            ApplyFont(enumFonte, nomeExibicao)
+        end
+    })
+end
+
+
+-- ═══════════════════════════════════════════════════════════
+-- ABA EXTRAS: EFEITOS E BORDAS PERSONALIZADAS
+-- ═══════════════════════════════════════════════════════════
+
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+
+
+
+-- Pasta e Arquivo de Configuração
+local FOLDER_NAME = "SAGAZx HUB Lib"
+local FILE_PATH = FOLDER_NAME .. "/ExtrasConfig.json"
+
+if isfolder and not isfolder(FOLDER_NAME) then
+    makefolder(FOLDER_NAME)
+end
+
+-- Estado e Configurações Globais
+local EffectsConfig = {
+    RGBEnabled = false,
+    CustomColorEnabled = false,
+    SelectedEffect = "Onda (Wave)",
+    CustomColor = nil, -- Será preenchido pelo JSON ou pelo valor default da Lib
+    Speed = 1
+}
+
+-- Controle de Conexão no Ambiente Global (Evita duplicar em reinicializações)
+getgenv().SAGAZ_EffectsConnection = getgenv().SAGAZ_EffectsConnection or nil
+
+-- ═══════════════════════════════════════════════════════════
+-- GERENCIAMENTO DE PERSISTÊNCIA (JSON)
+-- ═══════════════════════════════════════════════════════════
+
+local function SaveSettings()
+    if writefile then
+        local dataToSave = {
+            RGBEnabled = EffectsConfig.RGBEnabled,
+            CustomColorEnabled = EffectsConfig.CustomColorEnabled,
+            SelectedEffect = EffectsConfig.SelectedEffect,
+            Speed = EffectsConfig.Speed,
+            CustomColorHex = EffectsConfig.CustomColor and EffectsConfig.CustomColor:ToHex() or nil
+        }
+        pcall(function()
+            writefile(FILE_PATH, HttpService:JSONEncode(dataToSave))
+        end)
+    end
+end
+
+local function GetDefaultLibColor()
+    local hexColor = MyLibrary:GetStrokeColor()
+    if hexColor then
+        local ok, parsedColor = pcall(function() return Color3.fromHex(hexColor) end)
+        if ok and parsedColor then return parsedColor end
+    end
+    return Color3.fromRGB(138, 43, 226)
+end
+
+local function LoadSettings()
+    if isfile and readfile and isfile(FILE_PATH) then
+        local success, result = pcall(function()
+            return HttpService:JSONDecode(readfile(FILE_PATH))
+        end)
+        
+        if success and type(result) == "table" then
+            if result.RGBEnabled ~= nil then EffectsConfig.RGBEnabled = result.RGBEnabled end
+            if result.CustomColorEnabled ~= nil then EffectsConfig.CustomColorEnabled = result.CustomColorEnabled end
+            if result.SelectedEffect ~= nil then EffectsConfig.SelectedEffect = result.SelectedEffect end
+            if result.Speed ~= nil then EffectsConfig.Speed = result.Speed end
+            if result.CustomColorHex then
+                pcall(function()
+                    EffectsConfig.CustomColor = Color3.fromHex(result.CustomColorHex)
+                end)
+            end
+        end
+    end
+    
+    -- Se a cor não foi salva no JSON anteriormente, pega a cor nativa da biblioteca
+    if not EffectsConfig.CustomColor then
+        EffectsConfig.CustomColor = GetDefaultLibColor()
+    end
+
+    if EffectsConfig.RGBEnabled and EffectsConfig.CustomColorEnabled then
+        EffectsConfig.CustomColorEnabled = false
+    end
+end
+
+LoadSettings()
+
+-- ═══════════════════════════════════════════════════════════
+-- FUNÇÕES DE SUPORTE
+-- ═══════════════════════════════════════════════════════════
+
+-- Restaura a cor padrão nativa usando a chamada da biblioteca
+local function RestoreOriginalColor()
+    local defaultColor = GetDefaultLibColor()
+    pcall(function()
+        MyLibrary:SetStrokeColor(defaultColor)
+    end)
+end
+
+-- Parada total do loop de renderização no ambiente global
+local function StopRenderLoop()
+    if getgenv().SAGAZ_EffectsConnection then
+        getgenv().SAGAZ_EffectsConnection:Disconnect()
+        getgenv().SAGAZ_EffectsConnection = nil
+    end
+end
+
+-- Busca todas as instâncias de borda no Hub
+local function GetLibBorders()
+    local borders = {}
+    local hub = CoreGui:FindFirstChild("SAGAZx HUB") and CoreGui["SAGAZx HUB"]:FindFirstChild("Hub")
+    
+    if hub then
+        for _, descendant in ipairs(hub:GetDescendants()) do
+            if descendant.Name == "LibBorder" then
+                table.insert(borders, descendant)
+            end
+        end
+    end
+    return borders
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- LOOP DE ANIMAÇÃO DE EFEITOS
+-- ═══════════════════════════════════════════════════════════
+
+local function UpdateEffects()
+    StopRenderLoop()
+
+    -- Se ambos os toggles estiverem desligados, restaura a cor nativa e encerra
+    if not EffectsConfig.RGBEnabled and not EffectsConfig.CustomColorEnabled then
+        RestoreOriginalColor()
+        return
+    end
+
+    getgenv().SAGAZ_EffectsConnection = RunService.RenderStepped:Connect(function()
+        if not EffectsConfig.RGBEnabled and not EffectsConfig.CustomColorEnabled then
+            StopRenderLoop()
+            RestoreOriginalColor()
+            return
+        end
+
+        local time = tick() * EffectsConfig.Speed
+        local borders = GetLibBorders()
+
+        for index, border in ipairs(borders) do
+            local effectType = EffectsConfig.SelectedEffect
+            local calculatedColor = Color3.new(1, 1, 1)
+            local calculatedTransparency = 0
+
+            local baseHue, baseSat, baseVal = 0, 1, 1
+            if EffectsConfig.CustomColorEnabled and EffectsConfig.CustomColor then
+                baseHue, baseSat, baseVal = EffectsConfig.CustomColor:ToHSV()
+            end
+
+            if effectType == "Onda (Wave)" then
+                local waveOffset = math.sin((time * 3) + (index * 0.5)) * 0.5 + 0.5
+                if EffectsConfig.RGBEnabled then
+                    local hue = ((time * 0.2) + (index * 0.08)) % 1
+                    calculatedColor = Color3.fromHSV(hue, 0.85, 1)
+                else
+                    calculatedColor = Color3.fromHSV(baseHue, baseSat, baseVal * (0.3 + (waveOffset * 0.7)))
+                end
+
+            elseif effectType == "Pulso (Pulse)" then
+                local pulse = (math.sin(time * 4) + 1) / 2
+                if EffectsConfig.RGBEnabled then
+                    calculatedColor = Color3.fromHSV((time * 0.15) % 1, 0.8, 0.4 + (pulse * 0.6))
+                else
+                    calculatedColor = Color3.fromHSV(baseHue, baseSat, baseVal * (0.3 + (pulse * 0.7)))
+                end
+
+            elseif effectType == "Respiração (Breathing)" then
+                local alpha = (math.sin(time * 2.5) + 1) / 2
+                calculatedTransparency = 1 - alpha
+                if EffectsConfig.RGBEnabled then
+                    calculatedColor = Color3.fromHSV((time * 0.1) % 1, 0.85, 1)
+                else
+                    calculatedColor = EffectsConfig.CustomColor
+                end
+
+            elseif effectType == "Pisca-Pisca (Strobe)" then
+                local isOn = (math.floor(time * 6) % 2) == 0
+                if isOn then
+                    calculatedTransparency = 0
+                    if EffectsConfig.RGBEnabled then
+                        calculatedColor = Color3.fromHSV((time * 0.3) % 1, 1, 1)
+                    else
+                        calculatedColor = EffectsConfig.CustomColor
+                    end
+                else
+                    calculatedTransparency = 1
+                    calculatedColor = EffectsConfig.CustomColor
+                end
+
+            elseif effectType == "Brilho Alternado (Ping-Pong)" then
+                local pingPong = math.abs(math.sin(time * 2 + (index * 0.3)))
+                if EffectsConfig.RGBEnabled then
+                    calculatedColor = Color3.fromHSV((time * 0.2 + (index * 0.1)) % 1, 0.85, pingPong)
+                else
+                    calculatedColor = Color3.fromHSV(baseHue, baseSat * pingPong, baseVal)
+                end
+            end
+
+            if border:IsA("UIStroke") then
+                border.Color = calculatedColor
+                border.Transparency = calculatedTransparency
+            elseif border:IsA("GuiObject") then
+                border.BackgroundColor3 = calculatedColor
+                border.BackgroundTransparency = calculatedTransparency
+            end
+        end
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════
+-- INTERFACE DA ABA EXTRAS
+-- ═══════════════════════════════════════════════════════════
+
+ExtrasTab:AddSection({"Efeitos de Borda"})
+
+local ToggleRGBObj, ToggleCustomColorObj
+
+ExtrasTab:AddDropdown({
+    Name = "Efeito da Borda",
+    Options = {
+        "Onda (Wave)",
+        "Pulso (Pulse)",
+        "Respiração (Breathing)",
+        "Pisca-Pisca (Strobe)",
+        "Brilho Alternado (Ping-Pong)"
+    },
+    Default = EffectsConfig.SelectedEffect,
+    Callback = function(selected)
+        EffectsConfig.SelectedEffect = selected
+        SaveSettings()
+        if EffectsConfig.RGBEnabled or EffectsConfig.CustomColorEnabled then
+            UpdateEffects()
+        end
+    end
+})
+
+ExtrasTab:AddColorPicker({
+    Name = "Cor dos Contornos",
+    Default = EffectsConfig.CustomColor,
+    Callback = function(color)
+        EffectsConfig.CustomColor = color
+        SaveSettings() -- Salva a nova cor escolhida imediatamente no JSON
+        
+        if EffectsConfig.CustomColorEnabled then
+            UpdateEffects()
+        end
+    end
+})
+
+ExtrasTab:AddSlider({
+    Name = "Velocidade do Efeito",
+    Min = 0.1,
+    Max = 5,
+    Increase = 0.1,
+    Default = EffectsConfig.Speed,
+    Callback = function(value)
+        EffectsConfig.Speed = value
+        SaveSettings()
+    end
+})
+
+ToggleRGBObj = ExtrasTab:AddToggle({
+    Name = "Ativar Efeito RGB",
+    Default = EffectsConfig.RGBEnabled,
+    Callback = function(state)
+        EffectsConfig.RGBEnabled = state
+        
+        if state then
+            EffectsConfig.CustomColorEnabled = false
+            if ToggleCustomColorObj and ToggleCustomColorObj.Set then
+                ToggleCustomColorObj:Set(false)
+            end
+        end
+        
+        SaveSettings()
+        UpdateEffects()
+    end
+})
+
+ToggleCustomColorObj = ExtrasTab:AddToggle({
+    Name = "Ativar Cor Personalizada",
+    Default = EffectsConfig.CustomColorEnabled,
+    Callback = function(state)
+        EffectsConfig.CustomColorEnabled = state
+        
+        if state then
+            EffectsConfig.RGBEnabled = false
+            if ToggleRGBObj and ToggleRGBObj.Set then
+                ToggleRGBObj:Set(false)
+            end
+        end
+        
+        SaveSettings()
+        UpdateEffects()
+    end
+})
+
+-- Inicialização com checagem de estado salvo
+task.defer(function()
+    task.wait(0.3)
+    if EffectsConfig.RGBEnabled or EffectsConfig.CustomColorEnabled then
+        UpdateEffects()
+    else
+        StopRenderLoop()
+        RestoreOriginalColor()
+    end
+end)
+
+-- ==================== SISTEMA DE SOM ====================
+
+-- TextBox para ID do som
+local SoundIdInput = ExtrasTab:AddTextBox({
+    Name = "ID do Som",
+    Desc = "Cole o ID do som (rbxassetid://...)",
+    Default = MyLibrary:GetClickSoundId(),     -- ID atual
+    PlaceholderText = "rbxassetid://18998603679",
+    ClearTextOnFocus = false,
+    Callback = function(newId)
+        if newId and newId ~= "" then
+            MyLibrary:SetClickSoundId(newId)
+        end
+    end
+})
+
+-- Slider para volume
+local VolumeSlider = ExtrasTab:AddSlider({
+    Name = "Volume do Som",
+    Min = 0,
+    Max = 1,
+    Increase = 0.05,                           -- incremento de 5%
+    Default = MyLibrary:GetClickSoundVolume(), -- volume atual
+    Flag = "click_sound_volume",
+    Callback = function(volume)
+        MyLibrary:SetClickSoundVolume(volume)
+    end
+})
+
+-- Toggle para ativar/desativar som
+local SoundToggle = ExtrasTab:AddToggle({
+    Name = "Som de Clique",
+    Default = MyLibrary:GetClickSoundEnabled(),  -- estado atual
+    Flag = "click_sound_enabled",              -- flag para salvar
+    Callback = function(enabled)
+        MyLibrary:SetClickSoundEnabled(enabled)
+    end
+})
+
+
+ExtrasTab:AddButton({
+    Name = "Resetar Som",
+    Callback = function()
+        MyLibrary:ResetClickSound()
+        
+        SoundIdInput:Set(MyLibrary:GetClickSoundId())
+        
+    end
+})
+
+
+
+-- ==================== ABA DE CONFIGURAÇÕES ====================
+
+-- TextBox para tecla de abrir/fechar o Hub
+local ToggleKeyInput = ConfigTab:AddTextBox({
+    Name = "Tecla do Hub",
+    Default = MyLibrary:GetToggleKey(),          -- tecla atual
+    PlaceholderText = "Ex: F4, LeftControl",
+    ClearTextOnFocus = false,
+    Callback = function(keyName)
+        if keyName and keyName ~= "" then
+            -- Verifica se a tecla é válida
+            local keyEnum = Enum.KeyCode[keyName]
+            if keyEnum then
+                MyLibrary:SetToggleKey(keyName)
+            else
+                warn("Tecla inválida:", keyName)
+            end
+        end
+    end
+})
+
+-- Fim
+
 -- Aplica as imagens salvas automaticamente
 task.spawn(function()
 if CurrentImageSettings.HubImage and CurrentImageSettings.HubImage ~= "" then
@@ -5183,935 +6116,6 @@ end
     return Window
 end
 
-local CoresTab = Window:MakeSecondaryTab({
-    Title = "Cores",
-    Icon = "settings"
-})
 
-local ImageTab = Window:MakeSecondaryTab({
-    Title = "Imagens",
-    Icon = "settings"
-})
-
-local ThemesTab = Window:MakeSecondaryTab({
-    Title = "Temas",
-    Icon = "settings"
-})
-
-local FontesTab = Window:MakeSecondaryTab({
-    Title = "Fontes",
-    Icon = "settings"
-})
-
-local ExtrasTab = Window:MakeSecondaryTab({
-    Title = "Extras",
-    Icon = "settings"
-})
-
-local ConfigTab = Window:MakeSecondaryTab({
-    Title = "Config",
-    Icon = "settings"
-})
-
-CoresTab:AddSection({"Cor do Hub"})
-
-CoresTab:AddColorPicker({
-    Name = "Cor do Hub - Inicio",
-    Default = MyLibrary:GetThemeColor("Color Hub 1").Keypoints[1].Value,
-    Callback = function(color)
-        local grad = MyLibrary:GetThemeColor("Color Hub 1")
-        MyLibrary:SetThemeColor("Color Hub 1", {
-            color,                        
-            grad.Keypoints[2].Value,      
-            grad.Keypoints[3].Value       
-        })
-    end
-})
-
-CoresTab:AddColorPicker({
-    Name = "Cor do Hub - Meio",
-    Default = MyLibrary:GetThemeColor("Color Hub 1").Keypoints[2].Value,
-    Callback = function(color)
-        local grad = MyLibrary:GetThemeColor("Color Hub 1")
-        MyLibrary:SetThemeColor("Color Hub 1", {
-            grad.Keypoints[1].Value,   
-            color,                        
-            grad.Keypoints[3].Value      
-        })
-    end
-})
-
-CoresTab:AddColorPicker({
-    Name = "Cor do Hub - Fim",
-    Default = MyLibrary:GetThemeColor("Color Hub 1").Keypoints[3].Value,
-    Callback = function(color)
-        local grad = MyLibrary:GetThemeColor("Color Hub 1")
-        MyLibrary:SetThemeColor("Color Hub 1", {
-            grad.Keypoints[1].Value,      
-            grad.Keypoints[2].Value,      
-            color                        
-        })
-    end
-})
-
-CoresTab:AddSection({"Componentes"})
-
-CoresTab:AddColorPicker({
-    Name = "Cor de Fundo dos Componentes",
-    Default = MyLibrary:GetThemeColor("Color Hub 2"),
-    Callback = function(color)
-        MyLibrary:SetThemeColor("Color Hub 2", color)
-    end
-})
-
-CoresTab:AddColorPicker({
-    Name = "Cor do Contorno Interno",
-    Default = MyLibrary:GetThemeColor("Color Stroke"),
-    Callback = function(color)
-        MyLibrary:SetThemeColor("Color Stroke", color)
-    end
-})
-
-CoresTab:AddColorPicker({
-    Name = "Cor de Destaque",
-    Default = MyLibrary:GetThemeColor("Color Theme"),
-    Callback = function(color)
-        MyLibrary:SetThemeColor("Color Theme", color)
-    end
-})
-
-CoresTab:AddSection({"Texto"})
-
-CoresTab:AddColorPicker({
-    Name = "Cor do Texto",
-    Desc = "Cor dos Textos Principais",
-    Default = MyLibrary:GetThemeColor("Color Text"),
-    Callback = function(color)
-        MyLibrary:SetThemeColor("Color Text", color)
-    end
-})
-
-CoresTab:AddColorPicker({
-    Name = "Cor das Descrições",
-    Default = MyLibrary:GetThemeColor("Color Dark Text"),
-    Callback = function(color)
-        MyLibrary:SetThemeColor("Color Dark Text", color)
-    end
-})
-
-CoresTab:AddSection({"Bordas"})
-
-CoresTab:AddColorPicker({
-    Name = "Cor do Contorno do Minimize",
-    Default = MyLibrary:GetMinimizeStrokeColor() and Color3.fromHex(MyLibrary:GetMinimizeStrokeColor()) or Color3.fromRGB(138, 43, 226),
-    Callback = function(color)
-        MyLibrary:SetMinimizeStrokeColor(color)
-    end
-})
-
-CoresTab:AddColorPicker({
-    Name = "Cor dos Contornos",
-    Default = MyLibrary:GetStrokeColor() and Color3.fromHex(MyLibrary:GetStrokeColor()) or Color3.fromRGB(138, 43, 226),
-    Callback = function(color)
-        MyLibrary:SetStrokeColor(color)
-    end
-})
-
-
-
--- Hub
-local hubImageTextBox = ImageTab:AddTextBox({
-    Name = "Imagem do Hub",
-    Default = MyLibrary:GetHubImage() or "",
-    PlaceholderText = "ID ou link...",
-    Callback = function(text)
-        MyLibrary:SetHubImage(text)
-    end
-})
-
-
-
--- Minimize
-local minimizeImageTextBox = ImageTab:AddTextBox({
-    Name = "Imagem do Minimize",
-    Default = MyLibrary:GetMinimizeImage() or "",
-    PlaceholderText = "ID ou link...",
-    Callback = function(text)
-        MyLibrary:SetMinimizeImage(text)
-    end
-})
-
-ImageTab:AddButton({
-    Name = "Resetar Imagem do Minimize",
-    Callback = function()
-        MyLibrary:ResetMinimizeImage()
-        if minimizeImageTextBox and minimizeImageTextBox.Set then
-            minimizeImageTextBox:Set(MyLibrary:GetMinimizeImage())
-        end
-    end
-})
-
--- TopBar
-local topbarImageTextBox = ImageTab:AddTextBox({
-    Name = "Imagem da TopBar",
-    Default = MyLibrary:GetTopbarImage() or "",
-    PlaceholderText = "ID ou link...",
-    Callback = function(text)
-        MyLibrary:SetTopbarImage(text)
-    end
-})
-
-ImageTab:AddButton({
-    Name = "Resetar Imagem da TopBar",
-    Callback = function()
-        MyLibrary:ResetTopbarImage()
-        if topbarImageTextBox and topbarImageTextBox.Set then
-            topbarImageTextBox:Set(MyLibrary:GetTopbarImage())
-        end
-    end
-})
-
-ImageTab:AddSlider({
-    Name = "Transparencia da Imagem do Hub",
-    Min = 0,
-    Max = 1,
-    Increase = 0.01,
-    Default = MyLibrary:GetHubImageTransparency(),
-    Callback = function(value)
-        MyLibrary:SetHubImageTransparency(value)
-    end
-})
-
-ImageTab:AddSlider({
-    Name = "Transparencia do Hub",
-    Min = 0,
-    Max = 1,
-    Increase = 0.01,
-    Default = MyLibrary:GetHubTransparency(),
-    Callback = function(value)
-        MyLibrary:SetHubTransparency(value)
-    end
-})
-
-ImageTab:AddSlider({
-    Name = "Transparencia Global",
-    Min = 0,
-    Max = 1,
-    Increase = 0.01,
-    Default = MyLibrary:GetGlobalTransparency(),
-    Callback = function(value)
-        MyLibrary:SetGlobalTransparency(value)
-    end
-})
-
-ImageTab:AddSlider({
-    Name = "Transparencia das Bordas",
-    Min = 0,
-    Max = 1,
-    Increase = 0.01,
-    Default = MyLibrary:GetStrokeTransparency(),
-    Callback = function(value)
-        MyLibrary:SetStrokeTransparency(value)
-    end
-})
-
-
-
-
--- Criar pasta de temas se nao existir
-local ThemesFolder = "SAGAZx HUB Lib/Themes"
-if makefolder and not isfolder(ThemesFolder) then
-    makefolder(ThemesFolder)
-end
-
--- Variaveis de controle de Estado
-local currentThemeName = ""
-local selectedTheme = ""
-local themesDropdown = nil
-
--- Funcao auxiliar segura para converter Color3 em Hexadecimal
-local function Color3ToHex(color)
-    if typeof(color) ~= "Color3" then
-        return "#FFFFFF"
-    end
-    return string.format("#%02X%02X%02X", 
-        math.round(color.R * 255), 
-        math.round(color.G * 255), 
-        math.round(color.B * 255)
-    )
-end
-
--- Funcao para listar os arquivos de temas salvos
-local function GetThemesList()
-    local themes = {}
-    if not isfolder or not isfolder(ThemesFolder) then return themes end
-    
-    local ok, files = pcall(listfiles, ThemesFolder)
-    if ok and files then
-        for _, file in ipairs(files) do
-            local fileName = file:match("([^/]+)%.json$")
-            if fileName then
-                table.insert(themes, fileName)
-            end
-        end
-    end
-    return themes
-end
-
--- Funcao para Salvar o Tema
-local function SaveTheme(themeName)
-    if not themeName or themeName:gsub("%s+", "") == "" then
-        return false
-    end
-    
-    -- Trata a captura de cor de gradiente de forma segura
-    local hub1Color = MyLibrary:GetThemeColor("Color Hub 1")
-    local gStart, gMiddle, gEnd = "#FFFFFF", "#FFFFFF", "#FFFFFF"
-    
-    if typeof(hub1Color) == "ColorSequence" and hub1Color.Keypoints then
-        gStart = Color3ToHex(hub1Color.Keypoints[1] and hub1Color.Keypoints[1].Value or Color3.new(1,1,1))
-        gMiddle = Color3ToHex(hub1Color.Keypoints[2] and hub1Color.Keypoints[2].Value or Color3.new(1,1,1))
-        gEnd = Color3ToHex(hub1Color.Keypoints[#hub1Color.Keypoints] and hub1Color.Keypoints[#hub1Color.Keypoints].Value or Color3.new(1,1,1))
-    elseif typeof(hub1Color) == "Color3" then
-        gStart = Color3ToHex(hub1Color)
-        gMiddle = gStart
-        gEnd = gStart
-    end
-
-    local themeData = {
-        GradientStart = gStart,
-        GradientMiddle = gMiddle,
-        GradientEnd = gEnd,
-        
-        ColorHub2 = Color3ToHex(MyLibrary:GetThemeColor("Color Hub 2")),
-        ColorStroke = Color3ToHex(MyLibrary:GetThemeColor("Color Stroke")),
-        ColorTheme = Color3ToHex(MyLibrary:GetThemeColor("Color Theme")),
-        ColorText = Color3ToHex(MyLibrary:GetThemeColor("Color Text")),
-        ColorDarkText = Color3ToHex(MyLibrary:GetThemeColor("Color Dark Text")),
-        
-        StrokeColor = MyLibrary:GetStrokeColor(),
-        MinimizeStrokeColor = MyLibrary:GetMinimizeStrokeColor(),
-        StrokeTransparency = MyLibrary:GetStrokeTransparency(),
-        
-        HubImage = MyLibrary:GetHubImage(),
-        MinimizeImage = MyLibrary:GetMinimizeImage(),
-        TopbarImage = MyLibrary:GetTopbarImage(),
-        
-        GlobalTransparency = MyLibrary:GetGlobalTransparency(),
-        HubTransparency = MyLibrary:GetHubTransparency(),
-        HubImageTransparency = MyLibrary:GetHubImageTransparency(),
-        
-        ClickSoundEnabled = MyLibrary:GetClickSoundEnabled(),
-        ClickSoundId = MyLibrary:GetClickSoundId(),
-        ClickSoundVolume = MyLibrary:GetClickSoundVolume(),
-        
-        Font = tostring(MyLibrary:GetFont())
-    }
-    
-    local success = pcall(function()
-        local json = game:GetService("HttpService"):JSONEncode(themeData)
-        writefile(ThemesFolder .. "/" .. themeName .. ".json", json)
-    end)
-    
-    if success then
-        print("Tema '" .. themeName .. "' salvo com sucesso!")
-        return true
-    else
-        print("Erro ao salvar o tema!")
-        return false
-    end
-end
-
--- Funcao para Carregar o Tema
-local function LoadTheme(themeName)
-    if not themeName or themeName == "" then return false end
-    
-    local path = ThemesFolder .. "/" .. themeName .. ".json"
-    if not isfile or not isfile(path) then return false end
-    
-    local success, themeData = pcall(function()
-        return game:GetService("HttpService"):JSONDecode(readfile(path))
-    end)
-    
-    if not success or type(themeData) ~= "table" then return false end
-    
-    -- Aplicacao dos dados salvos
-    if themeData.GradientStart and themeData.GradientMiddle and themeData.GradientEnd then
-        pcall(function()
-            MyLibrary:SetThemeColor("Color Hub 1", {
-                Color3.fromHex(themeData.GradientStart),
-                Color3.fromHex(themeData.GradientMiddle),
-                Color3.fromHex(themeData.GradientEnd)
-            })
-        end)
-    end
-    
-    if themeData.ColorHub2 then MyLibrary:SetThemeColor("Color Hub 2", Color3.fromHex(themeData.ColorHub2)) end
-    if themeData.ColorStroke then MyLibrary:SetThemeColor("Color Stroke", Color3.fromHex(themeData.ColorStroke)) end
-    if themeData.ColorTheme then MyLibrary:SetThemeColor("Color Theme", Color3.fromHex(themeData.ColorTheme)) end
-    if themeData.ColorText then MyLibrary:SetThemeColor("Color Text", Color3.fromHex(themeData.ColorText)) end
-    if themeData.ColorDarkText then MyLibrary:SetThemeColor("Color Dark Text", Color3.fromHex(themeData.ColorDarkText)) end
-    
-    if themeData.StrokeColor then MyLibrary:SetStrokeColor(themeData.StrokeColor) end
-    if themeData.MinimizeStrokeColor then MyLibrary:SetMinimizeStrokeColor(themeData.MinimizeStrokeColor) end
-    if themeData.StrokeTransparency then MyLibrary:SetStrokeTransparency(themeData.StrokeTransparency) end
-    
-    if themeData.HubImage and themeData.HubImage ~= "" then MyLibrary:SetHubImage(themeData.HubImage) end
-    if themeData.MinimizeImage and themeData.MinimizeImage ~= "" then MyLibrary:SetMinimizeImage(themeData.MinimizeImage) end
-    if themeData.TopbarImage and themeData.TopbarImage ~= "" then MyLibrary:SetTopbarImage(themeData.TopbarImage) end
-    
-    if themeData.GlobalTransparency then MyLibrary:SetGlobalTransparency(themeData.GlobalTransparency) end
-    if themeData.HubTransparency then MyLibrary:SetHubTransparency(themeData.HubTransparency) end
-    if themeData.HubImageTransparency then MyLibrary:SetHubImageTransparency(themeData.HubImageTransparency) end
-    
-    if themeData.ClickSoundEnabled ~= nil then MyLibrary:SetClickSoundEnabled(themeData.ClickSoundEnabled) end
-    if themeData.ClickSoundId then MyLibrary:SetClickSoundId(themeData.ClickSoundId) end
-    if themeData.ClickSoundVolume then MyLibrary:SetClickSoundVolume(themeData.ClickSoundVolume) end
-    if themeData.Font then MyLibrary:SetFont(themeData.Font) end
-    
-    print("Tema '" .. themeName .. "' carregado com sucesso!")
-    return true
-end
-
--- Funcao para Excluir o Tema
-local function DeleteTheme(themeName)
-    if not themeName or themeName == "" then return false end
-    local path = ThemesFolder .. "/" .. themeName .. ".json"
-    if isfile and isfile(path) then
-        local ok = pcall(delfile, path)
-        return ok
-    end
-    return false
-end
-
--- Funcao auxiliar para atualizar as opcoes do Dropdown dinamicamente
-local function RefreshDropdownOptions()
-    if not themesDropdown then return end
-    local list = GetThemesList()
-    
-    if themesDropdown.SetOptions then
-        themesDropdown:SetOptions(list)
-    elseif themesDropdown.Set then
-        themesDropdown:Set(list)
-    elseif themesDropdown.Refresh then
-        themesDropdown:Refresh(list)
-    end
-end
-
--- 
--- Construção DA INTERFACE
--- 
-
-ThemesTab:AddSection({"Gerenciamento de Temas"})
-
--- TextBox
-ThemesTab:AddTextBox({
-    Name = "Nome do Tema",
-    Default = "",
-    PlaceholderText = "Digite o nome do tema...",
-    ClearText = false,
-    Callback = function(text)
-        currentThemeName = text
-    end
-})
-
--- Dropdown (com o callback integrado corretamente)
-themesDropdown = ThemesTab:AddDropdown({
-    Name = "Temas Salvos",
-    Options = GetThemesList(),
-    Default = "",
-    Callback = function(value)
-        selectedTheme = value
-    end
-})
-
--- Botao Salvar
-ThemesTab:AddButton({
-    Name = "Salvar Tema Atual",
-    Callback = function()
-        if currentThemeName and currentThemeName:gsub("%s+", "") ~= "" then
-            if SaveTheme(currentThemeName) then
-                RefreshDropdownOptions()
-            end
-        else
-            print("Digite um nome para o tema primeiro!")
-        end
-    end
-})
-
--- Botao Carregar
-ThemesTab:AddButton({
-    Name = "Carregar Tema Selecionado",
-    Desc = "Carrega o tema selecionado no dropdown",
-    Callback = function()
-        if selectedTheme and selectedTheme ~= "" then
-            LoadTheme(selectedTheme)
-        else
-        end
-    end
-})
-
--- Botao Excluir
-ThemesTab:AddButton({
-    Name = "Excluir Tema Selecionado",
-    Callback = function()
-        if selectedTheme and selectedTheme ~= "" then
-            if DeleteTheme(selectedTheme) then
-                print("Tema removido com sucesso!")
-                selectedTheme = ""
-                RefreshDropdownOptions()
-            end
-        else
-            print("Selecione um tema para excluir!")
-        end
-    end
-})
-
-
-
-FontesTab:AddSection({"Escolha uma Fonte"})
-
--- Tabela com as principais fontes suportadas no Roblox
-local ListaDeFontes = {
-    {"Source Sans ", Enum.Font.SourceSans},
-    {"Gotham", Enum.Font.Gotham},
-    {"Gotham Bold", Enum.Font.GothamBold},
-    {"Gotham Black", Enum.Font.GothamBlack},
-    {"Fredoka One", Enum.Font.FredokaOne},
-    {"Luckiest Guy(Padrao)", Enum.Font.LuckiestGuy},
-    {"Arcade", Enum.Font.Arcade},
-    {"Builder Sans", Enum.Font.BuilderSans},
-    {"Builder Sans Bold", Enum.Font.BuilderSansBold},
-    {"Roboto", Enum.Font.Roboto},
-    {"Roboto Mono", Enum.Font.RobotoMono},
-    {"Amatic SC", Enum.Font.AmaticSC},
-    {"Special Elite", Enum.Font.SpecialElite},
-    {"Creepster", Enum.Font.Creepster},
-    {"Indie Flower", Enum.Font.IndieFlower},
-    {"Kalam", Enum.Font.Kalam},
-    {"SciFi", Enum.Font.SciFi},
-    {"Fantasy", Enum.Font.Fantasy},
-    {"Ubuntu", Enum.Font.Ubuntu},
-    {"Michroma", Enum.Font.Michroma}
-}
-
--- Funcao para aplicar a fonte de forma segura
-local function ApplyFont(fontEnum, fontName)
-    local success = pcall(function()
-        -- Tenta aplicar pelo Enum direto ou pela string do nome
-        if typeof(fontEnum) == "EnumItem" then
-            MyLibrary:SetFont(fontEnum)
-        else
-            MyLibrary:SetFont(fontName)
-        end
-    end)
-    
-    if success then
-    else
-    end
-end
-
--- Criando os botoes na aba
-for _, info in ipairs(ListaDeFontes) do
-    local nomeExibicao = info[1]
-    local enumFonte = info[2]
-
-    FontesTab:AddButton({
-        Name = nomeExibicao,
-        Callback = function()
-            ApplyFont(enumFonte, nomeExibicao)
-        end
-    })
-end
-
-
--- ═══════════════════════════════════════════════════════════
--- ABA EXTRAS: EFEITOS E BORDAS PERSONALIZADAS
--- ═══════════════════════════════════════════════════════════
-
-local RunService = game:GetService("RunService")
-local CoreGui = game:GetService("CoreGui")
-local HttpService = game:GetService("HttpService")
-
-
-
--- Pasta e Arquivo de Configuração
-local FOLDER_NAME = "SAGAZx HUB Lib"
-local FILE_PATH = FOLDER_NAME .. "/ExtrasConfig.json"
-
-if isfolder and not isfolder(FOLDER_NAME) then
-    makefolder(FOLDER_NAME)
-end
-
--- Estado e Configurações Globais
-local EffectsConfig = {
-    RGBEnabled = false,
-    CustomColorEnabled = false,
-    SelectedEffect = "Onda (Wave)",
-    CustomColor = nil, -- Será preenchido pelo JSON ou pelo valor default da Lib
-    Speed = 1
-}
-
--- Controle de Conexão no Ambiente Global (Evita duplicar em reinicializações)
-getgenv().SAGAZ_EffectsConnection = getgenv().SAGAZ_EffectsConnection or nil
-
--- ═══════════════════════════════════════════════════════════
--- GERENCIAMENTO DE PERSISTÊNCIA (JSON)
--- ═══════════════════════════════════════════════════════════
-
-local function SaveSettings()
-    if writefile then
-        local dataToSave = {
-            RGBEnabled = EffectsConfig.RGBEnabled,
-            CustomColorEnabled = EffectsConfig.CustomColorEnabled,
-            SelectedEffect = EffectsConfig.SelectedEffect,
-            Speed = EffectsConfig.Speed,
-            CustomColorHex = EffectsConfig.CustomColor and EffectsConfig.CustomColor:ToHex() or nil
-        }
-        pcall(function()
-            writefile(FILE_PATH, HttpService:JSONEncode(dataToSave))
-        end)
-    end
-end
-
-local function GetDefaultLibColor()
-    local hexColor = MyLibrary:GetStrokeColor()
-    if hexColor then
-        local ok, parsedColor = pcall(function() return Color3.fromHex(hexColor) end)
-        if ok and parsedColor then return parsedColor end
-    end
-    return Color3.fromRGB(138, 43, 226)
-end
-
-local function LoadSettings()
-    if isfile and readfile and isfile(FILE_PATH) then
-        local success, result = pcall(function()
-            return HttpService:JSONDecode(readfile(FILE_PATH))
-        end)
-        
-        if success and type(result) == "table" then
-            if result.RGBEnabled ~= nil then EffectsConfig.RGBEnabled = result.RGBEnabled end
-            if result.CustomColorEnabled ~= nil then EffectsConfig.CustomColorEnabled = result.CustomColorEnabled end
-            if result.SelectedEffect ~= nil then EffectsConfig.SelectedEffect = result.SelectedEffect end
-            if result.Speed ~= nil then EffectsConfig.Speed = result.Speed end
-            if result.CustomColorHex then
-                pcall(function()
-                    EffectsConfig.CustomColor = Color3.fromHex(result.CustomColorHex)
-                end)
-            end
-        end
-    end
-    
-    -- Se a cor não foi salva no JSON anteriormente, pega a cor nativa da biblioteca
-    if not EffectsConfig.CustomColor then
-        EffectsConfig.CustomColor = GetDefaultLibColor()
-    end
-
-    if EffectsConfig.RGBEnabled and EffectsConfig.CustomColorEnabled then
-        EffectsConfig.CustomColorEnabled = false
-    end
-end
-
-LoadSettings()
-
--- ═══════════════════════════════════════════════════════════
--- FUNÇÕES DE SUPORTE
--- ═══════════════════════════════════════════════════════════
-
--- Restaura a cor padrão nativa usando a chamada da biblioteca
-local function RestoreOriginalColor()
-    local defaultColor = GetDefaultLibColor()
-    pcall(function()
-        MyLibrary:SetStrokeColor(defaultColor)
-    end)
-end
-
--- Parada total do loop de renderização no ambiente global
-local function StopRenderLoop()
-    if getgenv().SAGAZ_EffectsConnection then
-        getgenv().SAGAZ_EffectsConnection:Disconnect()
-        getgenv().SAGAZ_EffectsConnection = nil
-    end
-end
-
--- Busca todas as instâncias de borda no Hub
-local function GetLibBorders()
-    local borders = {}
-    local hub = CoreGui:FindFirstChild("SAGAZx HUB") and CoreGui["SAGAZx HUB"]:FindFirstChild("Hub")
-    
-    if hub then
-        for _, descendant in ipairs(hub:GetDescendants()) do
-            if descendant.Name == "LibBorder" then
-                table.insert(borders, descendant)
-            end
-        end
-    end
-    return borders
-end
-
--- ═══════════════════════════════════════════════════════════
--- LOOP DE ANIMAÇÃO DE EFEITOS
--- ═══════════════════════════════════════════════════════════
-
-local function UpdateEffects()
-    StopRenderLoop()
-
-    -- Se ambos os toggles estiverem desligados, restaura a cor nativa e encerra
-    if not EffectsConfig.RGBEnabled and not EffectsConfig.CustomColorEnabled then
-        RestoreOriginalColor()
-        return
-    end
-
-    getgenv().SAGAZ_EffectsConnection = RunService.RenderStepped:Connect(function()
-        if not EffectsConfig.RGBEnabled and not EffectsConfig.CustomColorEnabled then
-            StopRenderLoop()
-            RestoreOriginalColor()
-            return
-        end
-
-        local time = tick() * EffectsConfig.Speed
-        local borders = GetLibBorders()
-
-        for index, border in ipairs(borders) do
-            local effectType = EffectsConfig.SelectedEffect
-            local calculatedColor = Color3.new(1, 1, 1)
-            local calculatedTransparency = 0
-
-            local baseHue, baseSat, baseVal = 0, 1, 1
-            if EffectsConfig.CustomColorEnabled and EffectsConfig.CustomColor then
-                baseHue, baseSat, baseVal = EffectsConfig.CustomColor:ToHSV()
-            end
-
-            if effectType == "Onda (Wave)" then
-                local waveOffset = math.sin((time * 3) + (index * 0.5)) * 0.5 + 0.5
-                if EffectsConfig.RGBEnabled then
-                    local hue = ((time * 0.2) + (index * 0.08)) % 1
-                    calculatedColor = Color3.fromHSV(hue, 0.85, 1)
-                else
-                    calculatedColor = Color3.fromHSV(baseHue, baseSat, baseVal * (0.3 + (waveOffset * 0.7)))
-                end
-
-            elseif effectType == "Pulso (Pulse)" then
-                local pulse = (math.sin(time * 4) + 1) / 2
-                if EffectsConfig.RGBEnabled then
-                    calculatedColor = Color3.fromHSV((time * 0.15) % 1, 0.8, 0.4 + (pulse * 0.6))
-                else
-                    calculatedColor = Color3.fromHSV(baseHue, baseSat, baseVal * (0.3 + (pulse * 0.7)))
-                end
-
-            elseif effectType == "Respiração (Breathing)" then
-                local alpha = (math.sin(time * 2.5) + 1) / 2
-                calculatedTransparency = 1 - alpha
-                if EffectsConfig.RGBEnabled then
-                    calculatedColor = Color3.fromHSV((time * 0.1) % 1, 0.85, 1)
-                else
-                    calculatedColor = EffectsConfig.CustomColor
-                end
-
-            elseif effectType == "Pisca-Pisca (Strobe)" then
-                local isOn = (math.floor(time * 6) % 2) == 0
-                if isOn then
-                    calculatedTransparency = 0
-                    if EffectsConfig.RGBEnabled then
-                        calculatedColor = Color3.fromHSV((time * 0.3) % 1, 1, 1)
-                    else
-                        calculatedColor = EffectsConfig.CustomColor
-                    end
-                else
-                    calculatedTransparency = 1
-                    calculatedColor = EffectsConfig.CustomColor
-                end
-
-            elseif effectType == "Brilho Alternado (Ping-Pong)" then
-                local pingPong = math.abs(math.sin(time * 2 + (index * 0.3)))
-                if EffectsConfig.RGBEnabled then
-                    calculatedColor = Color3.fromHSV((time * 0.2 + (index * 0.1)) % 1, 0.85, pingPong)
-                else
-                    calculatedColor = Color3.fromHSV(baseHue, baseSat * pingPong, baseVal)
-                end
-            end
-
-            if border:IsA("UIStroke") then
-                border.Color = calculatedColor
-                border.Transparency = calculatedTransparency
-            elseif border:IsA("GuiObject") then
-                border.BackgroundColor3 = calculatedColor
-                border.BackgroundTransparency = calculatedTransparency
-            end
-        end
-    end)
-end
-
--- ═══════════════════════════════════════════════════════════
--- INTERFACE DA ABA EXTRAS
--- ═══════════════════════════════════════════════════════════
-
-ExtrasTab:AddSection({"Efeitos de Borda"})
-
-local ToggleRGBObj, ToggleCustomColorObj
-
-ExtrasTab:AddDropdown({
-    Name = "Efeito da Borda",
-    Options = {
-        "Onda (Wave)",
-        "Pulso (Pulse)",
-        "Respiração (Breathing)",
-        "Pisca-Pisca (Strobe)",
-        "Brilho Alternado (Ping-Pong)"
-    },
-    Default = EffectsConfig.SelectedEffect,
-    Callback = function(selected)
-        EffectsConfig.SelectedEffect = selected
-        SaveSettings()
-        if EffectsConfig.RGBEnabled or EffectsConfig.CustomColorEnabled then
-            UpdateEffects()
-        end
-    end
-})
-
-ExtrasTab:AddColorPicker({
-    Name = "Cor dos Contornos",
-    Default = EffectsConfig.CustomColor,
-    Callback = function(color)
-        EffectsConfig.CustomColor = color
-        SaveSettings() -- Salva a nova cor escolhida imediatamente no JSON
-        
-        if EffectsConfig.CustomColorEnabled then
-            UpdateEffects()
-        end
-    end
-})
-
-ExtrasTab:AddSlider({
-    Name = "Velocidade do Efeito",
-    Min = 0.1,
-    Max = 5,
-    Increase = 0.1,
-    Default = EffectsConfig.Speed,
-    Callback = function(value)
-        EffectsConfig.Speed = value
-        SaveSettings()
-    end
-})
-
-ToggleRGBObj = ExtrasTab:AddToggle({
-    Name = "Ativar Efeito RGB",
-    Default = EffectsConfig.RGBEnabled,
-    Callback = function(state)
-        EffectsConfig.RGBEnabled = state
-        
-        if state then
-            EffectsConfig.CustomColorEnabled = false
-            if ToggleCustomColorObj and ToggleCustomColorObj.Set then
-                ToggleCustomColorObj:Set(false)
-            end
-        end
-        
-        SaveSettings()
-        UpdateEffects()
-    end
-})
-
-ToggleCustomColorObj = ExtrasTab:AddToggle({
-    Name = "Ativar Cor Personalizada",
-    Default = EffectsConfig.CustomColorEnabled,
-    Callback = function(state)
-        EffectsConfig.CustomColorEnabled = state
-        
-        if state then
-            EffectsConfig.RGBEnabled = false
-            if ToggleRGBObj and ToggleRGBObj.Set then
-                ToggleRGBObj:Set(false)
-            end
-        end
-        
-        SaveSettings()
-        UpdateEffects()
-    end
-})
-
--- Inicialização com checagem de estado salvo
-task.defer(function()
-    task.wait(0.3)
-    if EffectsConfig.RGBEnabled or EffectsConfig.CustomColorEnabled then
-        UpdateEffects()
-    else
-        StopRenderLoop()
-        RestoreOriginalColor()
-    end
-end)
-
--- ==================== SISTEMA DE SOM ====================
-
--- TextBox para ID do som
-local SoundIdInput = ExtrasTab:AddTextBox({
-    Name = "ID do Som",
-    Desc = "Cole o ID do som (rbxassetid://...)",
-    Default = MyLibrary:GetClickSoundId(),     -- ID atual
-    PlaceholderText = "rbxassetid://18998603679",
-    ClearTextOnFocus = false,
-    Callback = function(newId)
-        if newId and newId ~= "" then
-            MyLibrary:SetClickSoundId(newId)
-        end
-    end
-})
-
--- Slider para volume
-local VolumeSlider = ExtrasTab:AddSlider({
-    Name = "Volume do Som",
-    Min = 0,
-    Max = 1,
-    Increase = 0.05,                           -- incremento de 5%
-    Default = MyLibrary:GetClickSoundVolume(), -- volume atual
-    Flag = "click_sound_volume",
-    Callback = function(volume)
-        MyLibrary:SetClickSoundVolume(volume)
-    end
-})
-
--- Toggle para ativar/desativar som
-local SoundToggle = ExtrasTab:AddToggle({
-    Name = "Som de Clique",
-    Default = MyLibrary:GetClickSoundEnabled(),  -- estado atual
-    Flag = "click_sound_enabled",              -- flag para salvar
-    Callback = function(enabled)
-        MyLibrary:SetClickSoundEnabled(enabled)
-    end
-})
-
-
-ExtrasTab:AddButton({
-    Name = "Resetar Som",
-    Callback = function()
-        MyLibrary:ResetClickSound()
-        
-        SoundIdInput:Set(MyLibrary:GetClickSoundId())
-        
-    end
-})
-
-
-
--- ==================== ABA DE CONFIGURAÇÕES ====================
-
--- TextBox para tecla de abrir/fechar o Hub
-local ToggleKeyInput = ConfigTab:AddTextBox({
-    Name = "Tecla do Hub",
-    Default = MyLibrary:GetToggleKey(),          -- tecla atual
-    PlaceholderText = "Ex: F4, LeftControl",
-    ClearTextOnFocus = false,
-    Callback = function(keyName)
-        if keyName and keyName ~= "" then
-            -- Verifica se a tecla é válida
-            local keyEnum = Enum.KeyCode[keyName]
-            if keyEnum then
-                MyLibrary:SetToggleKey(keyName)
-            else
-                warn("Tecla inválida:", keyName)
-            end
-        end
-    end
-})
 
 return MyLibrary
