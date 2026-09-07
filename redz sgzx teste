@@ -1751,8 +1751,8 @@ function Window:AddSubWindow(Configs)
 
     -- Cria a janela secundária DENTRO do MainFrame (Hub)
     local SWFrame = InsertTheme(Create("Frame", MainFrame, {  -- Alterado para MainFrame
-        Size = UDim2.fromOffset(400, 280),  -- Tamanho reduzido
-        Position = UDim2.new(0.5, -200, 0.5, -140),  -- Centralizado
+        Size = UDim2.fromOffset(250, 280),  -- Tamanho reduzido
+        Position = UDim2.new(0.5, -50, 0.5, -140),  -- Centralizado
         BackgroundColor3 = Theme["Color Hub 2"],
         Visible = false,
         Name = "SubWindow",
