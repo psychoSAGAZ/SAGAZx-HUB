@@ -2006,7 +2006,7 @@ function Tab:AddColorPicker(Configs)
 
     local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -125))
 
-    -- === ï¿½rea direita: RGB, cor e Hex ===
+    -- === Área direita: RGB, cor e Hex ===
     local RightArea = Create("Frame", Button, {
         Size = UDim2.new(0, 115, 1),
         Position = UDim2.new(1, -20, 0.5),
@@ -2029,7 +2029,7 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", RGBBox, UDim.new(0, 3))
 
-    -- Botï¿½o de cor (Sem InsertTheme para nï¿½o ter a cor sobrescrita pelo sistema de temas)
+    -- Botão de cor (Sem InsertTheme para não ter a cor sobrescrita pelo sistema de temas)
     local ColorButton = Create("ImageButton", RightArea, {
         Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0, 50, 0.5, -9),
@@ -2054,8 +2054,15 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", HexBox, UDim.new(0, 3))
 
+    -- ==================== PASTA PARA POPUPS ====================
+    -- Cria ou encontra a pasta de popups dentro da janela secundária
+    local PopupsFolder = SecondaryFrame:FindFirstChild("ColorPickerPopups")
+    if not PopupsFolder then
+        PopupsFolder = Create("Folder", SecondaryFrame, { Name = "ColorPickerPopups" })
+    end
+
     -- Popup e Blocker
-    local Blocker = Create("Frame", SecondaryFrame, {
+    local Blocker = Create("Frame", PopupsFolder, {
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         Visible = false,
@@ -2074,7 +2081,6 @@ function Tab:AddColorPicker(Configs)
         Name = "ColorPickerPopup"
     })
     Make("Corner", Popup, UDim.new(0, 8))
-
     Make("Stroke", Popup)
 
     local PopupTitle = InsertTheme(Create("TextLabel", Popup, {
@@ -3404,7 +3410,7 @@ function Tab:AddColorPicker(Configs)
 
     local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -125))
 
-    -- === ï¿½rea direita: RGB, cor e Hex ===
+    -- === Área direita: RGB, cor e Hex ===
     local RightArea = Create("Frame", Button, {
         Size = UDim2.new(0, 115, 1),
         Position = UDim2.new(1, -20, 0.5),
@@ -3427,7 +3433,7 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", RGBBox, UDim.new(0, 3))
 
-    -- Botï¿½o de cor (Sem InsertTheme para nï¿½o ter a cor sobrescrita pelo sistema de temas)
+    -- Botão de cor (Sem InsertTheme para não ter a cor sobrescrita pelo sistema de temas)
     local ColorButton = Create("ImageButton", RightArea, {
         Size = UDim2.new(0, 18, 0, 18),
         Position = UDim2.new(0, 50, 0.5, -9),
@@ -3452,8 +3458,15 @@ function Tab:AddColorPicker(Configs)
     }), "Text")
     Make("Corner", HexBox, UDim.new(0, 3))
 
+    -- ==================== PASTA PARA POPUPS ====================
+    -- Cria ou encontra a pasta de popups dentro da janela principal
+    local PopupsFolder = MainFrame:FindFirstChild("ColorPickerPopups")
+    if not PopupsFolder then
+        PopupsFolder = Create("Folder", MainFrame, { Name = "ColorPickerPopups" })
+    end
+
     -- Popup e Blocker
-    local Blocker = Create("Frame", MainFrame, {
+    local Blocker = Create("Frame", PopupsFolder, {
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         Visible = false,
