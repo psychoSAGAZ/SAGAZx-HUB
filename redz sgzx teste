@@ -12,15 +12,15 @@ local MyLibrary = {
     Themes = {
 		Purple = {
 			["Color Hub 1"] = ColorSequence.new({
-				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(27.5, 25, 30)),
-				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(32.5, 32.5, 32.5)),
-				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(27.5, 25, 30))
+				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(128, 90, 255)),
+				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))
 			}),
 			["Color Hub 2"] = Color3.fromRGB(30, 30, 30),
-			["Color Stroke"] = Color3.fromRGB(40, 40, 40),
-			["Color Theme"] = Color3.fromRGB(150, 0, 255),
-			["Color Text"] = Color3.fromRGB(240, 240, 240),
-			["Color Dark Text"] = Color3.fromRGB(180, 180, 180)
+			["Color Stroke"] = Color3.fromRGB(100, 72, 180),
+			["Color Theme"] = Color3.fromRGB(77, 52, 255),
+			["Color Text"] = Color3.fromRGB(238, 255, 63),
+			["Color Dark Text"] = Color3.fromRGB(0, 255, 109)
 		}
 },
     Info = {
@@ -32,14 +32,14 @@ Save = {
     Theme = "Purple",
     CustomColors = {},
     ToggleKey = "RightShift",
-    GlobalTransparency = 0,  -- 0 = opaco, 1 = totalmente transparente
+    GlobalTransparency = 0,
     HubTransparency = 0,
     HubImageTransparency = 0,
-    StrokeColor = "#8A2BE2",   -- cor padrÃ£o da borda (roxo)
-    StrokeTransparency = 0,    -- 0 = opaco, 1 = totalmente transparente
-    MinimizeStrokeColor = "#8A2BE2",
-    Font = "Gotham",
-    TopbarImage = "rbxassetid://86050226751861", -- ðŸ‘ˆ imagem padrÃ£o (pode trocar)
+    StrokeTransparency = 0,
+    StrokeColor = "#FFFFFF",
+    MinimizeStrokeColor = "#5B50FF",
+    Font = "LuckestGuy",
+    TopbarImage = "rbxassetid://86050226751861",
     ClickSoundEnabled = false,
     ClickSoundId = "rbxassetid://18998603679",
     ClickSoundVolume = 0.1,
@@ -51,11 +51,9 @@ Save = {
     Options = {},
     Flags = {},
     Tabs = {},
-    TransparencyInstances = {},  -- lista para elementos controlados
+    TransparencyInstances = {},
     Icons = (function()
         return {
-            -- ... (todos os Ã­cones mantidos, omitidos aqui por brevidade)
-            -- Cole a lista completa de Ã­cones que vocÃª jÃ¡ tinha no original
             ["accessibility"] = "rbxassetid://10709751939",
             -- ... etc ...
             ["zoomout"] = "rbxassetid://10747384679"
@@ -65,7 +63,7 @@ Save = {
 
 MyLibrary.CurrentFont = Enum.Font[MyLibrary.Save.Font] or Enum.Font.Gotham
 
--- Criar pasta da biblioteca (coloque isso logo apÃ³s a definiÃ§Ã£o da tabela MyLibrary)
+
 local LibFolder = "SAGAZx HUB Lib"
 pcall(function()
     if makefolder then
@@ -73,16 +71,15 @@ pcall(function()
     end
 end)
 
--- FunÃ§Ã£o auxiliar para montar caminho completo
 local function GetFullPath(fileName)
     if type(fileName) ~= "string" then
         return fileName
     end
-    -- Se jÃ¡ tiver barra, considera como caminho absoluto/relativo do executor
+    
     if fileName:find("/") or fileName:find("\\") then
         return fileName
     end
-    -- Caso contrÃ¡rio, coloca dentro da pasta da lib
+
     return LibFolder .. "/" .. fileName
 end
 
@@ -90,7 +87,7 @@ local function VerifyTheme(Theme)
     return MyLibrary.Themes[Theme] ~= nil
 end
 
--- FunÃ§Ã£o auxiliar para registrar elementos que terÃ£o transparÃªncia controlada
+
 local function AddTransparency(instance)
     if not instance or typeof(instance) ~= "Instance" then return end
     for _, v in ipairs(MyLibrary.TransparencyInstances) do
@@ -98,7 +95,6 @@ local function AddTransparency(instance)
     end
     table.insert(MyLibrary.TransparencyInstances, instance)
 
-    -- Aplica imediatamente a transparÃªncia global salva
     local transparency = MyLibrary.Save.GlobalTransparency or 0
     if instance:IsA("Frame") or instance:IsA("TextButton") or instance:IsA("ImageButton") or instance:IsA("ScrollingFrame") then
         instance.BackgroundTransparency = transparency
@@ -164,10 +160,8 @@ end
 
 pcall(Save, "SAGAZx HUB lib.json")
 
--- Lista para armazenar os UIStrokes aplicados
 MyLibrary.StrokeInstances = {}
 
--- FunÃ§Ã£o para atualizar um UIStroke especÃ­fico
 local function UpdateStroke(stroke)
     if not stroke then return end
     local colorHex = MyLibrary.Save.StrokeColor or "#8A2BE2"
@@ -177,7 +171,6 @@ local function UpdateStroke(stroke)
     stroke.Transparency = transparency
 end
 
--- FunÃ§Ã£o para aplicar borda a um GuiObject
 local function ApplyBorder(guiObject)
     if not guiObject or not guiObject:IsA("GuiObject") then return end
 
@@ -198,8 +191,6 @@ local UIScale = ViewportSize.Y / 450
 
 local Settings = MyLibrary.Settings
 local Flags = MyLibrary.Flags
-
-
 
 local SetProps, SetChildren, InsertTheme, Create do
     InsertTheme = function(Instance, Type)
@@ -438,7 +429,6 @@ if ScreenFind and ScreenFind ~= ScreenGui then
     ScreenFind:Destroy()
 end
 
--- Sistema de som de clique
 local SoundService = game:GetService("SoundService")
 local ClickSoundEnabled = MyLibrary.Save.ClickSoundEnabled or false
 local ClickSoundId = MyLibrary.Save.ClickSoundId or "rbxassetid://18998603679"
@@ -464,7 +454,6 @@ local function HookClickSound(obj)
     obj.Activated:Connect(PlayClickSound)
 end
 
--- Conectar aos botï¿½es jï¿½ existentes e futuros
 ScreenGui.DescendantAdded:Connect(function(obj)
     if obj:IsA("TextButton") or obj:IsA("ImageButton") then
         HookClickSound(obj)
@@ -609,27 +598,22 @@ local function SaveJson(FileName, save)
     end
 end
 
--- ConfiguraÃ§Ãµes de imagem padrÃ£o
 local DEFAULT_HUB_IMAGE = "0"
 local DEFAULT_MINIMIZE_IMAGE = "rbxassetid://86050226751861"
 local DEFAULT_TOP_BAR_IMAGE = "rbxassetid://86050226751861"
 
--- Caminhos das imagens
 local IMAGES_FOLDER = LibFolder .. "/imagens"
 local JSON_FILE_PATH = IMAGES_FOLDER .. "/imagens.json"
 
--- Garante que a pasta "imagens" exista
 pcall(function()
     if makefolder and not isfolder(IMAGES_FOLDER) then
         makefolder(IMAGES_FOLDER)
     end
 end)
 
--- FunÃ§Ãµes de requisiÃ§Ã£o
 local requestFunc = request or http_request or (syn and syn.request)
 local getAssetFunc = getcustomasset or getsynasset
 
--- Carrega as configuraÃ§Ãµes de imagem do JSON
 local function LoadImageSettings()
     local defaultData = {
     HubImage = DEFAULT_HUB_IMAGE,
@@ -649,12 +633,10 @@ local function LoadImageSettings()
     return defaultData
 end
 
--- Salva as configuraÃ§Ãµes de imagem no JSON
 local function SaveImageSettings(data)
     SaveJson(JSON_FILE_PATH, data)
 end
 
--- FunÃ§Ã£o auxiliar para processar e aplicar imagem
 local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
     if not objectTarget or type(imageInput) ~= "string" or imageInput == "" then
         if objectTarget and (objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton")) then
@@ -709,7 +691,6 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
     end
 end
 
--- VariÃ¡veis de configuraÃ§Ã£o atuais
 local CurrentImageSettings = LoadImageSettings()
 
 local function ApplyCustomColorsToTheme(targetTheme)
@@ -733,7 +714,6 @@ local function Make(Ele, Instance, props, ...)
     return Element
 end
 
--- ==================== CORREÃ‡Ã•ES IMPORTANTES ====================
 AddEle("Corner", function(parent, CornerRadius)
     -- Removida referÃªncia Ã  variÃ¡vel `props` que nÃ£o existia
     local New = SetProps(Create("UICorner", parent, {
@@ -765,12 +745,10 @@ AddEle("Button", function(parent, props, ...)
     ApplyBorder(New)
 
     New.MouseEnter:Connect(function()
-        -- Usa a transparÃªncia global como base, mas deixa um pouco mais clara ao passar o mouse
         local base = MyLibrary.Save.GlobalTransparency or 0
         New.BackgroundTransparency = math.max(0.4, base)
     end)
     New.MouseLeave:Connect(function()
-        -- Restaura a transparÃªncia global definida
         New.BackgroundTransparency = MyLibrary.Save.GlobalTransparency or 0
     end)
     if args[1] then
@@ -912,7 +890,6 @@ function MyLibrary:SetThemeColor(key, value)
         return
     end
 
-    -- Se for o gradiente e receber uma tabela com 3 cores, converte para ColorSequence
     if key == "Color Hub 1" and type(value) == "table" then
         if #value >= 3 then
             value = ColorSequence.new({
@@ -927,7 +904,6 @@ function MyLibrary:SetThemeColor(key, value)
     end
 
     if value == nil then
-        -- Remove a customizaÃ§Ã£o e restaura a cor original
         MyLibrary.Save.CustomColors[key] = nil
         currentTheme[key] = OriginalThemes[MyLibrary.Save.Theme][key]
     else
@@ -938,7 +914,6 @@ function MyLibrary:SetThemeColor(key, value)
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
     Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
 
-    -- Atualiza os elementos jÃ¡ criados
     for _, Val in ipairs(MyLibrary.Instances) do
         pcall(function()
             if Val.Type == "Gradient" then
@@ -970,7 +945,6 @@ function MyLibrary:SetTheme(NewTheme)
 
     Connection:FireConnection("ThemeChanged", NewTheme)
 
-    -- Loop com pcall para evitar parar se algum elemento falhar
     for _, Val in ipairs(MyLibrary.Instances) do
         local ok, err = pcall(function()
             if Val.Type == "Gradient" then
@@ -1008,7 +982,6 @@ function MyLibrary:SetGlobalTransparency(value)
     MyLibrary.Save.GlobalTransparency = value
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
 
-    -- Aplica a todos os elementos registrados que ainda existem
     for _, instance in ipairs(MyLibrary.TransparencyInstances) do
         if instance and instance.Parent then
             if instance:IsA("Frame") or instance:IsA("TextButton") or instance:IsA("ImageButton") or instance:IsA("ScrollingFrame") then
