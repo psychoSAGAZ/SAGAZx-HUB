@@ -1672,7 +1672,13 @@ local SecondaryContainers = Create("Frame", SecondaryFrame, {
 })
 
 -- DropdownHolder para a janela secundária
-local SecondaryDropdownHolder = Create("Folder", SecondaryFrame, { Name = "SecondaryDropdown" })
+local SecondaryDropdownHolder = Create("Frame", SecondaryFrame, {
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    ClipsDescendants = false,
+    ZIndex = 10,
+    Name = "SecondaryDropdown"
+})
 
 -- Lista de containers da janela secundária
 local SecondaryContainerList = {}
@@ -2412,13 +2418,13 @@ end
                 BackgroundTransparency = 1
             })
 
-            local NoClickFrame = Create("TextButton", SecondaryDropdownHolder, {
-                Name = "AntiClick",
-                Size = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Visible = false,
-                Text = ""
-            })
+local NoClickFrame = Create("TextButton", SecondaryDropdownHolder, {
+    Name = "AntiClick",
+    Size = UDim2.new(1, 0, 1, 0),
+    BackgroundTransparency = 1,
+    Visible = false,
+    Text = ""
+})
 
             local DropFrame = Create("Frame", NoClickFrame, {
                 Size = UDim2.new(SelectedFrame.Size.X, 0, 0),
@@ -2500,17 +2506,19 @@ end
                 WaitClick = false
             end
 
-            local function CalculatePos()
-                local FramePos = SelectedFrame.AbsolutePosition
-                local ScreenSize = ScreenGui.AbsoluteSize
-                local ClampX = math.clamp((FramePos.X / UIScale), 0, ScreenSize.X / UIScale - DropFrame.Size.X.Offset)
-                local ClampY = math.clamp((FramePos.Y / UIScale), 0, ScreenSize.Y / UIScale)
-
-                local NewPos = UDim2.fromOffset(ClampX, ClampY)
-                local AnchorPoint = FramePos.Y > ScreenSize.Y / 1.4 and 1 or ScrollSize > 80 and 0.5 or 0
-                DropFrame.AnchorPoint = Vector2.new(0, AnchorPoint)
-                CreateTween({DropFrame, "Position", NewPos, 0.1})
-            end
+local function CalculatePos()
+    local FramePos = SelectedFrame.AbsolutePosition
+    local FrameSize = SelectedFrame.AbsoluteSize
+    
+    -- Posição relativa à janela secundária
+    local NewPos = UDim2.fromOffset(
+        (FramePos.X - SecondaryFrame.AbsolutePosition.X) / UIScale,
+        (FramePos.Y + FrameSize.Y - SecondaryFrame.AbsolutePosition.Y) / UIScale
+    )
+    
+    DropFrame.AnchorPoint = Vector2.new(0, 0)
+    DropFrame.Position = NewPos
+end
 
             local AddNewOptions, GetOptions, AddOption, RemoveOption, Selected do
                 local Default = type(OpDefault) ~= "table" and {OpDefault} or OpDefault
