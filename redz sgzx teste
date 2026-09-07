@@ -61,7 +61,7 @@ Save = {
     end)()
 }
 
-MyLibrary.CurrentFont = Enum.Font[MyLibrary.Save.Font] or Enum.Font.Gotham
+MyLibrary.CurrentFont = Enum.Font[MyLibrary.Save.Font] or Enum.Font.LuckiestGuy
 
 
 local LibFolder = "SAGAZx HUB Lib"
@@ -141,7 +141,7 @@ if rawget(decoded, "MinimizeStrokeColor") and type(decoded.MinimizeStrokeColor) 
 end
 if rawget(decoded, "Font") and type(decoded.Font) == "string" then
     MyLibrary.Save.Font = decoded.Font
-    MyLibrary.CurrentFont = Enum.Font[decoded.Font] or Enum.Font.Gotham
+    MyLibrary.CurrentFont = Enum.Font[decoded.Font] or Enum.Font.LuckiestGuy
 end
 if rawget(decoded, "TopbarImage") and type(decoded.TopbarImage) == "string" then
     MyLibrary.Save.TopbarImage = decoded.TopbarImage
