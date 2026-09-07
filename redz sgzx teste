@@ -1645,7 +1645,7 @@ local SecondaryCloseButton = Create("ImageButton", SecondaryTopBar, {
 
 -- Container de tabs da janela secundária (2 linhas de 3 botões)
 local SecondaryTabContainer = Create("Frame", SecondaryFrame, {
-    Size = UDim2.new(1, 0, 0, 60),  -- Aumentado para 60px (2 linhas de 22px + espaçamento)
+    Size = UDim2.new(1, 0, 0, 60),
     Position = UDim2.new(0, 0, 0, 30),
     BackgroundTransparency = 1,
     Name = "SecondaryTabContainer"
@@ -1656,8 +1656,8 @@ local SecondaryTabContainer = Create("Frame", SecondaryFrame, {
         PaddingTop = UDim.new(0, 5),
         PaddingBottom = UDim.new(0, 5)
     }),
-    Create("UIGridLayout", {  -- Grid para organizar em 2 linhas de 3 botões
-        CellSize = UDim2.new(0, 75, 0, 22),  -- 3 botões de 75px = 225px + paddings
+    Create("UIGridLayout", {
+        CellSize = UDim2.new(0, 75, 0, 22),
         CellPadding = UDim2.new(0, 5, 0, 5),
         FillDirection = "Horizontal",
         SortOrder = "LayoutOrder",
@@ -1665,9 +1665,9 @@ local SecondaryTabContainer = Create("Frame", SecondaryFrame, {
     })
 })
 
--- Container da janela secundária (ajustado para nova altura das tabs)
+-- Container da janela secundária
 local SecondaryContainers = Create("Frame", SecondaryFrame, {
-    Size = UDim2.new(1, 0, 1, -90),  -- 30 TopBar + 60 Tabs = 90
+    Size = UDim2.new(1, 0, 1, -90),
     Position = UDim2.new(0, 0, 0, 90),
     BackgroundTransparency = 1,
     ClipsDescendants = true,
@@ -1709,26 +1709,26 @@ function Window:MakeSecondaryTab(Configs)
             TIcon = false
         end
         
-        -- Botão da tab (menor, 75x22)
+        -- Botão da tab
         local TabSelect = Make("Button", SecondaryTabContainer, {
             Size = UDim2.new(0, 75, 0, 22),
             BackgroundColor3 = Theme["Color Hub 2"]
         })
         Make("Corner", TabSelect, UDim.new(0, 4))
         
- -- Frame indicador de seleção (do tamanho exato do botão, opaco)
-local SelectionIndicator = InsertTheme(Create("Frame", TabSelect, {
-    Size = UDim2.new(1, 0, 1, 0),  -- Tamanho exato do botão
-    Position = UDim2.new(0, 0, 0, 0),  -- Posição 0,0 (canto superior esquerdo)
-    BackgroundColor3 = Theme["Color Theme"],
-    BackgroundTransparency = 0,  -- Totalmente opaco
-    Visible = false,
-    Name = "SelectionIndicator",
-    ZIndex = 1  -- Atrás do texto
-}), "Theme")
-Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado do botão
+        -- Frame indicador de seleção
+        local SelectionIndicator = InsertTheme(Create("Frame", TabSelect, {
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundColor3 = Theme["Color Theme"],
+            BackgroundTransparency = 0,
+            Visible = false,
+            Name = "SelectionIndicator",
+            ZIndex = 1
+        }), "Theme")
+        Make("Corner", SelectionIndicator, UDim.new(0, 4))
         
-        -- Label do título (ZIndex maior para ficar acima do indicador)
+        -- Label do título
         local LabelTitle = InsertTheme(Create("TextLabel", TabSelect, {
             Size = UDim2.new(1, -10, 1),
             Position = UDim2.new(0, 5, 0),
@@ -1739,7 +1739,7 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             TextSize = 9,
             TextXAlignment = "Left",
             TextTruncate = "AtEnd",
-            ZIndex = 2  -- Acima do indicador
+            ZIndex = 2
         }), "Text")
         
         local Container = InsertTheme(Create("ScrollingFrame", {
@@ -1767,26 +1767,23 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
         table.insert(SecondaryContainerList, Container)
         if not SecondaryFirstTab then
             Container.Parent = SecondaryContainers
-            SelectionIndicator.Visible = true -- Primeira tab já começa selecionada
+            SelectionIndicator.Visible = true
         end
         
         -- Função para alternar entre tabs
         local function Tabs()
             if Container.Parent then return end
             
-            -- Esconde todos os containers
             for _, Frame in pairs(SecondaryContainerList) do
                 if Frame:IsA("ScrollingFrame") and Frame ~= Container then
                     Frame.Parent = nil
                 end
             end
             
-            -- Mostra o container desta tab
             Container.Parent = SecondaryContainers
             Container.Size = UDim2.new(1, 0, 1, 150)
             CreateTween({Container, "Size", UDim2.new(1, 0, 1, 0), 0.3})
             
-            -- Atualiza indicadores de seleção
             for _, tabData in pairs(SecondaryTabs) do
                 tabData.indicator.Visible = (tabData.Cont == Container)
             end
@@ -1931,6 +1928,7 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             local Default = Configs[2] or Configs.Default or false
             if CheckFlag(Flag) then Default = GetFlag(Flag) end
 
+            -- Usando tamanho maior para acomodar o toggle sem esconder o título
             local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
 
             local ToggleHolder = InsertTheme(Create("Frame", Button, {
@@ -2014,32 +2012,33 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                 CPDefault = GetFlag(CPFlag) or CPDefault
             end
 
-            local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -125))
+            -- Usando tamanho menor para caber na janela de 250px
+            local Button, LabelFunc = ButtonFrame(Container, CPName, CPDesc, UDim2.new(1, -100))
 
             local RightArea = Create("Frame", Button, {
-                Size = UDim2.new(0, 115, 1),
-                Position = UDim2.new(1, -20, 0.5),
+                Size = UDim2.new(0, 90, 1),
+                Position = UDim2.new(1, -5, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundTransparency = 1
             })
 
             local RGBBox = InsertTheme(Create("TextBox", RightArea, {
-                Size = UDim2.new(0, 45, 0, 16),
-                Position = UDim2.new(0, 0, 0.5, -8),
+                Size = UDim2.new(0, 40, 0, 14),
+                Position = UDim2.new(0, 0, 0.5, -7),
                 BackgroundColor3 = Color3.fromRGB(20, 20, 25),
                 Text = "",
                 TextColor3 = Color3.fromRGB(220, 220, 230),
-                TextSize = 8,
+                TextSize = 7,
                 Font = Enum.Font.GothamSemibold,
                 ClearTextOnFocus = false,
-                PlaceholderText = "R, G, B",
+                PlaceholderText = "RGB",
                 PlaceholderColor3 = Color3.fromRGB(100, 100, 115)
             }), "Text")
             Make("Corner", RGBBox, UDim.new(0, 3))
 
             local ColorButton = Create("ImageButton", RightArea, {
-                Size = UDim2.new(0, 18, 0, 18),
-                Position = UDim2.new(0, 50, 0.5, -9),
+                Size = UDim2.new(0, 16, 0, 16),
+                Position = UDim2.new(0, 43, 0.5, -8),
                 BackgroundColor3 = CPDefault,
                 AutoButtonColor = false,
                 Image = ""
@@ -2047,15 +2046,15 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             Make("Corner", ColorButton, UDim.new(0, 3))
 
             local HexBox = InsertTheme(Create("TextBox", RightArea, {
-                Size = UDim2.new(0, 50, 0, 16),
-                Position = UDim2.new(0, 73, 0.5, -8),
+                Size = UDim2.new(0, 28, 0, 14),
+                Position = UDim2.new(0, 62, 0.5, -7),
                 BackgroundColor3 = Color3.fromRGB(20, 20, 25),
                 Text = "",
                 TextColor3 = CPDefault,
-                TextSize = 8,
+                TextSize = 7,
                 Font = Enum.Font.GothamBold,
                 ClearTextOnFocus = false,
-                PlaceholderText = "#FFFFFF",
+                PlaceholderText = "#FFF",
                 PlaceholderColor3 = Color3.fromRGB(100, 100, 115)
             }), "Text")
             Make("Corner", HexBox, UDim.new(0, 3))
@@ -2396,12 +2395,33 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             local DMultiSelect = Configs.MultiSelect or false
             local Callback = Funcs:GetCallback(Configs, 4)
 
-            local Button, LabelFunc = ButtonFrame(Container, DName, DDesc, UDim2.new(1, -180))
+            -- Título acima, dropdown abaixo
+            local Button = InsertTheme(Create("Frame", Container, {
+                Size = UDim2.new(1, 0, 0, 50),  -- Altura maior para acomodar título + dropdown
+                BackgroundColor3 = Theme["Color Hub 2"],
+                Name = "Option"
+            }), "Frame")
+            AddTransparency(Button)
+            Make("Corner", Button, UDim.new(0, 6))
+            ApplyBorder(Button)
 
+            -- Título
+            local TitleLabel = InsertTheme(Create("TextLabel", Button, {
+                Size = UDim2.new(1, -20, 0, 15),
+                Position = UDim2.new(0, 10, 0, 5),
+                BackgroundTransparency = 1,
+                Font = MyLibrary.CurrentFont,
+                Text = DName,
+                TextColor3 = Theme["Color Text"],
+                TextSize = 9,
+                TextXAlignment = "Left",
+                TextTruncate = "AtEnd"
+            }), "Text")
+
+            -- Dropdown (abaixo do título)
             local SelectedFrame = InsertTheme(Create("Frame", Button, {
-                Size = UDim2.new(0, 150, 0, 18),
-                Position = UDim2.new(1, -10, 0.5),
-                AnchorPoint = Vector2.new(1, 0.5),
+                Size = UDim2.new(1, -20, 0, 22),
+                Position = UDim2.new(0, 10, 0, 22),
                 BackgroundColor3 = Theme["Color Stroke"]
             }), "Stroke")
             AddTransparency(SelectedFrame)
@@ -2473,7 +2493,7 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             local function Disable()
                 WaitClick = true
                 CreateTween({Arrow, "Rotation", 0, 0.2})
-                CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
+                CreateTween({DropFrame, "Size", UDim2.new(0, 210, 0, 0), 0.2, true})
                 CreateTween({Arrow, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
                 Arrow.Image = "rbxassetid://10709791523"
                 NoClickFrame.Visible = false
@@ -2481,7 +2501,7 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             end
 
             local function GetFrameSize()
-                return UDim2.fromOffset(152, ScrollSize)
+                return UDim2.fromOffset(210, ScrollSize)
             end
 
             local function CalculateSize()
@@ -2503,7 +2523,7 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                 if NoClickFrame.Visible then
                     Arrow.Image = "rbxassetid://10709791523"
                     CreateTween({Arrow, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
-                    CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
+                    CreateTween({DropFrame, "Size", UDim2.new(0, 210, 0, 0), 0.2, true})
                     NoClickFrame.Visible = false
                 else
                     NoClickFrame.Visible = true
@@ -2527,6 +2547,7 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                 DropFrame.Position = NewPos
             end
 
+            -- Resto do código do dropdown (opções, seleção, etc.)
             local AddNewOptions, GetOptions, AddOption, RemoveOption, Selected do
                 local Default = type(OpDefault) ~= "table" and {OpDefault} or OpDefault
                 local MultiSelect = DMultiSelect
@@ -2611,15 +2632,15 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                         Options[Name].Stats = Stats
                     end
 
-                    local Button = Make("Button", ScrollFrame, {
+                    local OptionButton = Make("Button", ScrollFrame, {
                         Name = "Option",
                         Size = UDim2.new(1, 0, 0, 21),
                         Position = UDim2.new(0, 0, 0.5),
                         AnchorPoint = Vector2.new(0, 0.5)
                     })
-                    Make("Corner", Button, UDim.new(0, 4))
+                    Make("Corner", OptionButton, UDim.new(0, 4))
 
-                    local IsSelected = InsertTheme(Create("Frame", Button, {
+                    local IsSelected = InsertTheme(Create("Frame", OptionButton, {
                         Position = UDim2.new(0, 1, 0.5),
                         Size = UDim2.new(0, 4, 0, 4),
                         BackgroundColor3 = Theme["Color Theme"],
@@ -2628,7 +2649,7 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                     }), "Theme")
                     Make("Corner", IsSelected, UDim.new(0.5, 0))
 
-                    local OptioneName = InsertTheme(Create("TextLabel", Button, {
+                    local OptioneName = InsertTheme(Create("TextLabel", OptionButton, {
                         Size = UDim2.new(1, 0, 1),
                         Position = UDim2.new(0, 10),
                         Text = Name,
@@ -2639,10 +2660,10 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                         TextTransparency = 0.4
                     }), "Text")
 
-                    Button.Activated:Connect(function()
+                    OptionButton.Activated:Connect(function()
                         Select(Options[Name])
                     end)
-                    Options[Name].nodes = {Button, IsSelected, OptioneName}
+                    Options[Name].nodes = {OptionButton, IsSelected, OptioneName}
                 end
 
                 RemoveOption = function(index, Value)
@@ -2671,13 +2692,13 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                 UpdateSelected()
             end
 
-            Button.Activated:Connect(Minimize)
+            SelectedFrame.Activated:Connect(Minimize)
             NoClickFrame.MouseButton1Down:Connect(Disable)
             NoClickFrame.MouseButton1Click:Connect(Disable)
             SecondaryFrame:GetPropertyChangedSignal("Visible"):Connect(Disable)
             SelectedFrame:GetPropertyChangedSignal("AbsolutePosition"):Connect(CalculatePos)
 
-            Button.Activated:Connect(CalculateSize)
+            SelectedFrame.Activated:Connect(CalculateSize)
             ScrollFrame.ChildAdded:Connect(CalculateSize)
             ScrollFrame.ChildRemoved:Connect(CalculateSize)
             CalculatePos()
@@ -2744,12 +2765,43 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             if CheckFlag(Flag) then Default = GetFlag(Flag) end
             Min, Max = Min / Increase, Max / Increase
 
-            local Button, LabelFunc = ButtonFrame(Container, SName, SDesc, UDim2.new(1, -180))
+            -- Título acima, slider abaixo
+            local Button = InsertTheme(Create("Frame", Container, {
+                Size = UDim2.new(1, 0, 0, 50),
+                BackgroundColor3 = Theme["Color Hub 2"],
+                Name = "Option"
+            }), "Frame")
+            AddTransparency(Button)
+            Make("Corner", Button, UDim.new(0, 6))
+            ApplyBorder(Button)
+
+            local TitleLabel = InsertTheme(Create("TextLabel", Button, {
+                Size = UDim2.new(1, -60, 0, 15),
+                Position = UDim2.new(0, 10, 0, 5),
+                BackgroundTransparency = 1,
+                Font = MyLibrary.CurrentFont,
+                Text = SName,
+                TextColor3 = Theme["Color Text"],
+                TextSize = 9,
+                TextXAlignment = "Left",
+                TextTruncate = "AtEnd"
+            }), "Text")
+
+            local ValueLabel = InsertTheme(Create("TextLabel", Button, {
+                Size = UDim2.new(0, 40, 0, 15),
+                Position = UDim2.new(1, -10, 0, 5),
+                AnchorPoint = Vector2.new(1, 0),
+                BackgroundTransparency = 1,
+                Font = MyLibrary.CurrentFont,
+                Text = tostring(Default),
+                TextColor3 = Theme["Color Theme"],
+                TextSize = 9,
+                TextXAlignment = "Right"
+            }), "Text")
 
             local SliderHolder = Create("TextButton", Button, {
-                Size = UDim2.new(0.45, 0, 1),
-                Position = UDim2.new(1),
-                AnchorPoint = Vector2.new(1, 0),
+                Size = UDim2.new(1, -20, 0, 22),
+                Position = UDim2.new(0, 10, 0, 22),
                 AutoButtonColor = false,
                 Text = "",
                 BackgroundTransparency = 1
@@ -2757,7 +2809,7 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
 
             local SliderBar = InsertTheme(Create("Frame", SliderHolder, {
                 BackgroundColor3 = Theme["Color Stroke"],
-                Size = UDim2.new(1, -20, 0, 6),
+                Size = UDim2.new(1, 0, 0, 6),
                 Position = UDim2.new(0.5, 0, 0.5),
                 AnchorPoint = Vector2.new(0.5, 0.5)
             }), "Stroke")
@@ -2780,18 +2832,6 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             })
             Make("Corner", SliderIcon)
 
-            local LabelVal = InsertTheme(Create("TextLabel", SliderHolder, {
-                Size = UDim2.new(0, 14, 0, 14),
-                AnchorPoint = Vector2.new(1, 0.5),
-                Position = UDim2.new(0, 0, 0.5),
-                BackgroundTransparency = 1,
-                TextColor3 = Theme["Color Text"],
-                Font = MyLibrary.CurrentFont,
-                TextSize = 12
-            }), "Text")
-
-            local UIScaleLocal = Create("UIScale", LabelVal)
-
             local BaseMousePos = Create("Frame", SliderBar, {
                 Position = UDim2.new(0, 0, 0.5, 0),
                 Visible = false
@@ -2800,7 +2840,8 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             local function UpdateLabel(NewValue)
                 local Number = tonumber(NewValue * Increase)
                 Number = math.floor(Number * 100) / 100
-                Default, LabelVal.Text = Number, tostring(Number)
+                Default = Number
+                ValueLabel.Text = tostring(Number)
                 Funcs:FireCallback(Callback, Default)
             end
 
@@ -2829,14 +2870,6 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                 SetFlag(Flag, Default)
             end)
 
-            LabelVal:GetPropertyChangedSignal("Text"):Connect(function()
-                UIScaleLocal.Scale = 0.3
-                CreateTween({UIScaleLocal, "Scale", 1.2, 0.1})
-                CreateTween({LabelVal, "Rotation", math.random(-1, 1) * 5, 0.15, true})
-                CreateTween({UIScaleLocal, "Scale", 1, 0.2})
-                CreateTween({LabelVal, "Rotation", 0, 0.1})
-            end)
-
             function SetSlider(NewValue)
                 if type(NewValue) ~= "number" then return end
                 local MinReal, MaxReal = Min * Increase, Max * Increase
@@ -2852,10 +2885,9 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             local Slider = {}
             function Slider:Set(NewVal1, NewVal2)
                 if NewVal1 and NewVal2 then
-                    LabelFunc:SetTitle(NewVal1)
-                    LabelFunc:SetDesc(NewVal2)
+                    TitleLabel.Text = NewVal1
                 elseif type(NewVal1) == "string" then
-                    LabelFunc:SetTitle(NewVal1)
+                    TitleLabel.Text = NewVal1
                 elseif type(NewVal1) == "function" then
                     Callback = NewVal1
                 elseif type(NewVal1) == "number" then
@@ -2880,12 +2912,31 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                 TDefault = ""
             end
 
-            local Button, LabelFunc = ButtonFrame(Container, TName, TDesc, UDim2.new(1, -38))
+            -- Título acima, textbox abaixo
+            local Button = InsertTheme(Create("Frame", Container, {
+                Size = UDim2.new(1, 0, 0, 50),
+                BackgroundColor3 = Theme["Color Hub 2"],
+                Name = "Option"
+            }), "Frame")
+            AddTransparency(Button)
+            Make("Corner", Button, UDim.new(0, 6))
+            ApplyBorder(Button)
+
+            local TitleLabel = InsertTheme(Create("TextLabel", Button, {
+                Size = UDim2.new(1, -20, 0, 15),
+                Position = UDim2.new(0, 10, 0, 5),
+                BackgroundTransparency = 1,
+                Font = MyLibrary.CurrentFont,
+                Text = TName,
+                TextColor3 = Theme["Color Text"],
+                TextSize = 9,
+                TextXAlignment = "Left",
+                TextTruncate = "AtEnd"
+            }), "Text")
 
             local SelectedFrame = InsertTheme(Create("Frame", Button, {
-                Size = UDim2.new(0, 150, 0, 18),
-                Position = UDim2.new(1, -10, 0.5),
-                AnchorPoint = Vector2.new(1, 0.5),
+                Size = UDim2.new(1, -20, 0, 22),
+                Position = UDim2.new(0, 10, 0, 22),
                 BackgroundColor3 = Theme["Color Stroke"]
             }), "Stroke")
             AddTransparency(SelectedFrame)
@@ -2904,14 +2955,6 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
                 Text = TDefault
             }), "Text")
 
-            local Pencil = Create("ImageLabel", SelectedFrame, {
-                Size = UDim2.new(0, 12, 0, 12),
-                Position = UDim2.new(0, -5, 0.5),
-                AnchorPoint = Vector2.new(1, 0.5),
-                Image = "rbxassetid://15637081879",
-                BackgroundTransparency = 1
-            })
-
             local TextBox = {}
             local function Input()
                 local Text = TextBoxInput.Text
@@ -2923,13 +2966,6 @@ Make("Corner", SelectionIndicator, UDim.new(0, 4))  -- Mesmo canto arredondado d
             end
 
             TextBoxInput.FocusLost:Connect(Input)
-
-            TextBoxInput.FocusLost:Connect(function()
-                CreateTween({Pencil, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
-            end)
-            TextBoxInput.Focused:Connect(function()
-                CreateTween({Pencil, "ImageColor3", Theme["Color Theme"], 0.2})
-            end)
 
             TextBox.OnChanging = false
             function TextBox:Visible(...) Funcs:ToggleVisible(Button, ...) end
