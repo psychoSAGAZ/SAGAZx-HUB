@@ -1719,7 +1719,7 @@ end)
         return Dialog
     end
     
-    -- ==================== SUB WINDOW SYSTEM ====================
+-- ==================== SUB WINDOW SYSTEM (DENTRO DO HUB) ====================
 local SubWindowOpen = false
 local SubWindowFrame = nil
 local SubWindowTabs = {}
@@ -1748,14 +1748,16 @@ function Window:AddSubWindow(Configs)
     })
     SubWindowButton.Parent = ButtonsFolder
 
-    -- Cria a janela secundária (inicialmente invisível)
-    local SWFrame = InsertTheme(Create("Frame", ScreenGui, {
-        Size = UDim2.fromOffset(500, 350),
-        Position = UDim2.new(0.5, -250, 0.5, -175),
+    -- Cria a janela secundária DENTRO do MainFrame (Hub)
+    -- Tamanho reduzido: 400x280
+    local SWFrame = InsertTheme(Create("Frame", MainFrame, {  -- <<< MUDOU: MainFrame em vez de ScreenGui
+        Size = UDim2.fromOffset(400, 280),  -- <<< TAMANHO MENOR
+        Position = UDim2.new(0.5, -200, 0.5, -140),  -- <<< Centralizado
         BackgroundColor3 = Theme["Color Hub 2"],
         Visible = false,
         Name = "SubWindow",
-        ZIndex = 50
+        ZIndex = 1,  -- <<< ZINDEX = 1
+        Active = true
     }), "Frame")
     
     ApplyBorder(SWFrame)
@@ -1763,65 +1765,70 @@ function Window:AddSubWindow(Configs)
     Make("Corner", SWFrame, UDim.new(0, 8))
     Make("Gradient", SWFrame, { Rotation = 45 })
     
-    -- TopBar da SubWindow
+    -- TopBar da SubWindow (menor)
     local SWTopBar = Create("Frame", SWFrame, {
-        Size = UDim2.new(1, 0, 0, 35),
+        Size = UDim2.new(1, 0, 0, 30),  -- <<< TOPBAR MENOR (30 em vez de 35)
         BackgroundTransparency = 1,
-        Name = "TopBar"
+        Name = "TopBar",
+        ZIndex = 2
     })
     
     -- Título da SubWindow
     local SWTitleLabel = InsertTheme(Create("TextLabel", SWTopBar, {
-        Position = UDim2.new(0, 15, 0.5, 0),
+        Position = UDim2.new(0, 12, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         AutomaticSize = "XY",
         Text = SWTitle,
         TextXAlignment = "Left",
-        TextSize = 16,
+        TextSize = 14,  -- <<< TEXTO MENOR
         TextColor3 = Theme["Color Text"],
         BackgroundTransparency = 1,
         Font = MyLibrary.CurrentFont,
-        Name = "Title"
+        Name = "Title",
+        ZIndex = 3
     }), "Text")
     
     -- Botão de fechar da SubWindow
     local SWCloseButton = Create("ImageButton", SWTopBar, {
-        Size = UDim2.new(0, 14, 0, 14),
-        Position = UDim2.new(1, -10, 0.5),
+        Size = UDim2.new(0, 12, 0, 12),  -- <<< BOTÃO MENOR
+        Position = UDim2.new(1, -8, 0.5),
         AnchorPoint = Vector2.new(1, 0.5),
         BackgroundTransparency = 1,
         Image = "rbxassetid://10747384394",
         AutoButtonColor = false,
-        Name = "Close"
+        Name = "Close",
+        ZIndex = 3
     })
     
-    -- Container para as Tabs (superior)
+    -- Container para as Tabs (superior) - menor
     local SWTabHolder = Create("ScrollingFrame", SWFrame, {
-        Size = UDim2.new(1, -20, 0, 30),
-        Position = UDim2.new(0, 10, 0, 35),
+        Size = UDim2.new(1, -20, 0, 25),  -- <<< TABS MENORES (25 em vez de 30)
+        Position = UDim2.new(0, 10, 0, 30),  -- <<< AJUSTADO
         BackgroundTransparency = 1,
         ScrollBarThickness = 0,
         CanvasSize = UDim2.new(),
         ScrollingDirection = "X",
         AutomaticCanvasSize = "X",
         BorderSizePixel = 0,
-        Name = "TabHolder"
+        Name = "TabHolder",
+        ZIndex = 2
     }, {
         Create("UIListLayout", {
             FillDirection = "Horizontal",
-            Padding = UDim.new(0, 5),
+            Padding = UDim.new(0, 4),  -- <<< MENOS ESPAÇO
             SortOrder = "LayoutOrder"
         })
     })
     
     -- Container para o conteúdo
     local SWContainerHolder = Create("Frame", SWFrame, {
-        Size = UDim2.new(1, -20, 1, -80),
+        Size = UDim2.new(1, -20, 1, -65),  -- <<< AJUSTADO
         Position = UDim2.new(0, 10, 1, -10),
         AnchorPoint = Vector2.new(0, 1),
         BackgroundTransparency = 1,
         ClipsDescendants = true,
-        Name = "ContainerHolder"
+        Name = "ContainerHolder",
+        ZIndex = 2
     })
     
     local SWMinimized = false
@@ -1835,7 +1842,7 @@ function Window:AddSubWindow(Configs)
         else
             SWFrame.Visible = true
             SubWindowOpen = true
-            SWFrame.ZIndex = 100 -- traz para frente
+            SWFrame.ZIndex = 1  // <<< MANTÉM ZINDEX = 1
         end
     end
     
@@ -1843,6 +1850,14 @@ function Window:AddSubWindow(Configs)
     SWCloseButton.Activated:Connect(function()
         SWFrame.Visible = false
         SubWindowOpen = false
+    end)
+    
+    -- Fecha a SubWindow se o Hub for minimizado
+    MainFrame:GetPropertyChangedSignal("Visible"):Connect(function()
+        if not MainFrame.Visible and SubWindowOpen then
+            SWFrame.Visible = false
+            SubWindowOpen = false
+        end
     end)
     
     local SubWindow = {}
@@ -1863,34 +1878,38 @@ function Window:AddSubWindow(Configs)
             TabIcon = false
         end
         
-        -- Botão da Tab
+        -- Botão da Tab (menor)
         local TabButton = Make("Button", SWTabHolder, {
-            Size = UDim2.fromOffset(TabIcon and 110 or 80, 25),
-            Name = "SubTab"
+            Size = UDim2.fromOffset(TabIcon and 100 or 70, 22),  -- <<< TABS MENORES
+            Name = "SubTab",
+            ZIndex = 3
         })
-        Make("Corner", TabButton, UDim.new(0, 5))
+        Make("Corner", TabButton, UDim.new(0, 4))
         
         local TabLabel = InsertTheme(Create("TextLabel", TabButton, {
-            Size = UDim2.new(1, TabIcon and -30 or -10, 1),
-            Position = UDim2.fromOffset(TabIcon and 25 or 5),
+            Size = UDim2.new(1, TabIcon and -28 or -8, 1),
+            Position = UDim2.fromOffset(TabIcon and 24 or 4),
             BackgroundTransparency = 1,
             Font = MyLibrary.CurrentFont,
             Text = TabName,
             TextColor3 = Theme["Color Text"],
-            TextSize = 11,
+            TextSize = 10,  // <<< TEXTO MENOR
             TextXAlignment = "Left",
             TextTransparency = 0.3,
-            TextTruncate = "AtEnd"
+            TextTruncate = "AtEnd",
+            ZIndex = 4
         }), "Text")
         
+        local TabIconLabel = nil
         if TabIcon then
-            local TabIconLabel = InsertTheme(Create("ImageLabel", TabButton, {
-                Position = UDim2.new(0, 6, 0.5),
-                Size = UDim2.new(0, 14, 0, 14),
+            TabIconLabel = InsertTheme(Create("ImageLabel", TabButton, {
+                Position = UDim2.new(0, 5, 0.5),
+                Size = UDim2.new(0, 12, 0, 12),  // <<< ÍCONE MENOR
                 AnchorPoint = Vector2.new(0, 0.5),
                 Image = TabIcon,
                 BackgroundTransparency = 1,
-                ImageTransparency = 0.3
+                ImageTransparency = 0.3,
+                ZIndex = 4
             }), "Text")
         end
         
@@ -1905,7 +1924,8 @@ function Window:AddSubWindow(Configs)
             ScrollingDirection = "Y",
             BorderSizePixel = 0,
             CanvasSize = UDim2.new(),
-            Name = "SubContainer_" .. TabName
+            Name = "SubContainer_" .. TabName,
+            ZIndex = 2
         }, {
             Create("UIPadding", {
                 PaddingLeft = UDim.new(0, 5),
@@ -1913,7 +1933,7 @@ function Window:AddSubWindow(Configs)
                 PaddingTop = UDim.new(0, 5),
                 PaddingBottom = UDim.new(0, 5)
             }),
-            Create("UIListLayout", { Padding = UDim.new(0, 5) })
+            Create("UIListLayout", { Padding = UDim.new(0, 4) })  // <<< MENOS ESPAÇO
         }), "ScrollBar")
         
         table.insert(SubWindowContainers, TabContainer)
@@ -1928,14 +1948,9 @@ function Window:AddSubWindow(Configs)
         
         local function ActivateTab()
             -- Desativa todas as outras tabs
-            for i, cont in ipairs(SubWindowContainers) do
+            for _, cont in ipairs(SubWindowContainers) do
                 if cont ~= TabContainer then
                     cont.Parent = nil
-                    -- Reseta visual das outras tabs
-                    local otherButton = SWTabHolder:FindFirstChild("SubTab")
-                    if otherButton then
-                        -- Implementar reset visual se necessário
-                    end
                 end
             end
             
@@ -1962,15 +1977,16 @@ function Window:AddSubWindow(Configs)
         Tab.Container = TabContainer
         Tab.TabButton = TabButton
         
-        -- ====== ELEMENTOS DA SUBWINDOW (reutilizando ButtonFrame) ======
+        -- ====== ELEMENTOS DA SUBWINDOW (versões compactas) ======
         
         function Tab:AddSection(Configs)
             local SectionName = type(Configs) == "string" and Configs or Configs[1] or Configs.Title or "Section"
             
             local SectionFrame = Create("Frame", TabContainer, {
-                Size = UDim2.new(1, 0, 0, 20),
+                Size = UDim2.new(1, 0, 0, 18),  // <<< MENOR
                 BackgroundTransparency = 1,
-                Name = "Option"
+                Name = "Option",
+                ZIndex = 3
             })
             Make("Corner", SectionFrame, UDim.new(0, 6))
             
@@ -1982,8 +1998,9 @@ function Window:AddSubWindow(Configs)
                 Position = UDim2.new(0, 5),
                 BackgroundTransparency = 1,
                 TextTruncate = "AtEnd",
-                TextSize = 11,
-                TextXAlignment = "Left"
+                TextSize = 10,  // <<< TEXTO MENOR
+                TextXAlignment = "Left",
+                ZIndex = 4
             }), "Text")
             
             local Section = {}
@@ -1999,13 +2016,15 @@ function Window:AddSubWindow(Configs)
             local Callback = Funcs:GetCallback(Configs, 2)
             
             local FButton, LabelFunc = ButtonFrame(TabContainer, BName, BDesc, UDim2.new(1, -20))
+            FButton.ZIndex = 3
             
             local ButtonIcon = Create("ImageLabel", FButton, {
-                Size = UDim2.new(0, 14, 0, 14),
-                Position = UDim2.new(1, -10, 0.5),
+                Size = UDim2.new(0, 12, 0, 12),  // <<< MENOR
+                Position = UDim2.new(1, -8, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
                 BackgroundTransparency = 1,
-                Image = "rbxassetid://10734973999"
+                Image = "rbxassetid://10734973999",
+                ZIndex = 4
             })
             
             FButton.Activated:Connect(function()
@@ -2038,12 +2057,14 @@ function Window:AddSubWindow(Configs)
             if CheckFlag(Flag) then Default = GetFlag(Flag) end
             
             local Button, LabelFunc = ButtonFrame(TabContainer, TName, TDesc, UDim2.new(1, -38))
+            Button.ZIndex = 3
             
             local ToggleHolder = InsertTheme(Create("Frame", Button, {
-                Size = UDim2.new(0, 35, 0, 18),
-                Position = UDim2.new(1, -10, 0.5),
+                Size = UDim2.new(0, 32, 0, 16),  // <<< MENOR
+                Position = UDim2.new(1, -8, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
+                BackgroundColor3 = Theme["Color Stroke"],
+                ZIndex = 4
             }), "Stroke")
             AddTransparency(ToggleHolder)
             Make("Corner", ToggleHolder, UDim.new(0.5, 0))
@@ -2052,14 +2073,16 @@ function Window:AddSubWindow(Configs)
                 BackgroundTransparency = 1,
                 Size = UDim2.new(0.8, 0, 0.8, 0),
                 Position = UDim2.new(0.5, 0, 0.5, 0),
-                AnchorPoint = Vector2.new(0.5, 0.5)
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                ZIndex = 5
             })
             
             local Toggle = InsertTheme(Create("Frame", Slider, {
-                Size = UDim2.new(0, 12, 0, 12),
+                Size = UDim2.new(0, 10, 0, 10),  // <<< MENOR
                 Position = UDim2.new(0, 0, 0.5),
                 AnchorPoint = Vector2.new(0, 0.5),
-                BackgroundColor3 = Theme["Color Theme"]
+                BackgroundColor3 = Theme["Color Theme"],
+                ZIndex = 5
             }), "Theme")
             Make("Corner", Toggle, UDim.new(0.5, 0))
             
@@ -2120,22 +2143,25 @@ function Window:AddSubWindow(Configs)
             if CheckFlag(Flag) then Default = GetFlag(Flag) end
             Min, Max = Min / Increase, Max / Increase
             
-            local Button, LabelFunc = ButtonFrame(TabContainer, SName, SDesc, UDim2.new(1, -180))
+            local Button, LabelFunc = ButtonFrame(TabContainer, SName, SDesc, UDim2.new(1, -160))  // <<< AJUSTADO
+            Button.ZIndex = 3
             
             local SliderHolder = Create("TextButton", Button, {
-                Size = UDim2.new(0.45, 0, 1),
+                Size = UDim2.new(0.4, 0, 1),  // <<< MENOR
                 Position = UDim2.new(1),
                 AnchorPoint = Vector2.new(1, 0),
                 AutoButtonColor = false,
                 Text = "",
-                BackgroundTransparency = 1
+                BackgroundTransparency = 1,
+                ZIndex = 4
             })
             
             local SliderBar = InsertTheme(Create("Frame", SliderHolder, {
                 BackgroundColor3 = Theme["Color Stroke"],
-                Size = UDim2.new(1, -20, 0, 6),
+                Size = UDim2.new(1, -18, 0, 5),  // <<< MENOR
                 Position = UDim2.new(0.5, 0, 0.5),
-                AnchorPoint = Vector2.new(0.5, 0.5)
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                ZIndex = 5
             }), "Stroke")
             AddTransparency(SliderBar)
             Make("Corner", SliderBar)
@@ -2143,27 +2169,30 @@ function Window:AddSubWindow(Configs)
             local Indicator = InsertTheme(Create("Frame", SliderBar, {
                 BackgroundColor3 = Theme["Color Theme"],
                 Size = UDim2.fromScale(0.5, 1),
-                BorderSizePixel = 0
+                BorderSizePixel = 0,
+                ZIndex = 5
             }), "Theme")
             Make("Corner", Indicator)
             
             local SliderIcon = Create("Frame", SliderBar, {
-                Size = UDim2.new(0, 6, 0, 12),
+                Size = UDim2.new(0, 5, 0, 10),  // <<< MENOR
                 BackgroundColor3 = Color3.fromRGB(220, 220, 220),
                 Position = UDim2.fromScale(0.5, 0.5),
                 AnchorPoint = Vector2.new(0.5, 0.5),
-                BackgroundTransparency = 0.2
+                BackgroundTransparency = 0.2,
+                ZIndex = 6
             })
             Make("Corner", SliderIcon)
             
             local LabelVal = InsertTheme(Create("TextLabel", SliderHolder, {
-                Size = UDim2.new(0, 14, 0, 14),
+                Size = UDim2.new(0, 12, 0, 12),  // <<< MENOR
                 AnchorPoint = Vector2.new(1, 0.5),
                 Position = UDim2.new(0, 0, 0.5),
                 BackgroundTransparency = 1,
                 TextColor3 = Theme["Color Text"],
                 Font = MyLibrary.CurrentFont,
-                TextSize = 12
+                TextSize = 10,  // <<< MENOR
+                ZIndex = 4
             }), "Text")
             
             local UIScaleLocal = Create("UIScale", LabelVal)
@@ -2251,13 +2280,15 @@ function Window:AddSubWindow(Configs)
             local Flag = Configs[5] or Configs.Flag or false
             local Callback = Funcs:GetCallback(Configs, 4)
             
-            local Button, LabelFunc = ButtonFrame(TabContainer, DName, DDesc, UDim2.new(1, -180))
+            local Button, LabelFunc = ButtonFrame(TabContainer, DName, DDesc, UDim2.new(1, -160))  // <<< AJUSTADO
+            Button.ZIndex = 3
             
             local SelectedFrame = InsertTheme(Create("Frame", Button, {
-                Size = UDim2.new(0, 150, 0, 18),
-                Position = UDim2.new(1, -10, 0.5),
+                Size = UDim2.new(0, 130, 0, 16),  // <<< MENOR
+                Position = UDim2.new(1, -8, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
+                BackgroundColor3 = Theme["Color Stroke"],
+                ZIndex = 4
             }), "Stroke")
             AddTransparency(SelectedFrame)
             Make("Corner", SelectedFrame, UDim.new(0, 4))
@@ -2270,15 +2301,17 @@ function Window:AddSubWindow(Configs)
                 Font = MyLibrary.CurrentFont,
                 TextScaled = true,
                 TextColor3 = Theme["Color Text"],
-                Text = "..."
+                Text = "...",
+                ZIndex = 5
             }), "Text")
             
             local Arrow = Create("ImageLabel", SelectedFrame, {
-                Size = UDim2.new(0, 15, 0, 15),
-                Position = UDim2.new(0, -5, 0.5),
+                Size = UDim2.new(0, 12, 0, 12),  // <<< MENOR
+                Position = UDim2.new(0, -4, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
                 Image = "rbxassetid://10709791523",
-                BackgroundTransparency = 1
+                BackgroundTransparency = 1,
+                ZIndex = 5
             })
             
             local NoClickFrame = Create("TextButton", DropdownHolder, {
@@ -2286,7 +2319,8 @@ function Window:AddSubWindow(Configs)
                 Size = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1,
                 Visible = false,
-                Text = ""
+                Text = "",
+                ZIndex = 10
             })
             
             local DropFrame = Create("Frame", NoClickFrame, {
@@ -2296,7 +2330,8 @@ function Window:AddSubWindow(Configs)
                 AnchorPoint = Vector2.new(0, 1),
                 Name = "DropdownFrame",
                 ClipsDescendants = true,
-                Active = true
+                Active = true,
+                ZIndex = 10
             })
             Make("Corner", DropFrame)
             AddTransparency(DropFrame)
@@ -2312,7 +2347,8 @@ function Window:AddSubWindow(Configs)
                 CanvasSize = UDim2.new(),
                 ScrollingDirection = "Y",
                 AutomaticCanvasSize = "Y",
-                Active = true
+                Active = true,
+                ZIndex = 11
             }, {
                 Create("UIPadding", {
                     PaddingLeft = UDim.new(0, 8),
@@ -2328,14 +2364,14 @@ function Window:AddSubWindow(Configs)
             local function Disable()
                 WaitClick = true
                 CreateTween({Arrow, "Rotation", 0, 0.2})
-                CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
+                CreateTween({DropFrame, "Size", UDim2.new(0, 132, 0, 0), 0.2, true})
                 Arrow.Image = "rbxassetid://10709791523"
                 NoClickFrame.Visible = false
                 WaitClick = false
             end
             
             local function GetFrameSize()
-                return UDim2.fromOffset(152, ScrollSize)
+                return UDim2.fromOffset(132, ScrollSize)
             end
             
             local function CalculateSize()
@@ -2345,7 +2381,7 @@ function Window:AddSubWindow(Configs)
                         Count = Count + 1
                     end
                 end
-                ScrollSize = (math.clamp(Count, 0, 10) * 25) + 10
+                ScrollSize = (math.clamp(Count, 0, 10) * 23) + 10  // <<< MENOR
                 if NoClickFrame.Visible then
                     CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
                 end
@@ -2356,7 +2392,7 @@ function Window:AddSubWindow(Configs)
                 WaitClick = true
                 if NoClickFrame.Visible then
                     Arrow.Image = "rbxassetid://10709791523"
-                    CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
+                    CreateTween({DropFrame, "Size", UDim2.new(0, 132, 0, 0), 0.2, true})
                     NoClickFrame.Visible = false
                 else
                     NoClickFrame.Visible = true
@@ -2395,8 +2431,9 @@ function Window:AddSubWindow(Configs)
             
             for k, v in pairs(DOptions) do
                 local OptionButton = Make("Button", ScrollFrame, {
-                    Size = UDim2.new(1, 0, 0, 21),
-                    Name = "Option"
+                    Size = UDim2.new(1, 0, 0, 19),  // <<< MENOR
+                    Name = "Option",
+                    ZIndex = 12
                 })
                 Make("Corner", OptionButton, UDim.new(0, 4))
                 
@@ -2408,7 +2445,8 @@ function Window:AddSubWindow(Configs)
                     Font = MyLibrary.CurrentFont,
                     TextXAlignment = "Left",
                     BackgroundTransparency = 1,
-                    TextSize = 11
+                    TextSize = 10,  // <<< MENOR
+                    ZIndex = 12
                 }), "Text")
                 
                 local OptionData = {
@@ -2454,13 +2492,15 @@ function Window:AddSubWindow(Configs)
             local TClearText = Configs[3] or Configs.ClearText or false
             local Callback = Funcs:GetCallback(Configs, 4)
             
-            local Button, LabelFunc = ButtonFrame(TabContainer, TName, TDesc, UDim2.new(1, -180))
+            local Button, LabelFunc = ButtonFrame(TabContainer, TName, TDesc, UDim2.new(1, -160))  // <<< AJUSTADO
+            Button.ZIndex = 3
             
             local SelectedFrame = InsertTheme(Create("Frame", Button, {
-                Size = UDim2.new(0, 150, 0, 18),
-                Position = UDim2.new(1, -10, 0.5),
+                Size = UDim2.new(0, 130, 0, 16),  // <<< MENOR
+                Position = UDim2.new(1, -8, 0.5),
                 AnchorPoint = Vector2.new(1, 0.5),
-                BackgroundColor3 = Theme["Color Stroke"]
+                BackgroundColor3 = Theme["Color Stroke"],
+                ZIndex = 4
             }), "Stroke")
             AddTransparency(SelectedFrame)
             Make("Corner", SelectedFrame, UDim.new(0, 4))
@@ -2475,7 +2515,8 @@ function Window:AddSubWindow(Configs)
                 TextColor3 = Theme["Color Text"],
                 ClearTextOnFocus = TClearText,
                 PlaceholderText = TPlaceholderText,
-                Text = TDefault
+                Text = TDefault,
+                ZIndex = 5
             }), "Text")
             
             local TextBox = {}
@@ -2516,7 +2557,8 @@ function Window:AddSubWindow(Configs)
     function SubWindow:Visible(Bool)
         SWFrame.Visible = Bool
         SubWindowOpen = Bool
-    end    
+    end
+    
     function SubWindow:Destroy()
         SWFrame:Destroy()
         SubWindowButton:Destroy()
