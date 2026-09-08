@@ -2860,10 +2860,10 @@ function Tab:AddDropdownPlayer(Configs)
     AddTransparency(SelectedFrame)
     Make("Corner", SelectedFrame, UDim.new(0, 4))
 
-    -- Ícone do Player Selecionado (tamanho ajustado para maior visibilidade)
+    -- Ícone do Player Selecionado (Tamanho ampliado para 20x20)
     local SelectedPlayerIcon = Create("ImageLabel", SelectedFrame, {
-        Size = UDim2.fromOffset(18, 18),
-        Position = UDim2.new(0, 3, 0.5),
+        Size = UDim2.fromOffset(20, 20),
+        Position = UDim2.new(0, 2, 0.5),
         AnchorPoint = Vector2.new(0, 0.5),
         BackgroundTransparency = 1,
         Image = "rbxassetid://0",
@@ -2872,15 +2872,15 @@ function Tab:AddDropdownPlayer(Configs)
     Make("Corner", SelectedPlayerIcon, UDim.new(0.5, 0))
 
     local ActiveLabel = InsertTheme(Create("TextLabel", SelectedFrame, {
-        Size = UDim2.new(1, -42, 0.85, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        Position = UDim2.new(0, 25, 0.5, 0),
+        Size = UDim2.new(1, -25, 0.85, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, -8, 0.5, 0),
         BackgroundTransparency = 1,
         Font = MyLibrary.CurrentFont,
         TextScaled = true,
         TextColor3 = Theme["Color Text"],
         Text = tostring(OpDefault),
-        TextXAlignment = "Left"
+        TextXAlignment = "Center"
     }), "Text")
 
     local Arrow = Create("ImageLabel", SelectedFrame, {
@@ -3014,15 +3014,22 @@ function Tab:AddDropdownPlayer(Configs)
                     if isReady then
                         SelectedPlayerIcon.Image = content
                         SelectedPlayerIcon.Visible = true
-                        ActiveLabel.Position = UDim2.new(0, 25, 0.5, 0)
-                        ActiveLabel.Size = UDim2.new(1, -42, 0.85, 0)
+
+                        -- Ajusta para alinhar à esquerda com o avatar
+                        ActiveLabel.AnchorPoint = Vector2.new(0, 0.5)
+                        ActiveLabel.Position = UDim2.new(0, 26, 0.5, 0)
+                        ActiveLabel.Size = UDim2.new(1, -45, 0.85, 0)
+                        ActiveLabel.TextXAlignment = Enum.TextXAlignment.Left
                     end
                 end)
             end)
         else
+            -- Centraliza o texto "..." no meio do frame
             SelectedPlayerIcon.Visible = false
-            ActiveLabel.Position = UDim2.new(0, 8, 0.5, 0)
-            ActiveLabel.Size = UDim2.new(1, -16, 0.85, 0)
+            ActiveLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+            ActiveLabel.Position = UDim2.new(0.5, -8, 0.5, 0)
+            ActiveLabel.Size = UDim2.new(1, -25, 0.85, 0)
+            ActiveLabel.TextXAlignment = Enum.TextXAlignment.Center
         end
     end
 
@@ -3197,7 +3204,6 @@ function Tab:AddDropdownPlayer(Configs)
             end
         end
 
-        -- Seleciona automaticamente o primeiro jogador caso não haja seleção válida
         if not Selected or Selected == "..." or not Players:FindFirstChild(Selected) then
             local firstOption = nil
             local firstFriend = nil
