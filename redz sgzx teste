@@ -1265,7 +1265,259 @@ function MyLibrary:SetFont(fontInput)
     end
 end
 
+-- Adicione isso dentro do seu código, após a criação do ScreenGui principal
 
+-- ==================== SISTEMA DE NOTIFICAÇÃO ====================
+local NotificationsFolder = Create("Folder", ScreenGui, { Name = "Notifications" })
+
+local ActiveNotifications = {}
+local NotificationCount = 0
+
+local function RemoveNotification(notificationGui)
+    local index = table.find(ActiveNotifications, notificationGui)
+    if index then
+        table.remove(ActiveNotifications, index)
+    end
+    NotificationCount = NotificationCount - 1
+    
+    -- Reorganiza as notificações restantes
+    for i, notif in ipairs(ActiveNotifications) do
+        local targetY = (i - 1) * 52 + 5
+        CreateTween({notif.MainFrame, "Position", UDim2.new(0.5, -210, 0, targetY), 0.3})
+    end
+end
+
+local function CreateNotification(Configs)
+    -- Suporta ambas as chamadas:
+    -- 1. CreateNotification("Título", "Mensagem", duração)
+    -- 2. CreateNotification({Title = "...", Message = "...", Image = "...", SubMessage = "...", Duration = 5})
+    
+    local title, message, image, subMessage, duration
+    
+    if type(Configs) == "string" then
+        -- Chamada simples
+        title = Configs
+        message = ...
+        duration = ... or 4
+    else
+        -- Chamada completa
+        title = Configs[1] or Configs.Title or "Notificação"
+        message = Configs[2] or Configs.Message or ""
+        image = Configs[3] or Configs.Image or ""
+        subMessage = Configs[4] or Configs.SubMessage or ""
+        duration = Configs[5] or Configs.Duration or 4
+    end
+    
+    -- Validação
+    if type(duration) ~= "number" then duration = 4 end
+    
+    -- Verifica se a pasta de notificações existe
+    if not NotificationsFolder or not NotificationsFolder.Parent then
+        NotificationsFolder = Create("Folder", ScreenGui, { Name = "Notifications" })
+    end
+    
+    -- Cria o frame principal da notificação
+    local MainFrame = InsertTheme(Create("Frame", NotificationsFolder, {
+        Size = UDim2.new(0, 420, 0, image and subMessage and 62 or 42),
+        Position = UDim2.new(0.5, -210, 0, -50),
+        BackgroundColor3 = Theme["Color Hub 2"],
+        Name = "Notification_" .. title,
+        ZIndex = 1000
+    }), "Frame")
+    
+    AddTransparency(MainFrame)
+    ApplyBorder(MainFrame)
+    Make("Corner", MainFrame, UDim.new(0, 6))
+    
+    -- Aplica gradiente se disponível
+    if Theme["Color Hub 1"] then
+        Make("Gradient", MainFrame, { Rotation = 90 })
+    end
+    
+    -- Container para conteúdo
+    local ContentFrame = Create("Frame", MainFrame, {
+        Size = UDim2.new(1, -50, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0),
+        BackgroundTransparency = 1,
+        ZIndex = 1001
+    })
+    
+    -- Título
+    local TitleLabel = InsertTheme(Create("TextLabel", ContentFrame, {
+        Size = image and UDim2.new(1, -40, 0, 20) or UDim2.new(1, 0, 0, 20),
+        Position = image and UDim2.new(0, 40, 0, image and subMessage and 5 or 11) or UDim2.new(0, 0, 0, 11),
+        BackgroundTransparency = 1,
+        Text = string.upper(title) .. (message and message ~= "" and ": " or ""),
+        TextColor3 = Theme["Color Text"],
+        Font = MyLibrary.CurrentFont,
+        TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 1002
+    }), "Text")
+    
+    -- Se tem imagem, mostra ela
+    local ImageLabel
+    if image and image ~= "" then
+        ImageLabel = Create("ImageLabel", ContentFrame, {
+            Size = UDim2.new(0, 30, 0, 30),
+            Position = UDim2.new(0, 0, 0, 5),
+            BackgroundTransparency = 1,
+            Image = image,
+            ZIndex = 1002
+        })
+        Make("Corner", ImageLabel, UDim.new(0, 4))
+        Make("Stroke", ImageLabel)
+    end
+    
+    -- Mensagem principal
+    local MessageLabel = InsertTheme(Create("TextLabel", ContentFrame, {
+        Size = UDim2.new(1, image and -40 or 0, 0, 20),
+        Position = UDim2.new(image and 40 or 0, 0, image and subMessage and 23 or 22),
+        BackgroundTransparency = 1,
+        Text = message or "",
+        TextColor3 = Theme["Color Text"],
+        Font = MyLibrary.CurrentFont,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextWrapped = true,
+        ZIndex = 1002
+    }), "Text")
+    
+    -- Mensagem secundária (se tiver)
+    local SubMessageLabel
+    if subMessage and subMessage ~= "" then
+        SubMessageLabel = InsertTheme(Create("TextLabel", ContentFrame, {
+            Size = UDim2.new(1, image and -40 or 0, 0, 16),
+            Position = UDim2.new(image and 40 or 0, 0, image and 40 or 35),
+            BackgroundTransparency = 1,
+            Text = subMessage,
+            TextColor3 = Theme["Color Dark Text"],
+            Font = MyLibrary.CurrentFont,
+            TextSize = 11,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = 1002
+        }), "DarkText")
+    end
+    
+    -- Botão de fechar
+    local CloseButton = Create("TextButton", MainFrame, {
+        Size = UDim2.new(0, 30, 1, 0),
+        Position = UDim2.new(1, -30, 0, 0),
+        BackgroundTransparency = 1,
+        Text = "×",
+        TextColor3 = Theme["Color Text"],
+        Font = Enum.Font.SourceSansBold,
+        TextSize = 20,
+        ZIndex = 1003
+    })
+    
+    -- Animação de entrada
+    CreateTween({MainFrame, "Position", UDim2.new(0.5, -210, 0, 5 + (NotificationCount * 52)), 0.35})
+    
+    -- Adiciona à lista de ativas
+    ActiveNotifications[#ActiveNotifications + 1] = MainFrame
+    NotificationCount = NotificationCount + 1
+    
+    -- Função para fechar
+    local closed = false
+    local function Close()
+        if closed then return end
+        closed = true
+        
+        CreateTween({MainFrame, "Position", UDim2.new(0.5, -210, 0, -50), 0.25})
+        
+        task.delay(0.3, function()
+            RemoveNotification(MainFrame)
+            MainFrame:Destroy()
+        end)
+    end
+    
+    CloseButton.MouseButton1Click:Connect(Close)
+    task.delay(duration, Close)
+    
+    -- Retorna funções de controle
+    local Notification = {
+        Frame = MainFrame,
+        Close = Close,
+        
+        SetTitle = function(newTitle)
+            TitleLabel.Text = string.upper(newTitle) .. (message and message ~= "" and ": " or "")
+        end,
+        
+        SetMessage = function(newMessage)
+            MessageLabel.Text = newMessage
+        end,
+        
+        SetSubMessage = function(newSubMessage)
+            if SubMessageLabel then
+                SubMessageLabel.Text = newSubMessage
+            end
+        end
+    }
+    
+    return Notification
+end
+
+-- ==================== MÉTODOS PÚBLICOS ====================
+
+-- Método para criar notificação simples
+function MyLibrary:Notify(title, message, duration)
+    return CreateNotification(title, message, duration)
+end
+
+-- Método para criar notificação completa
+function MyLibrary:NotifyWithImage(title, message, image, subMessage, duration)
+    return CreateNotification({
+        Title = title,
+        Message = message,
+        Image = image,
+        SubMessage = subMessage,
+        Duration = duration
+    })
+end
+
+-- Método para limpar todas as notificações
+function MyLibrary:ClearNotifications()
+    for _, notif in ipairs(ActiveNotifications) do
+        if notif and notif.Parent then
+            notif:Destroy()
+        end
+    end
+    ActiveNotifications = {}
+    NotificationCount = 0
+end
+
+-- ==================== MELHORIA: NOTIFICAÇÃO COM TEMPLATE ====================
+
+-- Você também pode criar templates personalizados
+function MyLibrary:CreateNotificationTemplate(templateName, templateConfig)
+    if not MyLibrary.NotificationTemplates then
+        MyLibrary.NotificationTemplates = {}
+    end
+    
+    MyLibrary.NotificationTemplates[templateName] = templateConfig
+end
+
+function MyLibrary:NotifyWithTemplate(templateName, overrides)
+    local template = MyLibrary.NotificationTemplates and MyLibrary.NotificationTemplates[templateName]
+    if not template then
+        warn("Template de notificação não encontrado:", templateName)
+        return
+    end
+    
+    local config = {}
+    for k, v in pairs(template) do
+        config[k] = v
+    end
+    
+    if overrides then
+        for k, v in pairs(overrides) do
+            config[k] = v
+        end
+    end
+    
+    return CreateNotification(config)
+end
 
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "SAGAZx"
