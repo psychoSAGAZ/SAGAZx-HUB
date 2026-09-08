@@ -1,33 +1,24 @@
--------------------------------------------
--- Intro
--------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+-----------------------------------------Aba Redz Lib-----------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+local MyLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/REDZ-lib-TESTE/refs/heads/main/README.md"))()
 
-task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
-end)
-
--------------------------------------------
--- Redz Lib
--------------------------------------------
-
-local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/REDZ-lib-TESTE/refs/heads/main/README.md"))()
-
-local Window = redzlib:MakeWindow({
+local Window = MyLibrary:MakeWindow({
     Title = "SAGAZx HUB",
-    SubTitle = "| by SAGAZx",
+    SubTitle = "| by SAGAZx😎",
     SaveFolder = "SAGAZxConfig"
 })
 
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Home-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
-local Tab1 = Window:MakeTab({ "| Ini­cio", "menu" })
+local Tab1 = Window:MakeTab({ "| Início", "menu" })
 
 Tab1:AddDiscordInvite({
     Name = "SAGAZx",
     Description = "Me Siga No Discord e TikTok",
     Logo = "rbxassetid://86050226751861",
-    Invite = "Discord: ''https://discord.gg/xWcFhEgg''         TikTok: ''tiktok.com/@sagazx_xd''   ",
+    Invite = "Discord: ''https://discord.gg/YDqzMCw5P''         TikTok: ''tiktok.com/@sagazx_xd''   ",
 })
 
 Tab1:AddSection({Name = "Perfil"})
@@ -523,6 +514,7 @@ Tab2:AddDropdown({
     Name = "COR DO ESP",
     Default = "RGB",
     Options = {"RGB", "Branco", "Preto", "Vermelho", "Verde", "Azul", "Amarelo", "Rosa", "Roxo"},
+    Search = true,
     Callback = function(value)
         selectedColor = value
         local color = getESPColor()
@@ -1087,192 +1079,15 @@ Tab2:AddToggle({
 
 local Tab3= Window:MakeTab({ "| Jogadores", "users" })
 
+local selectedPlayer = nil -- Armazena o jogador selecionado
 
-local DropdownJogadores
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local LocalPlayer = Players.LocalPlayer
-
-local selectedPlayer = nil  -- Armazena o jogador selecionado
-
--- 🔔 SISTEMA DE NOTIFICAÇÃO (HEADER STYLE)
-local function CreateNotification(title, message, duration)
-    duration = duration or 4
-
-    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-
-    if playerGui:FindFirstChild("SimpleNotify") then
-        playerGui.SimpleNotify:Destroy()
-    end
-
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "SimpleNotify"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = playerGui
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 420, 0, 42)
-    frame.Position = UDim2.new(0.5, -210, 0, -50)
-    frame.BackgroundColor3 = Color3.fromRGB(27, 5, 25)
-    frame.BorderSizePixel = 0
-    frame.Parent = screenGui
-
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
-
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -45, 1, 0)
-    textLabel.Position = UDim2.new(0, 10, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = string.upper(title)..": "..message
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.Font = Enum.Font.SourceSansSemibold
-    textLabel.TextSize = 16
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.Parent = frame
-
-    local close = Instance.new("TextButton")
-    close.Size = UDim2.new(0, 30, 1, 0)
-    close.Position = UDim2.new(1, -30, 0, 0)
-    close.BackgroundTransparency = 1
-    close.Text = "X"
-    close.TextColor3 = Color3.fromRGB(255, 255, 255)
-    close.Font = Enum.Font.SourceSansBold
-    close.TextSize = 18
-    close.Parent = frame
-
-    TweenService:Create(
-        frame,
-        TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-        {Position = UDim2.new(0.5, -210, 0, 5)}
-    ):Play()
-
-    local closed = false
-    local function Close()
-        if closed then return end
-        closed = true
-
-        TweenService:Create(
-            frame,
-            TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
-            {Position = UDim2.new(0.5, -210, 0, -50)}
-        ):Play()
-
-        task.delay(0.3, function()
-            screenGui:Destroy()
-        end)
-    end
-
-    close.MouseButton1Click:Connect(Close)
-    task.delay(duration, Close)
-end
-
--- 👥 LISTA DE PLAYERS
-local function GetPlayerNames()
-    local PlayerNames = {}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            table.insert(PlayerNames, player.Name)
-        end
-    end
-    return PlayerNames
-end
-
-Tab3:AddButton({
-    Name = "Click Player",
-    Callback = function()
-
-        local backpack = LocalPlayer:WaitForChild("Backpack")
-
-        -- Remove a antiga caso exista
-        if backpack:FindFirstChild("SelecionarPlayer") then
-            backpack.SelecionarPlayer:Destroy()
-        end
-
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("SelecionarPlayer") then
-            LocalPlayer.Character.SelecionarPlayer:Destroy()
-        end
-
-        local Tool = Instance.new("Tool")
-        Tool.Name = "SelecionarPlayer"
-        Tool.RequiresHandle = false
-        Tool.CanBeDropped = false
-        Tool.TextureId = "rbxassetid://10747373426"
-        Tool.Parent = backpack
-
-        local Mouse = LocalPlayer:GetMouse()
-
-        Tool.Activated:Connect(function()
-            local Target = Mouse.Target
-            if not Target then
-                return
-            end
-
-            local Character = Target:FindFirstAncestorOfClass("Model")
-            if not Character then
-                return
-            end
-
-            local Player = Players:GetPlayerFromCharacter(Character)
-            if not Player or Player == LocalPlayer then
-                return
-            end
-
-            selectedPlayer = Player.Name
-
-            if DropdownJogadores then
-                DropdownJogadores:Set(Player.Name)
-            end
-
-            CreateNotification(
-                "Notificação",
-                "Player selecionado: "..Player.Name,
-                3
-            )
-        end)
-    end
-})
-
--- 🎯 DROPDOWN DE TARGET (Alterado para usar a nova DropdownPlayer)
-DropdownJogadores = Tab3:AddDropdownPlayer({
+-- 🎯 DROPDOWN DE TARGET
+local DropdownJogadores = Tab3:AddDropdownPlayer({
     Name = "Selecionar Jogador",
-    Options = GetPlayerNames(),
-    Default = "...",
     Callback = function(Value)
         selectedPlayer = Value
-        print("Alvo selecionado: " .. tostring(selectedPlayer))
-
-        -- Evita mandar notificação se o valor for o reset padrão da biblioteca
-        if Value and Value ~= "..." and Value ~= "Selecionar Jogador" then
-            CreateNotification("Notificação", "Player selecionado: "..Value, 3)
-        end
     end
 })
-
--- 🔁 ATUALIZAÇÃO AUTOMÁTICA SUPER SIMPLIFICADA
-local function UpdateDropdown()
-    task.wait(0.3) -- Aguarda o Roblox terminar de processar o player
-    if DropdownJogadores then
-        local nomesAtualizados = GetPlayerNames()
-        
-        -- Atualiza a lista nativamente pela nova função sem perder o nome visível!
-        DropdownJogadores:Set(nomesAtualizados)
-    end
-end
-
--- CONEXÕES DOS EVENTOS
-Players.PlayerAdded:Connect(UpdateDropdown)
-
-Players.PlayerRemoving:Connect(function(plr)
-    -- Se o jogador que saiu era o nosso alvo, avisa na tela
-    if selectedPlayer and plr.Name == selectedPlayer then
-        CreateNotification("Notificação", "O player "..plr.Name.." saiu do servidor", 4)
-        selectedPlayer = nil
-    end
-
-    UpdateDropdown()
-end)
-
-
 
 
 local selectedKillMethod = nil -- Variável global que vai guardar o método ativo
@@ -3057,188 +2872,15 @@ Tab4:AddToggle({
 ----------------------------------------------------------------------------------------------------------------
 local Tab5= Window:MakeTab({ "| Avatar", "shirt" })
 
-local DropdownJogadoresAvatar
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local LocalPlayer = Players.LocalPlayer
+local SelectedPlayerAvatar = nil -- Armazena o jogador selecionado
 
-local SelectedPlayerAvatar = nil -- Armazena o jogador selecionado para o avatar
-
--- 🔔 SISTEMA DE NOTIFICAÇÃO (HEADER STYLE)
-local function CreateNotification(title, message, duration)
-    duration = duration or 4
-
-    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-
-    if playerGui:FindFirstChild("SimpleNotify") then
-        playerGui.SimpleNotify:Destroy()
-    end
-
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "SimpleNotify"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = playerGui
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 420, 0, 42)
-    frame.Position = UDim2.new(0.5, -210, 0, -50)
-    frame.BackgroundColor3 = Color3.fromRGB(27, 5, 25)
-    frame.BorderSizePixel = 0
-    frame.Parent = screenGui
-
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
-
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -45, 1, 0)
-    textLabel.Position = UDim2.new(0, 10, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = string.upper(title)..": "..message
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.Font = Enum.Font.SourceSansSemibold
-    textLabel.TextSize = 16
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.Parent = frame
-
-    local close = Instance.new("TextButton")
-    close.Size = UDim2.new(0, 30, 1, 0)
-    close.Position = UDim2.new(1, -30, 0, 0)
-    close.BackgroundTransparency = 1
-    close.Text = "X"
-    close.TextColor3 = Color3.fromRGB(255, 255, 255)
-    close.Font = Enum.Font.SourceSansBold
-    close.TextSize = 18
-    close.Parent = frame
-
-    TweenService:Create(
-        frame,
-        TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-        {Position = UDim2.new(0.5, -210, 0, 5)}
-    ):Play()
-
-    local closed = false
-    local function Close()
-        if closed then return end
-        closed = true
-
-        TweenService:Create(
-            frame,
-            TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
-            {Position = UDim2.new(0.5, -210, 0, -50)}
-        ):Play()
-
-        task.delay(0.3, function()
-            screenGui:Destroy()
-        end)
-    end
-
-    close.MouseButton1Click:Connect(Close)
-    task.delay(duration, Close)
-end
-
--- 👥 LISTA DE PLAYERS
-local function GetPlayerNames()
-    local PlayerNames = {}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            table.insert(PlayerNames, player.Name)
-        end
-    end
-    return PlayerNames
-end
-
-Tab5:AddButton({
-    Name = "Click Player Avatar",
-    Callback = function()
-
-        local backpack = LocalPlayer:WaitForChild("Backpack")
-
-        -- remove tool antiga
-        if backpack:FindFirstChild("SelecionarPlayerAvatar") then
-            backpack.SelecionarPlayerAvatar:Destroy()
-        end
-
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("SelecionarPlayer") then
-            LocalPlayer.Character.SelecionarPlayer:Destroy()
-        end
-
-        local Tool = Instance.new("Tool")
-        Tool.Name = "SelecionarPlayerAvatar"
-        Tool.RequiresHandle = false
-        Tool.CanBeDropped = false
-        Tool.TextureId = "rbxassetid://10734952036"
-        Tool.Parent = backpack
-
-        local Mouse = LocalPlayer:GetMouse()
-
-        Tool.Activated:Connect(function()
-            local Target = Mouse.Target
-            if not Target then return end
-
-            local Character = Target:FindFirstAncestorOfClass("Model")
-            if not Character then return end
-
-            local Player = Players:GetPlayerFromCharacter(Character)
-            if not Player or Player == LocalPlayer then return end
-
-            -- 🔥 variável correta
-            SelectedPlayerAvatar = Player.Name
-
-            -- 🔥 atualiza dropdown corretamente
-            if DropdownJogadoresAvatar then
-                DropdownJogadoresAvatar:Set(Player.Name)
-            end
-
-            CreateNotification(
-                "Notificação",
-                "Player selecionado: " .. Player.Name,
-                3
-            )
-        end)
-    end
-})
-
-
-
--- 🎯 DROPDOWN DE TARGET (Alterado para AddDropdownPlayer e Tab5)
-DropdownJogadoresAvatar = Tab5:AddDropdownPlayer({
+-- 🎯 DROPDOWN DE TARGET
+local DropdownJogadores = Tab5:AddDropdownPlayer({
     Name = "Selecionar Jogador",
-    Options = GetPlayerNames(),
-    Default = "...",
     Callback = function(Value)
-        SelectedPlayerAvatar = Value -- define a sua variável
-        print("Alvo selecionado: " .. tostring(SelectedPlayerAvatar))
-
-        -- Evita notificações duplicadas/vazias ao resetar
-        if Value and Value ~= "..." and Value ~= "Selecionar Jogador" then
-            CreateNotification("Notificação", "Player selecionado: "..Value, 3)
-        end
+        SelectedPlayerAvatar = Value
     end
 })
-
--- 🔁 ATUALIZAÇÃO AUTOMÁTICA SUPER CLEAN
-local function UpdateDropdown()
-    task.wait(0.3) -- Pequena folga para o motor do Roblox processar
-    if DropdownJogadoresAvatar then
-        local nomesAtualizados = GetPlayerNames()
-        
-        -- Atualiza a lista nativamente pela nova função sem bugar o texto visível!
-        DropdownJogadoresAvatar:Set(nomesAtualizados)
-    end
-end
-
--- CONEXÕES DOS EVENTOS
-Players.PlayerAdded:Connect(UpdateDropdown)
-
-Players.PlayerRemoving:Connect(function(plr)
-    -- Se o jogador que saiu era quem você estava de olho
-    if SelectedPlayerAvatar and plr.Name == SelectedPlayerAvatar then
-        CreateNotification("Notificação", "O player "..plr.Name.." saiu do servidor", 4)
-        SelectedPlayerAvatar = nil
-    end
-
-    UpdateDropdown()
-end)
-
 
 -- Dropdown para escolher o tipo de corpo para o reset
 Tab5:AddDropdown({
@@ -4416,7 +4058,7 @@ do
     ----------------------------------------------------------------------------------------------------------------
     ----------------------------------------- Aba RGB -----------------------------------------------------------
     ----------------------------------------------------------------------------------------------------------------
-    local RbgTab = Window:MakeTab({ Title = "RBG", Icon = "rbxassetid://10734910187" })
+    local RbgTab = Window:MakeTab({ Title = "| RGB", Icon = "rbxassetid://10734910187" })
 
     -- =========================================================
     -- SERVIÇOS E CONFIGURAÇÕES INICIAIS
@@ -4610,8 +4252,10 @@ do
     -- =========================================================
     -- CONFIGURAÇÕES DO EFEITO LENTO (NOME E BIO)
     -- =========================================================
+    RbgTab:AddSection({"Configurações do Efeito Lento"})
+
     RbgTab:AddSlider({
-        Name = "Velocidade",
+        Name = "Velocidade do Efeito",
         Min = 5,
         Max = 30,
         Increase = 1,
@@ -4695,7 +4339,7 @@ do
     RbgTab:AddSection({"OUTROS"})
 
     RbgTab:AddSlider({
-        Name = "Velocidade",
+        Name = "Velocidade do Efeito",
         Min = 5,
         Max = 30,
         Increase = 1,
@@ -4706,7 +4350,7 @@ do
     })
 
     RbgTab:AddDropdown({
-        Name = "Cor",
+        Name = "Seleção de Cor",
         Options = colorList,
         Default = "RGB",
         Callback = function(choice)
@@ -4857,8 +4501,128 @@ do
             end
         end
     })
+    
+RbgTab:AddSection({"RGB Em Pets e Kids"})
 
-    RbgTab:AddSection({"RGB Em Você"})
+local kidsActive = false
+RbgTab:AddToggle({
+    Name = "RGB Kids",
+    Default = false,
+    Callback = function(enabled)
+        kidsActive = enabled
+        if enabled then
+            task.spawn(function()
+                local player = game:GetService("Players").LocalPlayer
+                
+                -- Localiza a pasta/frame com os itens de cor
+                local playerGui = player:FindFirstChild("PlayerGui")
+                local noReset = playerGui and playerGui:FindFirstChild("NoResetGUIHandler")
+                local petsMenu = noReset and noReset:FindFirstChild("PetsKidsMenu")
+                local catalog = petsMenu and petsMenu:FindFirstChild("Catalog")
+                local container = catalog and catalog:FindFirstChild("Container")
+                local scrollingFrame = container and container:FindFirstChild("ScrollingFrameKid2")
+                local frame = scrollingFrame and scrollingFrame:FindFirstChild("Frame")
+
+                -- Tenta obter o Remote do Game8Settings
+                local remote = nil
+                pcall(function()
+                    local StarterGui = game:GetService("StarterGui")
+                    local gameSettings = StarterGui:FindFirstChild("Player8Handler") and StarterGui.Player8Handler:FindFirstChild("Game8Settings")
+                    if gameSettings then
+                        local settingsData = require(gameSettings)
+                        remote = settingsData.RPNameColorRemote
+                    end
+                end)
+
+                if frame and remote then
+                    -- Coleta os objetos de cor válidos (filtrando "Institutional white")
+                    local listaObjetosCor = {}
+                    for _, item in ipairs(frame:GetChildren()) do
+                        if item.Name == "FollowColor" then
+                            local objetoCor = item:FindFirstChild("Color")
+                            if objetoCor and objetoCor.Value ~= "Institutional white" and objetoCor.Name ~= "Institutional white" then
+                                table.insert(listaObjetosCor, objetoCor)
+                            end
+                        end
+                    end
+
+                    -- Loop de execução
+                    while kidsActive and #listaObjetosCor > 0 do
+                        for _, objetoCor in ipairs(listaObjetosCor) do
+                            if not kidsActive then break end
+                            
+                            pcall(function()
+                                remote:FireServer("PickingRPFollowColor", objetoCor)
+                            end)
+
+                            -- Delay dinâmico baseado na velocidade do slider
+                            local dynamicWait = math.clamp(0.5 / (pulseSpeed / 5), 0.05, 0.5)
+                            task.wait(dynamicWait)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+local petsActive = false
+RbgTab:AddToggle({
+    Name = "RGB Pets",
+    Default = false,
+    Callback = function(enabled)
+        petsActive = enabled
+        if enabled then
+            task.spawn(function()
+                local player = game:GetService("Players").LocalPlayer
+                
+                -- Localiza a pasta/frame com os itens de cor dos pets
+                local playerGui = player:FindFirstChild("PlayerGui")
+                local noReset = playerGui and playerGui:FindFirstChild("NoResetGUIHandler")
+                local petsMenu = noReset and noReset:FindFirstChild("PetsKidsMenu")
+                local catalog = petsMenu and petsMenu:FindFirstChild("Catalog")
+                local container = catalog and catalog:FindFirstChild("Container")
+                local scrollingFrame = container and container:FindFirstChild("ScrollingFramePet2")
+                local frame = scrollingFrame and scrollingFrame:FindFirstChild("Frame")
+
+                -- Tenta carregar o módulo de Remotes
+                local hasPackages, Remotes = pcall(function()
+                    return require(ReplicatedStorage.Packages.Remotes)
+                end)
+
+                if frame and hasPackages and Remotes and Remotes.fireServer then
+                    -- Coleta as cores válidas (filtrando "Institutional white")
+                    local listaCores = {}
+                    for _, item in ipairs(frame:GetChildren()) do
+                        if item.Name == "FollowColor" then
+                            local colorObj = item:FindFirstChild("Color")
+                            if colorObj and colorObj:IsA("StringValue") and colorObj.Value ~= "Institutional white" then
+                                table.insert(listaCores, colorObj.Value)
+                            end
+                        end
+                    end
+
+                    -- Loop de execução
+                    while petsActive and #listaCores > 0 do
+                        for _, nomeCor in ipairs(listaCores) do
+                            if not petsActive then break end
+                            
+                            pcall(function()
+                                Remotes.fireServer("Pet_SetNameColor", nomeCor)
+                            end)
+
+                            -- Delay dinâmico baseado na velocidade do slider
+                            local dynamicWait = math.clamp(0.5 / (pulseSpeed / 5), 0.05, 0.5)
+                            task.wait(dynamicWait)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+ RbgTab:AddSection({"RGB Em Você"})
 
     RbgTab:AddToggle({
         Name = "Corpo RGB",
@@ -4935,125 +4699,9 @@ end
 ----------------------------------------------------------------------------------------------------------------
 local Tab6= Window:MakeTab({ "| Casas", "home" })
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local LocalPlayer = Players.LocalPlayer
-local Lots = workspace:WaitForChild("001_Lots")
-
-local Remote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Lot:RevokeLandmark")
-
--- 🔎 DETECTOR
-local function PlayerHasHouse()
-    for _, House in ipairs(Lots:GetChildren()) do
-        if House:IsA("Model") then
-            local Owner = House:FindFirstChild("Owner")
-            local OwnerObj = House:FindFirstChild("OwnerObj")
-
-            if Owner and (Owner.Value == LocalPlayer.Name or Owner.Value == LocalPlayer.UserId) then
-                return true
-            end
-
-            if OwnerObj and OwnerObj:IsA("ObjectValue") and OwnerObj.Value == LocalPlayer then
-                return true
-            end
-        end
-    end
-
-    return false
-end
-
--- 🔔 SUA NOTIFICAÇÃO (mesma posição + tween)
-local TweenService = game:GetService("TweenService")
-
-local function CreateNotification(title, message, duration)
-    duration = duration or 4
-
-    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-
-    if playerGui:FindFirstChild("SimpleNotify") then
-        playerGui.SimpleNotify:Destroy()
-    end
-
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "SimpleNotify"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = playerGui
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 420, 0, 42)
-    frame.Position = UDim2.new(0.5, -210, 0, -50)
-    frame.BackgroundColor3 = Color3.fromRGB(27, 5, 25)
-    frame.BorderSizePixel = 0
-    frame.Parent = screenGui
-
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
-
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -45, 1, 0)
-    textLabel.Position = UDim2.new(0, 10, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = string.upper(title)..": "..message
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.Font = Enum.Font.SourceSansSemibold
-    textLabel.TextSize = 16
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.Parent = frame
-
-    local close = Instance.new("TextButton")
-    close.Size = UDim2.new(0, 30, 1, 0)
-    close.Position = UDim2.new(1, -30, 0, 0)
-    close.BackgroundTransparency = 1
-    close.Text = "X"
-    close.TextColor3 = Color3.fromRGB(255, 255, 255)
-    close.Font = Enum.Font.SourceSansBold
-    close.TextSize = 18
-    close.Parent = frame
-
-    -- 🔥 ANIMAÇÃO IGUAL AO SEU SISTEMA
-    TweenService:Create(
-        frame,
-        TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-        {Position = UDim2.new(0.5, -210, 0, 5)}
-    ):Play()
-
-    local closed = false
-    local function Close()
-        if closed then return end
-        closed = true
-
-        TweenService:Create(
-            frame,
-            TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
-            {Position = UDim2.new(0.5, -210, 0, -50)}
-        ):Play()
-
-        task.delay(0.3, function()
-            screenGui:Destroy()
-        end)
-    end
-
-    close.MouseButton1Click:Connect(Close)
-    task.delay(duration, Close)
-end
-
--- 🔘 BOTÃO FINAL
-Tab6:AddButton({
-    Name = "Duplica Casa",
-    Callback = function()
-        local hasHouse = PlayerHasHouse()
-
-        if hasHouse then
-            Remote:FireServer()
-        else
-            CreateNotification("Erro", "Você não tem uma casa", 4)
-        end
-    end
-})
-
 Tab6:AddSection({ "Banir Jogadores da Sua Casa" })
 
-do -- ?? ESCOPO ISOLADO (Evita conflitos com outros scripts da sua UI)
+do -- ESCOPO ISOLADO
     local Players = game:GetService("Players")
     local LocalPlayer = Players.LocalPlayer
 
@@ -5073,13 +4721,14 @@ do -- ?? ESCOPO ISOLADO (Evita conflitos com outros scripts da sua UI)
         end
     end
 
-    -- Declaração local dos elementos para não vazar para o script principal
+    -- Declaração local dos elementos
     local Dropdown1 = nil
     local Dropdown2 = nil
 
+    -- Atualizado para usar o método :Refresh com a Opção 2
     local function atualizarInterfaces()
-        if Dropdown1 then Dropdown1:Set(listaDisponiveis) end
-        if Dropdown2 then Dropdown2:Set(listaSalvos) end
+        if Dropdown1 then Dropdown1:Refresh(listaDisponiveis) end
+        if Dropdown2 then Dropdown2:Refresh(listaSalvos) end
     end
 
     local function reiniciarListas()
@@ -5100,9 +4749,9 @@ do -- ?? ESCOPO ISOLADO (Evita conflitos com outros scripts da sua UI)
     Dropdown1 = Tab6:AddDropdownPlayer({
         Name = "Selecionar Jogador",
         Options = listaDisponiveis,
+        AutoSelect = false,
         Default = "...",
         Callback = function(Value)
-            -- Verifica se o nome passado bate com o formato esperado e evita travas do placeholder
             if Value and Value ~= "..." and Value ~= "Selecionar Jogador" then
                 selecionadoDropdown1 = Value
                 
@@ -5125,6 +4774,7 @@ do -- ?? ESCOPO ISOLADO (Evita conflitos com outros scripts da sua UI)
         Name = "Jogadores na Lista",
         Options = listaSalvos,
         Default = "...",
+        AutoSelect = false,
         Callback = function(Value)
             if Value and Value ~= "..." and Value ~= "Jogadores na Lista" then
                 selecionadoDropdown2 = Value
@@ -5167,7 +4817,7 @@ do -- ?? ESCOPO ISOLADO (Evita conflitos com outros scripts da sua UI)
         Callback = function(state)
             banirListaAtivo = state
 
-            spawn(function()
+            task.spawn(function()
                 while banirListaAtivo do
                     for _, player in ipairs(Players:GetPlayers()) do
                         if player ~= LocalPlayer then
@@ -5209,7 +4859,7 @@ do -- ?? ESCOPO ISOLADO (Evita conflitos com outros scripts da sua UI)
         Callback = function(state)
             banirTodosAtivo = state
 
-            spawn(function()
+            task.spawn(function()
                 while banirTodosAtivo do
                     for _, player in ipairs(Players:GetPlayers()) do
                         if player ~= LocalPlayer then
@@ -5890,188 +5540,17 @@ local Toggle = Tab7:AddToggle({
 ----------------------------------------------------------------------------------------------------------------
 
 -- Aba Child
-local Tab8= Window:MakeTab({"Criança", "baby"})
+local Tab8= Window:MakeTab({"| Criança", "baby"})
 
-local DropdownJogadoresKid
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local LocalPlayer = Players.LocalPlayer
+local selectedPlayerKid = nil -- Armazena o jogador selecionado
 
-local selectedPlayerKid = nil  -- Armazena o jogador selecionado
-
--- 🔔 SISTEMA DE NOTIFICAÇÃO (HEADER STYLE)
-local function CreateNotification(title, message, duration)
-    duration = duration or 4
-
-    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-
-    if playerGui:FindFirstChild("SimpleNotify") then
-        playerGui.SimpleNotify:Destroy()
-    end
-
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "SimpleNotify"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = playerGui
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 420, 0, 42)
-    frame.Position = UDim2.new(0.5, -210, 0, -50)
-    frame.BackgroundColor3 = Color3.fromRGB(27, 5, 25)
-    frame.BorderSizePixel = 0
-    frame.Parent = screenGui
-
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
-
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -45, 1, 0)
-    textLabel.Position = UDim2.new(0, 10, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = string.upper(title)..": "..message
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.Font = Enum.Font.SourceSansSemibold
-    textLabel.TextSize = 16
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.Parent = frame
-
-    local close = Instance.new("TextButton")
-    close.Size = UDim2.new(0, 30, 1, 0)
-    close.Position = UDim2.new(1, -30, 0, 0)
-    close.BackgroundTransparency = 1
-    close.Text = "X"
-    close.TextColor3 = Color3.fromRGB(255, 255, 255)
-    close.Font = Enum.Font.SourceSansBold
-    close.TextSize = 18
-    close.Parent = frame
-
-    TweenService:Create(
-        frame,
-        TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-        {Position = UDim2.new(0.5, -210, 0, 5)}
-    ):Play()
-
-    local closed = false
-    local function Close()
-        if closed then return end
-        closed = true
-
-        TweenService:Create(
-            frame,
-            TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
-            {Position = UDim2.new(0.5, -210, 0, -50)}
-        ):Play()
-
-        task.delay(0.3, function()
-            screenGui:Destroy()
-        end)
-    end
-
-    close.MouseButton1Click:Connect(Close)
-    task.delay(duration, Close)
-end
-
--- 👥 LISTA DE PLAYERS
-local function GetPlayerNames()
-    local PlayerNames = {}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            table.insert(PlayerNames, player.Name)
-        end
-    end
-    return PlayerNames
-end
-
-Tab8:AddButton({
-    Name = "Click Player Avatar",
-    Callback = function()
-
-        local backpack = LocalPlayer:WaitForChild("Backpack")
-
-        -- remove tool antiga
-        if backpack:FindFirstChild("SelecionarPlayerKid") then
-            backpack.SelecionarPlayerKid:Destroy()
-        end
-
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("SelecionarPlayer") then
-            LocalPlayer.Character.SelecionarPlayer:Destroy()
-        end
-
-        local Tool = Instance.new("Tool")
-        Tool.Name = "SelecionarPlayerAvatar"
-        Tool.RequiresHandle = false
-        Tool.CanBeDropped = false
-        Tool.TextureId = "rbxassetid://10709769732"
-        Tool.Parent = backpack
-
-        local Mouse = LocalPlayer:GetMouse()
-
-        Tool.Activated:Connect(function()
-            local Target = Mouse.Target
-            if not Target then return end
-
-            local Character = Target:FindFirstAncestorOfClass("Model")
-            if not Character then return end
-
-            local Player = Players:GetPlayerFromCharacter(Character)
-            if not Player or Player == LocalPlayer then return end
-
-            -- 🔥 variável correta
-            selectedPlayerKid = Player.Name
-
-            -- 🔥 atualiza dropdown corretamente
-            if DropdownJogadoresKid then
-                DropdownJogadoresKid:Set(Player.Name)
-            end
-
-            CreateNotification(
-                "Notificação",
-                "Player selecionado: " .. Player.Name,
-                3
-            )
-        end)
-    end
-})
-
--- 🎯 DROPDOWN DE TARGET (Alterado para usar a nova DropdownPlayer)
-DropdownJogadoresKid = Tab8:AddDropdownPlayer({
+-- 🎯 DROPDOWN DE TARGET
+local DropdownJogadores = Tab8:AddDropdownPlayer({
     Name = "Selecionar Jogador",
-    Options = GetPlayerNames(),
-    Default = "...",
     Callback = function(Value)
         selectedPlayerKid = Value
-        print("Alvo selecionado: " .. tostring(selectedPlayerKid))
-
-        -- Evita mandar notificação se o valor for o reset padrão da biblioteca
-        if Value and Value ~= "..." and Value ~= "Selecionar Jogador" then
-            CreateNotification("Notificação", "Player selecionado: "..Value, 3)
-        end
     end
 })
-
--- 🔁 ATUALIZAÇÃO AUTOMÁTICA SUPER SIMPLIFICADA
-local function UpdateDropdown()
-    task.wait(0.3) -- Aguarda o Roblox terminar de processar o player
-    if DropdownJogadoresKid then
-        local nomesAtualizados = GetPlayerNames()
-        
-        -- Atualiza a lista nativamente pela nova função sem perder o nome visível!
-        DropdownJogadoresKid:Set(nomesAtualizados)
-    end
-end
-
--- CONEXÕES DOS EVENTOS
-Players.PlayerAdded:Connect(UpdateDropdown)
-
-Players.PlayerRemoving:Connect(function(plr)
-    -- Se o jogador que saiu era o nosso alvo, avisa na tela
-    if selectedPlayerKid and plr.Name == selectedPlayerKid then
-        CreateNotification("Notificação", "O player "..plr.Name.." saiu do servidor", 4)
-        selectedPlayerKid = nil
-    end
-
-    UpdateDropdown()
-end)
-
 
 local viewing = false
 local cam = workspace.CurrentCamera
@@ -6490,9 +5969,9 @@ Tab8:AddButton({
 
 
 ---------------------------------------------------------------------------------------------------------------------------------
-                                          -- === Tab 9 Troll Musica === --
+                                          -- === Tab 9 Troll la === --
 ---------------------------------------------------------------------------------------------------------------------------------
-local Tab9 = Window:MakeTab({"Musicas", "music"})
+local Tab9 = Window:MakeTab({"| Musicas", "music"})
 
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/MUSIC/refs/heads/main/README.md"))()
@@ -6525,12 +6004,13 @@ local function createMusicDropdown(title, musicOptions, defaultOption)
     end
 
     -- 🔍 Mudamos de AddDropdown para AddDropdownSearch
-    Tab9:AddDropdownSearch({
+    Tab9:AddDropdown({
         Name = title,
         Description = "all",
         Default = defaultOption,
-        MultiSelect = false, -- Certifique-se de que o nome do parâmetro é MultiSelect conforme a nova função
+        MultiSelect = false,
         Options = musicNames,
+        Search = true,
         Callback = function(selectedSound)
             if selectedSound and categoryMap[selectedSound] then
                 local soundId = categoryMap[selectedSound].id
@@ -6892,7 +6372,7 @@ Tab9:AddButton({
 ---------------------------------------------------------------------------------------------------------------------------------
                                           -- === Tab Script === --
 ---------------------------------------------------------------------------------------------------------------------------------
-local TabScript = Window:MakeTab({"Scripts ", "code"})
+local TabScript = Window:MakeTab({"| Scripts ", "code"})
 
 TabScript:AddSection({ Name = "Aprimoramentos" })
 
