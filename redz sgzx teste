@@ -3084,7 +3084,12 @@ function Tab:AddDropdownPlayer(Configs)
     local Flag = Configs[5] or Configs.Flag or false
     local Callback = Funcs:GetCallback(Configs, 4)
 
-    -- Permite passar uma tabela customizada via Configs.Options
+    -- Permite desativar a seleção automática enviando AutoSelect = false nas configurações
+    local autoSelectEnabled = Configs.AutoSelect
+    if autoSelectEnabled == nil then
+        autoSelectEnabled = true
+    end
+
     local CustomOptions = Configs.Options or Configs[2]
 
     local Players = game:GetService("Players")
@@ -3467,7 +3472,6 @@ function Tab:AddDropdownPlayer(Configs)
     end
 
     local function RefreshPlayers()
-        -- Limpa quem não está no servidor ou na lista customizada
         if CustomOptions and type(CustomOptions) == "table" then
             for name in pairs(Options) do
                 if not table.find(CustomOptions, name) then
@@ -3496,23 +3500,27 @@ function Tab:AddDropdownPlayer(Configs)
         if not hasAutoSelected then
             hasAutoSelected = true
             
-            local firstOption = nil
-            local firstFriend = nil
+            if autoSelectEnabled then
+                local firstOption = nil
+                local firstFriend = nil
 
-            for _, opt in pairs(Options) do
-                if opt.IsFriend and not firstFriend then
-                    firstFriend = opt
-                elseif not firstOption then
-                    firstOption = opt
+                for _, opt in pairs(Options) do
+                    if opt.IsFriend and not firstFriend then
+                        firstFriend = opt
+                    elseif not firstOption then
+                        firstOption = opt
+                    end
                 end
-            end
 
-            local autoTarget = firstFriend or firstOption
-            if autoTarget then
-                Selected = autoTarget.Value
-                CallbackSelected()
+                local autoTarget = firstFriend or firstOption
+                if autoTarget then
+                    Selected = autoTarget.Value
+                    CallbackSelected()
+                else
+                    Selected = "..."
+                end
             else
-                Selected = "..."
+                Selected = OpDefault
             end
         elseif Selected and Selected ~= "..." then
             if not Options[Selected] or not Players:FindFirstChild(Selected) then
@@ -3614,7 +3622,6 @@ function Tab:AddDropdownPlayer(Configs)
         end
     end
 
-    -- Recarrega as opções dinamicamente no script principal
     function Dropdown:Refresh(newOptions)
         if type(newOptions) == "table" then
             CustomOptions = newOptions
@@ -3624,6 +3631,7 @@ function Tab:AddDropdownPlayer(Configs)
 
     return Dropdown
 end
+
 
 
         function Tab:AddSlider(Configs)
