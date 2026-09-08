@@ -3089,6 +3089,111 @@ function Tab:AddDropdown(Configs)
     return Dropdown
 end
 
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+
+-- 🔔 SISTEMA DE NOTIFICAÇÃO (Com Suporte a Ícone do Player)
+local function CreateNotification(title, message, duration, userId)
+    duration = duration or 4
+
+    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+    if playerGui:FindFirstChild("SimpleNotify") then
+        playerGui.SimpleNotify:Destroy()
+    end
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "SimpleNotify"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = playerGui
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 420, 0, 42)
+    frame.Position = UDim2.new(0.5, -210, 0, -50)
+    frame.BackgroundColor3 = Color3.fromRGB(27, 5, 25)
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
+
+    local textOffsetX = 10
+
+    -- Se um UserId for passado, cria a imagem de perfil
+    if userId then
+        local avatarImg = Instance.new("ImageLabel")
+        avatarImg.Size = UDim2.fromOffset(28, 28)
+        avatarImg.Position = UDim2.new(0, 8, 0.5, 0)
+        avatarImg.AnchorPoint = Vector2.new(0, 0.5)
+        avatarImg.BackgroundTransparency = 1
+        avatarImg.Parent = frame
+        Instance.new("UICorner", avatarImg).CornerRadius = UDim.new(0.5, 0)
+
+        textOffsetX = 42
+
+        task.spawn(function()
+            pcall(function()
+                local content, isReady = Players:GetUserThumbnailAsync(
+                    userId,
+                    Enum.ThumbnailType.HeadShot,
+                    Enum.ThumbnailSize.Size48x48
+                )
+                if isReady then
+                    avatarImg.Image = content
+                end
+            end)
+        end)
+    end
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, -(textOffsetX + 35), 1, 0)
+    textLabel.Position = UDim2.new(0, textOffsetX, 0, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = string.upper(title)..": "..message
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.Font = Enum.Font.SourceSansSemibold
+    textLabel.TextSize = 15
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    textLabel.Parent = frame
+
+    local close = Instance.new("TextButton")
+    close.Size = UDim2.new(0, 30, 1, 0)
+    close.Position = UDim2.new(1, -30, 0, 0)
+    close.BackgroundTransparency = 1
+    close.Text = "X"
+    close.TextColor3 = Color3.fromRGB(255, 255, 255)
+    close.Font = Enum.Font.SourceSansBold
+    close.TextSize = 18
+    close.Parent = frame
+
+    TweenService:Create(
+        frame,
+        TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.5, -210, 0, 5)}
+    ):Play()
+
+    local closed = false
+    local function Close()
+        if closed then return end
+        closed = true
+
+        TweenService:Create(
+            frame,
+            TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
+            {Position = UDim2.new(0.5, -210, 0, -50)}
+        ):Play()
+
+        task.delay(0.3, function()
+            screenGui:Destroy()
+        end)
+    end
+
+    close.MouseButton1Click:Connect(Close)
+    task.delay(duration, Close)
+end
+
+
 function Tab:AddDropdownPlayer(Configs)
     local DName = Configs[1] or Configs.Name or Configs.Title or "..."
     local DDesc = Configs.Desc or Configs.Description or ""
@@ -3096,10 +3201,8 @@ function Tab:AddDropdownPlayer(Configs)
     local Flag = Configs[5] or Configs.Flag or false
     local Callback = Funcs:GetCallback(Configs, 4)
 
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-
     local wasSearching = false
+    local hasAutoSelected = false -- Controle para auto-seleção acontecer apenas 1 vez
 
     local Button, LabelFunc = ButtonFrame(Container, DName, DDesc, UDim2.new(1, -180))
 
@@ -3112,7 +3215,6 @@ function Tab:AddDropdownPlayer(Configs)
     AddTransparency(SelectedFrame)
     Make("Corner", SelectedFrame, UDim.new(0, 4))
 
-    -- Ícone do Player Selecionado (Tamanho ampliado para 20x20)
     local SelectedPlayerIcon = Create("ImageLabel", SelectedFrame, {
         Size = UDim2.fromOffset(20, 20),
         Position = UDim2.new(0, 2, 0.5),
@@ -3267,7 +3369,6 @@ function Tab:AddDropdownPlayer(Configs)
                         SelectedPlayerIcon.Image = content
                         SelectedPlayerIcon.Visible = true
 
-                        -- Ajusta para alinhar à esquerda com o avatar
                         ActiveLabel.AnchorPoint = Vector2.new(0, 0.5)
                         ActiveLabel.Position = UDim2.new(0, 26, 0.5, 0)
                         ActiveLabel.Size = UDim2.new(1, -45, 0.85, 0)
@@ -3276,7 +3377,6 @@ function Tab:AddDropdownPlayer(Configs)
                 end)
             end)
         else
-            -- Centraliza o texto "..." no meio do frame
             SelectedPlayerIcon.Visible = false
             ActiveLabel.AnchorPoint = Vector2.new(0.5, 0.5)
             ActiveLabel.Position = UDim2.new(0.5, -8, 0.5, 0)
@@ -3296,7 +3396,7 @@ function Tab:AddDropdownPlayer(Configs)
             ActiveLabel.Text = plr.DisplayName
             UpdateHeaderAvatar(plr)
         else
-            ActiveLabel.Text = tostring(Selected or "...")
+            ActiveLabel.Text = "..."
             UpdateHeaderAvatar(nil)
         end
     end
@@ -3327,7 +3427,7 @@ function Tab:AddDropdownPlayer(Configs)
         end
     end
 
-    local function Select(Option)
+    local function Select(Option, isManual)
         if SearchTextBox and string.len(SearchTextBox.Text) > 0 then
             wasSearching = true
         end
@@ -3336,6 +3436,18 @@ function Tab:AddDropdownPlayer(Configs)
         Selected = Option.Value
         CallbackSelected()
         UpdateSelected()
+
+        -- Envia a notificação apenas se a seleção for manual
+        if isManual then
+            local targetPlr = Players:FindFirstChild(Option.Name)
+            local userId = targetPlr and targetPlr.UserId or nil
+            CreateNotification(
+                "Player Selecionado",
+                Option.DisplayName .. " (@" .. Option.Name .. ")",
+                4,
+                userId
+            )
+        end
     end
 
     local function AddOption(plr)
@@ -3357,6 +3469,7 @@ function Tab:AddDropdownPlayer(Configs)
             Name = Name,
             DisplayName = displayName,
             IsFriend = isFriend,
+            UserId = plr.UserId,
             nodes = {}
         }
 
@@ -3427,7 +3540,7 @@ function Tab:AddDropdownPlayer(Configs)
         }), "SubText")
 
         Button.Activated:Connect(function()
-            Select(Options[Name])
+            Select(Options[Name], true) -- 'true' indica que foi seleção manual
         end)
 
         Options[Name].nodes = {Button, IsSelected, DisplayLabel, UserLabel}
@@ -3456,24 +3569,29 @@ function Tab:AddDropdownPlayer(Configs)
             end
         end
 
-        if not Selected or Selected == "..." or not Players:FindFirstChild(Selected) then
-            local firstOption = nil
-            local firstFriend = nil
+        -- Seleciona automaticamente APENAS na primeira execução do script
+        if not hasAutoSelected then
+            hasAutoSelected = true
 
-            for _, opt in pairs(Options) do
-                if opt.IsFriend and not firstFriend then
-                    firstFriend = opt
-                elseif not firstOption then
-                    firstOption = opt
+            if not Selected or Selected == "..." or not Players:FindFirstChild(Selected) then
+                local firstOption = nil
+                local firstFriend = nil
+
+                for _, opt in pairs(Options) do
+                    if opt.IsFriend and not firstFriend then
+                        firstFriend = opt
+                    elseif not firstOption then
+                        firstOption = opt
+                    end
                 end
-            end
 
-            local autoTarget = firstFriend or firstOption
-            if autoTarget then
-                Selected = autoTarget.Value
-                CallbackSelected()
-            else
-                Selected = "..."
+                local autoTarget = firstFriend or firstOption
+                if autoTarget then
+                    Selected = autoTarget.Value
+                    CallbackSelected()
+                else
+                    Selected = "..."
+                end
             end
         end
 
@@ -3539,11 +3657,27 @@ function Tab:AddDropdownPlayer(Configs)
     end)
 
     local c2 = Players.PlayerRemoving:Connect(function(plr)
-        RemoveOption(plr.Name)
+        local optData = Options[plr.Name]
+
+        -- Se o player removido for o atual selecionado
         if Selected == plr.Name then
             Selected = "..."
+            CallbackSelected()
+
+            -- Dispara Notificação de Saída
+            if optData then
+                CreateNotification(
+                    "Player Saiu",
+                    optData.DisplayName .. " (@" .. optData.Name .. ")",
+                    4,
+                    optData.UserId
+                )
+            end
         end
-        RefreshPlayers()
+
+        RemoveOption(plr.Name)
+        UpdateSelected()
+        CalculateSize(false)
     end)
 
     RefreshPlayers()
@@ -3568,6 +3702,7 @@ function Tab:AddDropdownPlayer(Configs)
 
     return Dropdown
 end
+
 
 
         function Tab:AddSlider(Configs)
