@@ -1570,8 +1570,36 @@ MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta Ã  funÃ
 
 MyLibrary.MinimizeExternalButton = MinimizeExternalButton
 
--- Variáveis que serão acessíveis pelo loadstring
-local SecondaryWindowAPI = {}
+-- Função global para alternar a janela secundária
+function Window:ToggleSecondaryWindow()
+    local secondaryFrame = MainFrame:FindFirstChild("SecondaryWindow")
+    if secondaryFrame then
+        secondaryFrame.Visible = not secondaryFrame.Visible
+    end
+end
+
+-- Conecta o botão da topbar
+local function ConnectSecondaryButton()
+    local topBar = MainFrame:FindFirstChild("Components")
+    if topBar then
+        topBar = topBar:FindFirstChild("Top Bar")
+        if topBar then
+            local buttonsFolder = topBar:FindFirstChild("Buttons")
+            if buttonsFolder then
+                local secondaryBtn = buttonsFolder:FindFirstChild("SecondaryWindow")
+                if secondaryBtn then
+                    secondaryBtn.Activated:Connect(function()
+                        Window:ToggleSecondaryWindow()
+                    end)
+                end
+            end
+        end
+    end
+end
+
+ConnectSecondaryButton()
+
+-- Carrega o conteúdo da janela secundária
 loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Teste%20part%20Redz"))()
 
 -- Aplica as imagens salvas automaticamente
