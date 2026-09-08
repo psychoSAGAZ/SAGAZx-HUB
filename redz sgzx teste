@@ -3114,7 +3114,8 @@ function Tab:AddDropdownPlayer(Configs)
     local LocalPlayer = Players.LocalPlayer
 
     local wasSearching = false
-    local hasAutoSelected = false -- Controla se a seleção automática inicial já ocorreu
+    local hasAutoSelected = false
+    local suppressInitialNotify = true -- Evita notificação na seleção automática inicial
 
     local Button, LabelFunc = ButtonFrame(Container, DName, DDesc, UDim2.new(1, -180))
 
@@ -3268,6 +3269,32 @@ function Tab:AddDropdownPlayer(Configs)
     local Options = {}
     local Selected = CheckFlag(Flag) and GetFlag(Flag) or OpDefault
 
+    local function SendPlayerNotification(plr, titleMessage)
+        if not plr or not MyLibrary or not MyLibrary.NotifyWithImage then return end
+
+        task.spawn(function()
+            local thumb = "rbxassetid://0"
+            pcall(function()
+                local content, isReady = Players:GetUserThumbnailAsync(
+                    plr.UserId,
+                    Enum.ThumbnailType.HeadShot,
+                    Enum.ThumbnailSize.Size48x48
+                )
+                if isReady then
+                    thumb = content
+                end
+            end)
+
+            MyLibrary:NotifyWithImage({
+                Title = titleMessage,
+                SubTitle = plr.DisplayName,
+                Message = "@" .. plr.Name,
+                Image = thumb,
+                Duration = 4
+            })
+        end)
+    end
+
     local function UpdateHeaderAvatar(playerObj)
         if playerObj then
             task.spawn(function()
@@ -3348,6 +3375,14 @@ function Tab:AddDropdownPlayer(Configs)
         Selected = Option.Value
         CallbackSelected()
         UpdateSelected()
+
+        -- Notifica ao selecionar um jogador manualmente
+        if not suppressInitialNotify then
+            local plr = Players:FindFirstChild(Selected)
+            if plr then
+                SendPlayerNotification(plr, "Player Selecionado:")
+            end
+        end
     end
 
     local function AddOption(plr)
@@ -3468,7 +3503,6 @@ function Tab:AddDropdownPlayer(Configs)
             end
         end
 
-        -- Seleção automática ÚNICA na inicialização
         if not hasAutoSelected then
             hasAutoSelected = true
             
@@ -3491,7 +3525,6 @@ function Tab:AddDropdownPlayer(Configs)
                 Selected = "..."
             end
         elseif Selected and Selected ~= "..." then
-            -- Se o player selecionado anteriormente saiu, redefine para "..."
             if not Players:FindFirstChild(Selected) then
                 Selected = "..."
                 CallbackSelected()
@@ -3562,6 +3595,9 @@ function Tab:AddDropdownPlayer(Configs)
     local c2 = Players.PlayerRemoving:Connect(function(plr)
         RemoveOption(plr.Name)
         if Selected == plr.Name then
+            -- Notifica que o jogador selecionado saiu
+            SendPlayerNotification(plr, "O Player Selecionado Saiu:")
+
             Selected = "..."
             CallbackSelected()
         end
@@ -3571,6 +3607,9 @@ function Tab:AddDropdownPlayer(Configs)
     RefreshPlayers()
     CalculatePos()
     CalculateSize(false)
+
+    -- Permite notificações para as próximas interações do usuário
+    suppressInitialNotify = false
 
     local Dropdown = {}
     function Dropdown:Visible(...) Funcs:ToggleVisible(Button, ...) end
@@ -3590,6 +3629,7 @@ function Tab:AddDropdownPlayer(Configs)
 
     return Dropdown
 end
+
 
 
         function Tab:AddSlider(Configs)
