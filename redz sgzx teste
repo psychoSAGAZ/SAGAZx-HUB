@@ -1273,7 +1273,6 @@ function MyLibrary:Notify(Configs)
     local Message = Configs.Message or Configs.Text or Configs[2] or ""
     local Duration = Configs.Duration or Configs.Time or Configs[3] or 4
     
-    -- Cria o ScreenGui se não existir
     local NotifyGui = ScreenGui:FindFirstChild("Notifications")
     if not NotifyGui then
         NotifyGui = Create("ScreenGui", ScreenGui, {
@@ -1284,16 +1283,13 @@ function MyLibrary:Notify(Configs)
         })
     end
     
-    -- Verifica se já existe uma notificação ativa (para não empilhar)
     if #ActiveNotifications > 0 then
-        -- Fecha a mais antiga
         local oldest = table.remove(ActiveNotifications, 1)
         if oldest and oldest.Close then
             oldest.Close()
         end
     end
     
-    -- Cria o frame da notificação
     local Frame = Create("Frame", NotifyGui, {
         Size = UDim2.new(0, 420, 0, 42),
         Position = UDim2.new(0.5, -210, 0, -50),
@@ -1303,13 +1299,12 @@ function MyLibrary:Notify(Configs)
         ZIndex = 1000
     })
     
-    -- Canto arredondado
     Make("Corner", Frame, UDim.new(0, 6))
-    
-    -- Borda (usando o sistema da lib)
     ApplyBorder(Frame)
     
-    -- Título (usando Color Text)
+    -- ✅ GRADIENTE DO HUB
+    Make("Gradient", Frame, { Rotation = 45 })
+    
     local TitleLabel = Create("TextLabel", Frame, {
         Size = UDim2.new(1, -45, 0, 18),
         Position = UDim2.new(0, 10, 0, 3),
@@ -1322,7 +1317,6 @@ function MyLibrary:Notify(Configs)
         ZIndex = 1001
     })
     
-    -- Mensagem (usando Color Dark Text)
     local MessageLabel = Create("TextLabel", Frame, {
         Size = UDim2.new(1, -45, 0, 18),
         Position = UDim2.new(0, 10, 0, 21),
@@ -1336,7 +1330,6 @@ function MyLibrary:Notify(Configs)
         ZIndex = 1001
     })
     
-    -- Botão de fechar (X simples)
     local CloseButton = Create("TextButton", Frame, {
         Size = UDim2.new(0, 30, 1, 0),
         Position = UDim2.new(1, -30, 0, 0),
@@ -1349,10 +1342,8 @@ function MyLibrary:Notify(Configs)
         ZIndex = 1001
     })
     
-    -- Animação de entrada
     CreateTween({Frame, "Position", UDim2.new(0.5, -210, 0, 5), 0.35})
     
-    -- Sistema de fechamento
     local closed = false
     local Notification = {}
     
@@ -1360,7 +1351,6 @@ function MyLibrary:Notify(Configs)
         if closed then return end
         closed = true
         
-        -- Remove da lista de ativas
         for i, notif in ipairs(ActiveNotifications) do
             if notif == Notification then
                 table.remove(ActiveNotifications, i)
@@ -1368,18 +1358,13 @@ function MyLibrary:Notify(Configs)
             end
         end
         
-        -- Animação de saída
         CreateTween({Frame, "Position", UDim2.new(0.5, -210, 0, -50), 0.25, true})
         Frame:Destroy()
     end
     
-    -- Adiciona à lista de ativas
     table.insert(ActiveNotifications, Notification)
     
-    -- Conexões
     CloseButton.Activated:Connect(Notification.Close)
-    
-    -- Auto-fechar após a duração
     task.delay(Duration, Notification.Close)
     
     return Notification
@@ -1393,7 +1378,6 @@ function MyLibrary:NotifyWithImage(Configs)
     local Image = Configs.Image or Configs.Icon or Configs[4] or "rbxassetid://86050226751861"
     local Duration = Configs.Duration or Configs.Time or Configs[5] or 4
     
-    -- Cria o ScreenGui se não existir
     local NotifyGui = ScreenGui:FindFirstChild("Notifications")
     if not NotifyGui then
         NotifyGui = Create("ScreenGui", ScreenGui, {
@@ -1404,7 +1388,6 @@ function MyLibrary:NotifyWithImage(Configs)
         })
     end
     
-    -- Verifica se já existe uma notificação ativa
     if #ActiveNotifications > 0 then
         local oldest = table.remove(ActiveNotifications, 1)
         if oldest and oldest.Close then
@@ -1412,7 +1395,6 @@ function MyLibrary:NotifyWithImage(Configs)
         end
     end
     
-    -- Cria o frame da notificação
     local Frame = Create("Frame", NotifyGui, {
         Size = UDim2.new(0, 420, 0, 52),
         Position = UDim2.new(0.5, -210, 0, -60),
@@ -1422,13 +1404,12 @@ function MyLibrary:NotifyWithImage(Configs)
         ZIndex = 1000
     })
     
-    -- Canto arredondado
     Make("Corner", Frame, UDim.new(0, 6))
-    
-    -- Borda
     ApplyBorder(Frame)
     
-    -- Imagem (lado esquerdo)
+    -- ✅ GRADIENTE DO HUB
+    Make("Gradient", Frame, { Rotation = 45 })
+    
     local ImageLabel = Create("ImageLabel", Frame, {
         Size = UDim2.new(0, 38, 0, 38),
         Position = UDim2.new(0, 7, 0.5, -19),
@@ -1439,7 +1420,6 @@ function MyLibrary:NotifyWithImage(Configs)
     })
     Make("Corner", ImageLabel, UDim.new(0, 5))
     
-    -- Container de texto (à direita da imagem)
     local TextContainer = Create("Frame", Frame, {
         Size = UDim2.new(1, -90, 1, -6),
         Position = UDim2.new(0, 52, 0, 3),
@@ -1447,7 +1427,6 @@ function MyLibrary:NotifyWithImage(Configs)
         ZIndex = 1001
     })
     
-    -- Título principal (Name 1 - Color Text, maior)
     local TitleLabel = Create("TextLabel", TextContainer, {
         Size = UDim2.new(1, 0, 0, 18),
         Position = UDim2.new(0, 0, 0, 0),
@@ -1461,7 +1440,6 @@ function MyLibrary:NotifyWithImage(Configs)
         ZIndex = 1001
     })
     
-    -- Subtítulo (Name 2 - Color Dark Text, menor)
     local SubTitleLabel = Create("TextLabel", TextContainer, {
         Size = UDim2.new(1, 0, 0, 14),
         Position = UDim2.new(0, 0, 0, 19),
@@ -1475,22 +1453,19 @@ function MyLibrary:NotifyWithImage(Configs)
         ZIndex = 1001
     })
     
-
--- Mensagem (dentro do frame, na parte inferior - menor que o subtitle e com Color Text)
-local MessageLabel = Create("TextLabel", Frame, {
-    Size = UDim2.new(1, -90, 0, 12),
-    Position = UDim2.new(0, 52, 1, -15),
-    BackgroundTransparency = 1,
-    Text = Message,
-    TextColor3 = Theme["Color Text"] or Color3.fromRGB(240, 240, 240),
-    Font = MyLibrary.CurrentFont,
-    TextSize = 9,
-    TextXAlignment = "Left",
-    TextTruncate = "AtEnd",
-    ZIndex = 1001
-})
+    local MessageLabel = Create("TextLabel", Frame, {
+        Size = UDim2.new(1, -90, 0, 12),
+        Position = UDim2.new(0, 52, 1, -15),
+        BackgroundTransparency = 1,
+        Text = Message,
+        TextColor3 = Theme["Color Text"] or Color3.fromRGB(240, 240, 240),
+        Font = MyLibrary.CurrentFont,
+        TextSize = 9,
+        TextXAlignment = "Left",
+        TextTruncate = "AtEnd",
+        ZIndex = 1001
+    })
     
-    -- Botão de fechar (X)
     local CloseButton = Create("TextButton", Frame, {
         Size = UDim2.new(0, 30, 0, 30),
         Position = UDim2.new(1, -30, 0, 0),
@@ -1503,10 +1478,8 @@ local MessageLabel = Create("TextLabel", Frame, {
         ZIndex = 1001
     })
     
-    -- Animação de entrada
     CreateTween({Frame, "Position", UDim2.new(0.5, -210, 0, 5), 0.35})
     
-    -- Sistema de fechamento
     local closed = false
     local Notification = {}
     
