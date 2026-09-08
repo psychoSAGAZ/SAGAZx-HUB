@@ -1641,11 +1641,6 @@ end
 -- FIM DO SISTEMA DE TRADUÇÃO
 -- ═══════════════════════════════════════════════════════════
 
-
-
-function MyLibrary:MakeWindow(Configs)
-    -- ... resto do código ...
-
 function MyLibrary:MakeWindow(Configs)
     local WTitle = Configs[1] or Configs.Name or Configs.Title or "SAGAZx"
     local WMiniText = Configs[2] or Configs.SubTitle or "by : SAGAZx"
