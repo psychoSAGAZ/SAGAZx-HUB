@@ -94,7 +94,24 @@ local function ToggleSecondaryWindow()
     SecondaryFrame.Visible = not SecondaryFrame.Visible
 end
 
-SecondaryWindowButton.Activated:Connect(ToggleSecondaryWindow)
+-- Conecta o botão da topbar para abrir/fechar a janela secundária
+local function ConnectSecondaryButton()
+    local topBar = MainFrame:FindFirstChild("Components") and MainFrame.Components:FindFirstChild("Top Bar")
+    if topBar then
+        local buttonsFolder = topBar:FindFirstChild("Buttons")
+        if buttonsFolder then
+            local secondaryBtn = buttonsFolder:FindFirstChild("SecondaryWindow")
+            if secondaryBtn then
+                secondaryBtn.Activated:Connect(function()
+                    SecondaryFrame.Visible = not SecondaryFrame.Visible
+                end)
+            end
+        end
+    end
+end
+
+ConnectSecondaryButton()
+
 SecondaryCloseButton.Activated:Connect(function()
     SecondaryFrame.Visible = false
 end)
