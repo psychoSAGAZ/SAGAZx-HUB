@@ -1506,29 +1506,6 @@ function MyLibrary:NotifyWithImage(Configs)
     return Notification
 end
 
-function MyLibrary:SetFont(fontInput)
-    if type(fontInput) == "string" then
-        fontInput = Enum.Font[fontInput]
-    end
-
-    if typeof(fontInput) ~= "EnumItem" or fontInput.EnumType ~= Enum.Font then
-        warn("Fonte inválida. Use uma string ou Enum.Font.")
-        return
-    end
-
-    MyLibrary.Save.Font = fontInput.Name
-    MyLibrary.CurrentFont = fontInput
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-
-    -- Atualiza todos os textos existentes
-    for _, val in ipairs(MyLibrary.Instances) do
-        local inst = val.Instance
-        if inst:IsA("TextLabel") or inst:IsA("TextButton") or inst:IsA("TextBox") then
-            inst.Font = fontInput
-        end
-    end
-end
-
 -- ═══════════════════════════════════════════════════════════
 -- SISTEMA DE TRADUÇÃO
 -- ═══════════════════════════════════════════════════════════
