@@ -1570,6 +1570,8 @@ MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta Ã  funÃ
 
 MyLibrary.MinimizeExternalButton = MinimizeExternalButton
 
+-- Variáveis que serão acessíveis pelo loadstring
+local SecondaryWindowAPI = {}
 loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Teste%20part%20Redz"))()
 
 -- Aplica as imagens salvas automaticamente
