@@ -3663,12 +3663,19 @@ end
 end
 
 -- ==================== SISTEMA DE NOTIFICAÇÃO ====================
+-- Aguarda o ScreenGui ser criado
+task.wait(0.1)
+
 local NotificationsFolder = Create("Folder", ScreenGui, { 
     Name = "Notifications",
     ZIndex = 9999 
 })
 
 local ActiveNotifications = {}
+
+local function GetCurrentTheme()
+    return MyLibrary.Themes[MyLibrary.Save.Theme] or MyLibrary.Themes.Purple
+end
 
 local function RemoveNotification(notificationGui)
     if not notificationGui or not notificationGui.Parent then return end
@@ -3682,19 +3689,25 @@ local function RemoveNotification(notificationGui)
     for i, notif in ipairs(ActiveNotifications) do
         local frame = notif:FindFirstChild("NotificationFrame")
         if frame then
-            local targetY = 10 + ((i - 1) * 47) -- 42px de altura + 5px de espaçamento
-            TweenService:Create(
-                frame,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-                {Position = UDim2.new(0.5, -210, 0, targetY)}
-            ):Play()
+            local targetY = 10 + ((i - 1) * 47)
+            pcall(function()
+                TweenService:Create(
+                    frame,
+                    TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                    {Position = UDim2.new(0.5, -210, 0, targetY)}
+                ):Play()
+            end)
         end
     end
     
-    notificationGui:Destroy()
+    pcall(function()
+        notificationGui:Destroy()
+    end)
 end
 
 function MyLibrary:Notification(config)
+    local currentTheme = GetCurrentTheme()
+    
     -- Aceita diferentes formatos de input
     local title, message, duration, customConfig
     
@@ -3711,12 +3724,12 @@ function MyLibrary:Notification(config)
     
     -- Validações
     if type(duration) ~= "number" then duration = 3 end
-    duration = math.clamp(duration, 1, 10) -- Limita entre 1 e 10 segundos
+    duration = math.clamp(duration, 1, 10)
     
     -- Cores personalizadas (opcional)
-    local accentColor = customConfig and customConfig.AccentColor or Theme["Color Theme"]
-    local bgColor = customConfig and customConfig.BackgroundColor or Theme["Color Hub 2"]
-    local textColor = customConfig and customConfig.TextColor or Theme["Color Text"]
+    local accentColor = customConfig and customConfig.AccentColor or currentTheme["Color Theme"]
+    local bgColor = customConfig and customConfig.BackgroundColor or currentTheme["Color Hub 2"]
+    local textColor = customConfig and customConfig.TextColor or currentTheme["Color Text"]
     
     -- Cria o container da notificação
     local notificationGui = Create("Frame", NotificationsFolder, {
@@ -3727,7 +3740,7 @@ function MyLibrary:Notification(config)
     })
     
     -- Frame principal da notificação
-    local notificationFrame = InsertTheme(Create("Frame", notificationGui, {
+    local notificationFrame = Create("Frame", notificationGui, {
         Size = UDim2.new(0, 420, 0, 42),
         Position = UDim2.new(0.5, -210, 0, -50),
         BackgroundColor3 = bgColor,
@@ -3735,74 +3748,89 @@ function MyLibrary:Notification(config)
         ZIndex = 9999,
         ClipsDescendants = false,
         Name = "NotificationFrame"
-    }), "Frame")
+    })
     
-    -- Aplica transparência global
-    AddTransparency(notificationFrame)
+    -- Aplica transparência
+    if MyLibrary.Save.GlobalTransparency then
+        notificationFrame.BackgroundTransparency = MyLibrary.Save.GlobalTransparency
+    end
     
     -- Corner arredondado
-    Make("Corner", notificationFrame, UDim.new(0, 6))
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = notificationFrame
     
-    -- Contorno (stroke) - usando o sistema existente
-    ApplyBorder(notificationFrame)
+    -- Contorno (stroke)
+    local stroke = Instance.new("UIStroke")
+    stroke.Name = "LibBorder"
+    stroke.Parent = notificationFrame
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Color = Color3.fromHex(MyLibrary.Save.StrokeColor or "#FFFFFF")
+    stroke.Transparency = MyLibrary.Save.StrokeTransparency or 0
+    table.insert(MyLibrary.StrokeInstances, stroke)
     
     -- Barra de destaque (lado esquerdo)
-    local accentBar = InsertTheme(Create("Frame", notificationFrame, {
-        Size = UDim2.new(0, 4, 1, 0),
-        Position = UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = accentColor,
-        BorderSizePixel = 0,
-        ZIndex = 10000,
-        Name = "AccentBar"
-    }), "Theme")
-    Make("Corner", accentBar, UDim.new(0.5, 0))
+    local accentBar = Instance.new("Frame")
+    accentBar.Size = UDim2.new(0, 4, 1, 0)
+    accentBar.Position = UDim2.new(0, 0, 0, 0)
+    accentBar.BackgroundColor3 = accentColor
+    accentBar.BorderSizePixel = 0
+    accentBar.ZIndex = 10000
+    accentBar.Name = "AccentBar"
+    accentBar.Parent = notificationFrame
+    
+    local accentCorner = Instance.new("UICorner")
+    accentCorner.CornerRadius = UDim.new(0.5, 0)
+    accentCorner.Parent = accentBar
     
     -- Ícone de notificação (opcional)
     local iconLabel
     if customConfig and customConfig.Icon then
-        iconLabel = Create("ImageLabel", notificationFrame, {
-            Size = UDim2.new(0, 20, 0, 20),
-            Position = UDim2.new(0, 12, 0.5, 0),
-            AnchorPoint = Vector2.new(0, 0.5),
-            BackgroundTransparency = 1,
-            Image = MyLibrary:GetIcon(customConfig.Icon) or customConfig.Icon,
-            ZIndex = 10000,
-            Name = "NotificationIcon"
-        })
-        Make("Corner", iconLabel, UDim.new(0, 3))
+        iconLabel = Instance.new("ImageLabel")
+        iconLabel.Size = UDim2.new(0, 20, 0, 20)
+        iconLabel.Position = UDim2.new(0, 12, 0.5, 0)
+        iconLabel.AnchorPoint = Vector2.new(0, 0.5)
+        iconLabel.BackgroundTransparency = 1
+        iconLabel.Image = MyLibrary:GetIcon(customConfig.Icon) or customConfig.Icon
+        iconLabel.ZIndex = 10000
+        iconLabel.Name = "NotificationIcon"
+        iconLabel.Parent = notificationFrame
+        
+        local iconCorner = Instance.new("UICorner")
+        iconCorner.CornerRadius = UDim.new(0, 3)
+        iconCorner.Parent = iconLabel
     end
     
     -- Texto da notificação
     local textOffset = iconLabel and 40 or 12
-    local notificationText = InsertTheme(Create("TextLabel", notificationFrame, {
-        Size = UDim2.new(1, -(textOffset + 35), 1, 0),
-        Position = UDim2.new(0, textOffset, 0, 0),
-        BackgroundTransparency = 1,
-        Text = string.upper(title) .. ": " .. message,
-        TextColor3 = textColor,
-        Font = MyLibrary.CurrentFont,
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Center,
-        ZIndex = 10000,
-        TextTruncate = Enum.TextTruncate.AtEnd,
-        Name = "NotificationText"
-    }), "Text")
+    local notificationText = Instance.new("TextLabel")
+    notificationText.Size = UDim2.new(1, -(textOffset + 35), 1, 0)
+    notificationText.Position = UDim2.new(0, textOffset, 0, 0)
+    notificationText.BackgroundTransparency = 1
+    notificationText.Text = string.upper(title) .. ": " .. message
+    notificationText.TextColor3 = textColor
+    notificationText.Font = MyLibrary.CurrentFont
+    notificationText.TextSize = 14
+    notificationText.TextXAlignment = Enum.TextXAlignment.Left
+    notificationText.TextYAlignment = Enum.TextYAlignment.Center
+    notificationText.ZIndex = 10000
+    notificationText.TextTruncate = Enum.TextTruncate.AtEnd
+    notificationText.Name = "NotificationText"
+    notificationText.Parent = notificationFrame
     
     -- Botão de fechar
-    local closeButton = Make("Button", notificationFrame, {
-        Size = UDim2.new(0, 30, 1, 0),
-        Position = UDim2.new(1, -30, 0, 0),
-        BackgroundTransparency = 1,
-        Text = "×",
-        TextColor3 = textColor,
-        TextSize = 20,
-        Font = Enum.Font.SourceSansBold,
-        ZIndex = 10000,
-        AutoButtonColor = false,
-        Name = "CloseButton"
-    })
-    closeButton.BackgroundTransparency = 1 -- Override para manter transparente
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0, 30, 1, 0)
+    closeButton.Position = UDim2.new(1, -30, 0, 0)
+    closeButton.BackgroundTransparency = 1
+    closeButton.Text = "×"
+    closeButton.TextColor3 = textColor
+    closeButton.TextSize = 20
+    closeButton.Font = Enum.Font.SourceSansBold
+    closeButton.ZIndex = 10000
+    closeButton.AutoButtonColor = false
+    closeButton.Name = "CloseButton"
+    closeButton.Parent = notificationFrame
     
     -- Hover effect no botão
     closeButton.MouseEnter:Connect(function()
@@ -3815,43 +3843,55 @@ function MyLibrary:Notification(config)
     -- Adiciona à lista de notificações ativas
     table.insert(ActiveNotifications, notificationGui)
     
-    -- Reposiciona todas as notificações incluindo a nova
+    -- Reposiciona todas as notificações
+    for i, notif in ipairs(ActiveNotifications) do
+        local frame = notif:FindFirstChild("NotificationFrame")
+        if frame then
+            local targetY = 10 + ((i - 1) * 47)
+            frame.Position = UDim2.new(0.5, -210, 0, targetY)
+        end
+    end
+    
+    -- Animação de entrada
     local notificationIndex = #ActiveNotifications
     local targetY = 10 + ((notificationIndex - 1) * 47)
     
-    -- Animação de entrada
     notificationFrame.Position = UDim2.new(0.5, -210, 0, -50)
     notificationFrame.Transparency = 1
     
-    TweenService:Create(
-        notificationFrame,
-        TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-        {Position = UDim2.new(0.5, -210, 0, targetY)}
-    ):Play()
-    
-    TweenService:Create(
-        notificationFrame,
-        TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        {Transparency = 0}
-    ):Play()
+    pcall(function()
+        TweenService:Create(
+            notificationFrame,
+            TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+            {Position = UDim2.new(0.5, -210, 0, targetY)}
+        ):Play()
+        
+        TweenService:Create(
+            notificationFrame,
+            TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Transparency = 0}
+        ):Play()
+    end)
     
     local closed = false
     local function CloseNotification()
         if closed then return end
         closed = true
         
-        -- Animação de saída
-        TweenService:Create(
-            notificationFrame,
-            TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
-            {Position = UDim2.new(0.5, -210, 0, -50)}
-        ):Play()
-        
-        TweenService:Create(
-            notificationFrame,
-            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-            {Transparency = 1}
-        ):Play()
+        pcall(function()
+            -- Animação de saída
+            TweenService:Create(
+                notificationFrame,
+                TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
+                {Position = UDim2.new(0.5, -210, 0, -50)}
+            ):Play()
+            
+            TweenService:Create(
+                notificationFrame,
+                TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+                {Transparency = 1}
+            ):Play()
+        end)
         
         -- Remove após a animação
         task.delay(0.3, function()
@@ -3897,11 +3937,19 @@ end
 
 -- Método para limpar todas as notificações
 function MyLibrary:ClearNotifications()
+    local notificationsToRemove = {}
     for _, notif in ipairs(ActiveNotifications) do
+        table.insert(notificationsToRemove, notif)
+    end
+    
+    for _, notif in ipairs(notificationsToRemove) do
         if notif and notif.Parent then
-            notif:Destroy()
+            pcall(function()
+                notif:Destroy()
+            end)
         end
     end
+    
     table.clear(ActiveNotifications)
 end
 
