@@ -2837,111 +2837,6 @@ function Tab:AddDropdown(Configs)
     return Dropdown
 end
 
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local LocalPlayer = Players.LocalPlayer
-
--- 🔔 SISTEMA DE NOTIFICAÇÃO (Com Suporte a Ícone do Player)
-local function CreateNotification(title, message, duration, userId)
-    duration = duration or 4
-
-    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-
-    if playerGui:FindFirstChild("SimpleNotify") then
-        playerGui.SimpleNotify:Destroy()
-    end
-
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "SimpleNotify"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = playerGui
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 420, 0, 42)
-    frame.Position = UDim2.new(0.5, -210, 0, -50)
-    frame.BackgroundColor3 = Color3.fromRGB(27, 5, 25)
-    frame.BorderSizePixel = 0
-    frame.Parent = screenGui
-
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
-
-    local textOffsetX = 10
-
-    -- Se um UserId for passado, cria a imagem de perfil
-    if userId then
-        local avatarImg = Instance.new("ImageLabel")
-        avatarImg.Size = UDim2.fromOffset(28, 28)
-        avatarImg.Position = UDim2.new(0, 8, 0.5, 0)
-        avatarImg.AnchorPoint = Vector2.new(0, 0.5)
-        avatarImg.BackgroundTransparency = 1
-        avatarImg.Parent = frame
-        Instance.new("UICorner", avatarImg).CornerRadius = UDim.new(0.5, 0)
-
-        textOffsetX = 42
-
-        task.spawn(function()
-            pcall(function()
-                local content, isReady = Players:GetUserThumbnailAsync(
-                    userId,
-                    Enum.ThumbnailType.HeadShot,
-                    Enum.ThumbnailSize.Size48x48
-                )
-                if isReady then
-                    avatarImg.Image = content
-                end
-            end)
-        end)
-    end
-
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -(textOffsetX + 35), 1, 0)
-    textLabel.Position = UDim2.new(0, textOffsetX, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = string.upper(title)..": "..message
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.Font = Enum.Font.SourceSansSemibold
-    textLabel.TextSize = 15
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.TextTruncate = Enum.TextTruncate.AtEnd
-    textLabel.Parent = frame
-
-    local close = Instance.new("TextButton")
-    close.Size = UDim2.new(0, 30, 1, 0)
-    close.Position = UDim2.new(1, -30, 0, 0)
-    close.BackgroundTransparency = 1
-    close.Text = "X"
-    close.TextColor3 = Color3.fromRGB(255, 255, 255)
-    close.Font = Enum.Font.SourceSansBold
-    close.TextSize = 18
-    close.Parent = frame
-
-    TweenService:Create(
-        frame,
-        TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-        {Position = UDim2.new(0.5, -210, 0, 5)}
-    ):Play()
-
-    local closed = false
-    local function Close()
-        if closed then return end
-        closed = true
-
-        TweenService:Create(
-            frame,
-            TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
-            {Position = UDim2.new(0.5, -210, 0, -50)}
-        ):Play()
-
-        task.delay(0.3, function()
-            screenGui:Destroy()
-        end)
-    end
-
-    close.MouseButton1Click:Connect(Close)
-    task.delay(duration, Close)
-end
-
-
 function Tab:AddDropdownPlayer(Configs)
     local DName = Configs[1] or Configs.Name or Configs.Title or "..."
     local DDesc = Configs.Desc or Configs.Description or ""
@@ -2949,8 +2844,11 @@ function Tab:AddDropdownPlayer(Configs)
     local Flag = Configs[5] or Configs.Flag or false
     local Callback = Funcs:GetCallback(Configs, 4)
 
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+
     local wasSearching = false
-    local hasAutoSelected = false -- Controle para auto-seleção acontecer apenas 1 vez
+    local hasAutoSelected = false -- Controla se a seleção automática inicial já ocorreu
 
     local Button, LabelFunc = ButtonFrame(Container, DName, DDesc, UDim2.new(1, -180))
 
@@ -3144,7 +3042,7 @@ function Tab:AddDropdownPlayer(Configs)
             ActiveLabel.Text = plr.DisplayName
             UpdateHeaderAvatar(plr)
         else
-            ActiveLabel.Text = "..."
+            ActiveLabel.Text = tostring(Selected or "...")
             UpdateHeaderAvatar(nil)
         end
     end
@@ -3175,7 +3073,7 @@ function Tab:AddDropdownPlayer(Configs)
         end
     end
 
-    local function Select(Option, isManual)
+    local function Select(Option)
         if SearchTextBox and string.len(SearchTextBox.Text) > 0 then
             wasSearching = true
         end
@@ -3184,18 +3082,6 @@ function Tab:AddDropdownPlayer(Configs)
         Selected = Option.Value
         CallbackSelected()
         UpdateSelected()
-
-        -- Envia a notificação apenas se a seleção for manual
-        if isManual then
-            local targetPlr = Players:FindFirstChild(Option.Name)
-            local userId = targetPlr and targetPlr.UserId or nil
-            CreateNotification(
-                "Player Selecionado",
-                Option.DisplayName .. " (@" .. Option.Name .. ")",
-                4,
-                userId
-            )
-        end
     end
 
     local function AddOption(plr)
@@ -3217,7 +3103,6 @@ function Tab:AddDropdownPlayer(Configs)
             Name = Name,
             DisplayName = displayName,
             IsFriend = isFriend,
-            UserId = plr.UserId,
             nodes = {}
         }
 
@@ -3288,7 +3173,7 @@ function Tab:AddDropdownPlayer(Configs)
         }), "SubText")
 
         Button.Activated:Connect(function()
-            Select(Options[Name], true) -- 'true' indica que foi seleção manual
+            Select(Options[Name])
         end)
 
         Options[Name].nodes = {Button, IsSelected, DisplayLabel, UserLabel}
@@ -3317,29 +3202,33 @@ function Tab:AddDropdownPlayer(Configs)
             end
         end
 
-        -- Seleciona automaticamente APENAS na primeira execução do script
+        -- Seleção automática ÚNICA na inicialização
         if not hasAutoSelected then
             hasAutoSelected = true
+            
+            local firstOption = nil
+            local firstFriend = nil
 
-            if not Selected or Selected == "..." or not Players:FindFirstChild(Selected) then
-                local firstOption = nil
-                local firstFriend = nil
-
-                for _, opt in pairs(Options) do
-                    if opt.IsFriend and not firstFriend then
-                        firstFriend = opt
-                    elseif not firstOption then
-                        firstOption = opt
-                    end
+            for _, opt in pairs(Options) do
+                if opt.IsFriend and not firstFriend then
+                    firstFriend = opt
+                elseif not firstOption then
+                    firstOption = opt
                 end
+            end
 
-                local autoTarget = firstFriend or firstOption
-                if autoTarget then
-                    Selected = autoTarget.Value
-                    CallbackSelected()
-                else
-                    Selected = "..."
-                end
+            local autoTarget = firstFriend or firstOption
+            if autoTarget then
+                Selected = autoTarget.Value
+                CallbackSelected()
+            else
+                Selected = "..."
+            end
+        elseif Selected and Selected ~= "..." then
+            -- Se o player selecionado anteriormente saiu, redefine para "..."
+            if not Players:FindFirstChild(Selected) then
+                Selected = "..."
+                CallbackSelected()
             end
         end
 
@@ -3405,27 +3294,12 @@ function Tab:AddDropdownPlayer(Configs)
     end)
 
     local c2 = Players.PlayerRemoving:Connect(function(plr)
-        local optData = Options[plr.Name]
-
-        -- Se o player removido for o atual selecionado
+        RemoveOption(plr.Name)
         if Selected == plr.Name then
             Selected = "..."
             CallbackSelected()
-
-            -- Dispara Notificação de Saída
-            if optData then
-                CreateNotification(
-                    "Player Saiu",
-                    optData.DisplayName .. " (@" .. optData.Name .. ")",
-                    4,
-                    optData.UserId
-                )
-            end
         end
-
-        RemoveOption(plr.Name)
-        UpdateSelected()
-        CalculateSize(false)
+        RefreshPlayers()
     end)
 
     RefreshPlayers()
@@ -3450,7 +3324,6 @@ function Tab:AddDropdownPlayer(Configs)
 
     return Dropdown
 end
-
 
 
         function Tab:AddSlider(Configs)
@@ -3789,6 +3662,247 @@ end
     return Window
 end
 
+-- ==================== SISTEMA DE NOTIFICAÇÃO ====================
+local NotificationsFolder = Create("Folder", ScreenGui, { 
+    Name = "Notifications",
+    ZIndex = 9999 
+})
 
+local ActiveNotifications = {}
+
+local function RemoveNotification(notificationGui)
+    if not notificationGui or not notificationGui.Parent then return end
+    
+    local index = table.find(ActiveNotifications, notificationGui)
+    if index then
+        table.remove(ActiveNotifications, index)
+    end
+    
+    -- Reposiciona as notificações restantes
+    for i, notif in ipairs(ActiveNotifications) do
+        local frame = notif:FindFirstChild("NotificationFrame")
+        if frame then
+            local targetY = 10 + ((i - 1) * 47) -- 42px de altura + 5px de espaçamento
+            TweenService:Create(
+                frame,
+                TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+                {Position = UDim2.new(0.5, -210, 0, targetY)}
+            ):Play()
+        end
+    end
+    
+    notificationGui:Destroy()
+end
+
+function MyLibrary:Notification(config)
+    -- Aceita diferentes formatos de input
+    local title, message, duration, customConfig
+    
+    if type(config) == "table" then
+        title = config.Title or config[1] or "Notificação"
+        message = config.Message or config.Text or config[2] or ""
+        duration = config.Duration or config.Time or config[3] or 3
+        customConfig = config
+    else
+        title = tostring(config)
+        message = tostring(select(2, ...) or "")
+        duration = tonumber(select(3, ...)) or 3
+    end
+    
+    -- Validações
+    if type(duration) ~= "number" then duration = 3 end
+    duration = math.clamp(duration, 1, 10) -- Limita entre 1 e 10 segundos
+    
+    -- Cores personalizadas (opcional)
+    local accentColor = customConfig and customConfig.AccentColor or Theme["Color Theme"]
+    local bgColor = customConfig and customConfig.BackgroundColor or Theme["Color Hub 2"]
+    local textColor = customConfig and customConfig.TextColor or Theme["Color Text"]
+    
+    -- Cria o container da notificação
+    local notificationGui = Create("Frame", NotificationsFolder, {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        ZIndex = 9999,
+        Name = "Notification_" .. tostring(#ActiveNotifications + 1)
+    })
+    
+    -- Frame principal da notificação
+    local notificationFrame = InsertTheme(Create("Frame", notificationGui, {
+        Size = UDim2.new(0, 420, 0, 42),
+        Position = UDim2.new(0.5, -210, 0, -50),
+        BackgroundColor3 = bgColor,
+        BorderSizePixel = 0,
+        ZIndex = 9999,
+        ClipsDescendants = false,
+        Name = "NotificationFrame"
+    }), "Frame")
+    
+    -- Aplica transparência global
+    AddTransparency(notificationFrame)
+    
+    -- Corner arredondado
+    Make("Corner", notificationFrame, UDim.new(0, 6))
+    
+    -- Contorno (stroke) - usando o sistema existente
+    ApplyBorder(notificationFrame)
+    
+    -- Barra de destaque (lado esquerdo)
+    local accentBar = InsertTheme(Create("Frame", notificationFrame, {
+        Size = UDim2.new(0, 4, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = accentColor,
+        BorderSizePixel = 0,
+        ZIndex = 10000,
+        Name = "AccentBar"
+    }), "Theme")
+    Make("Corner", accentBar, UDim.new(0.5, 0))
+    
+    -- Ícone de notificação (opcional)
+    local iconLabel
+    if customConfig and customConfig.Icon then
+        iconLabel = Create("ImageLabel", notificationFrame, {
+            Size = UDim2.new(0, 20, 0, 20),
+            Position = UDim2.new(0, 12, 0.5, 0),
+            AnchorPoint = Vector2.new(0, 0.5),
+            BackgroundTransparency = 1,
+            Image = MyLibrary:GetIcon(customConfig.Icon) or customConfig.Icon,
+            ZIndex = 10000,
+            Name = "NotificationIcon"
+        })
+        Make("Corner", iconLabel, UDim.new(0, 3))
+    end
+    
+    -- Texto da notificação
+    local textOffset = iconLabel and 40 or 12
+    local notificationText = InsertTheme(Create("TextLabel", notificationFrame, {
+        Size = UDim2.new(1, -(textOffset + 35), 1, 0),
+        Position = UDim2.new(0, textOffset, 0, 0),
+        BackgroundTransparency = 1,
+        Text = string.upper(title) .. ": " .. message,
+        TextColor3 = textColor,
+        Font = MyLibrary.CurrentFont,
+        TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Center,
+        ZIndex = 10000,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Name = "NotificationText"
+    }), "Text")
+    
+    -- Botão de fechar
+    local closeButton = Make("Button", notificationFrame, {
+        Size = UDim2.new(0, 30, 1, 0),
+        Position = UDim2.new(1, -30, 0, 0),
+        BackgroundTransparency = 1,
+        Text = "×",
+        TextColor3 = textColor,
+        TextSize = 20,
+        Font = Enum.Font.SourceSansBold,
+        ZIndex = 10000,
+        AutoButtonColor = false,
+        Name = "CloseButton"
+    })
+    closeButton.BackgroundTransparency = 1 -- Override para manter transparente
+    
+    -- Hover effect no botão
+    closeButton.MouseEnter:Connect(function()
+        closeButton.TextColor3 = accentColor
+    end)
+    closeButton.MouseLeave:Connect(function()
+        closeButton.TextColor3 = textColor
+    end)
+    
+    -- Adiciona à lista de notificações ativas
+    table.insert(ActiveNotifications, notificationGui)
+    
+    -- Reposiciona todas as notificações incluindo a nova
+    local notificationIndex = #ActiveNotifications
+    local targetY = 10 + ((notificationIndex - 1) * 47)
+    
+    -- Animação de entrada
+    notificationFrame.Position = UDim2.new(0.5, -210, 0, -50)
+    notificationFrame.Transparency = 1
+    
+    TweenService:Create(
+        notificationFrame,
+        TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+        {Position = UDim2.new(0.5, -210, 0, targetY)}
+    ):Play()
+    
+    TweenService:Create(
+        notificationFrame,
+        TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {Transparency = 0}
+    ):Play()
+    
+    local closed = false
+    local function CloseNotification()
+        if closed then return end
+        closed = true
+        
+        -- Animação de saída
+        TweenService:Create(
+            notificationFrame,
+            TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
+            {Position = UDim2.new(0.5, -210, 0, -50)}
+        ):Play()
+        
+        TweenService:Create(
+            notificationFrame,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+            {Transparency = 1}
+        ):Play()
+        
+        -- Remove após a animação
+        task.delay(0.3, function()
+            RemoveNotification(notificationGui)
+        end)
+    end
+    
+    -- Conexões
+    closeButton.Activated:Connect(CloseNotification)
+    
+    -- Fechamento automático após a duração
+    task.delay(duration, CloseNotification)
+    
+    -- Retorna um objeto de controle
+    local Notification = {}
+    function Notification:Close()
+        CloseNotification()
+    end
+    function Notification:SetText(newTitle, newMessage)
+        if newTitle then
+            if newMessage then
+                notificationText.Text = string.upper(newTitle) .. ": " .. newMessage
+            else
+                notificationText.Text = string.upper(newTitle)
+            end
+        end
+    end
+    function Notification:GetFrame()
+        return notificationFrame
+    end
+    
+    return Notification
+end
+
+-- Método simplificado para compatibilidade
+function MyLibrary:Notify(title, message, duration)
+    return self:Notification({
+        Title = title,
+        Message = message,
+        Duration = duration
+    })
+end
+
+-- Método para limpar todas as notificações
+function MyLibrary:ClearNotifications()
+    for _, notif in ipairs(ActiveNotifications) do
+        if notif and notif.Parent then
+            notif:Destroy()
+        end
+    end
+    table.clear(ActiveNotifications)
+end
 
 return MyLibrary
