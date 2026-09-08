@@ -54,9 +54,16 @@ Save = {
     TransparencyInstances = {},
     Icons = (function()
         return {
-            ["accessibility"] = "rbxassetid://10709751939",
-            
-            ["zoomout"] = "rbxassetid://10747384679"
+			["code"] = "rbxassetid://10709810463",
+            ["menu"] = "rbxassetid://10734887784",
+            ["user"] = "rbxassetid://10747373176",
+            ["users"] = "rbxassetid://10747373426",
+        	["shield"] = "rbxassetid://10734951847",
+            ["home"] = "rbxassetid://10723407389",
+            ["shirt"] = "rbxassetid://10734952036",
+            ["car"] = "rbxassetid://10709789810",
+            ["baby"] = "rbxassetid://10709769732",
+            ["music"] = "rbxassetid://10734905958",
         }
     end)()
 }
