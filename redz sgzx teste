@@ -2418,6 +2418,8 @@ function Tab:AddDropdown(Configs)
     local HasSearch = Configs.Search or Configs[6] or false
     local Callback = Funcs:GetCallback(Configs, 4)
 
+    local wasSearching = false -- Registra se o usuário selecionou algo durante uma pesquisa
+
     local Button, LabelFunc = ButtonFrame(Container, DName, DDesc, UDim2.new(1, -180))
 
     local SelectedFrame = InsertTheme(Create("Frame", Button, {
@@ -2495,7 +2497,6 @@ function Tab:AddDropdown(Configs)
         }), "Text")
     end
 
-    -- Ajusta o tamanho e posição do ScrollFrame dependendo se existe busca ou não
     local ScrollFrame = InsertTheme(Create("ScrollingFrame", DropFrame, {
         ScrollBarImageColor3 = Theme["Color Theme"],
         Size = HasSearch and UDim2.new(1, 0, 1, -34) or UDim2.new(1, 0, 1, 0),
@@ -2548,27 +2549,6 @@ function Tab:AddDropdown(Configs)
         if NoClickFrame.Visible then
             CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
         end
-    end
-
-    local function Minimize()
-        if WaitClick then return end
-        WaitClick = true
-        if NoClickFrame.Visible then
-            Arrow.Image = "rbxassetid://10709791523"
-            CreateTween({Arrow, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
-            CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
-            NoClickFrame.Visible = false
-        else
-            if HasSearch and SearchTextBox then
-                SearchTextBox.Text = ""
-            end
-            NoClickFrame.Visible = true
-            Arrow.Image = "rbxassetid://10709790948"
-            CreateTween({Arrow, "ImageColor3", Theme["Color Theme"], 0.2})
-            CalculateSize(false)
-            CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
-        end
-        WaitClick = false
     end
 
     local function CalculatePos()
@@ -2636,7 +2616,27 @@ function Tab:AddDropdown(Configs)
             UpdateLabel()
         end
 
+        -- Função auxiliar para rolar o ScrollFrame até o item selecionado
+        local function ScrollToSelected()
+            if not Selected or MultiSelect then return end
+            for _, opt in pairs(Options) do
+                if opt.Value == Selected and opt.nodes and opt.nodes[1] then
+                    local button = opt.nodes[1]
+                    task.defer(function()
+                        local yPos = button.AbsolutePosition.Y - ScrollFrame.AbsolutePosition.Y + ScrollFrame.CanvasPosition.Y
+                        ScrollFrame.CanvasPosition = Vector2.new(0, math.max(0, yPos - 5))
+                    end)
+                    break
+                end
+            end
+        end
+
         local function Select(Option)
+            -- Verifica se o usuário selecionou uma opção enquanto pesquisava
+            if HasSearch and SearchTextBox and string.len(SearchTextBox.Text) > 0 then
+                wasSearching = true
+            end
+
             if MultiSelect then
                 Option.Stats = not Option.Stats
                 Option.LastCB = tick()
@@ -2741,9 +2741,42 @@ function Tab:AddDropdown(Configs)
         for k, v in pairs(DOptions) do AddOption(k, v) end
         CallbackSelected()
         UpdateSelected()
+
+        -- Lógica de minimizar/abrir o menu adaptada para rolar até a opção
+        local function Minimize()
+            if WaitClick then return end
+            WaitClick = true
+            if NoClickFrame.Visible then
+                Arrow.Image = "rbxassetid://10709791523"
+                CreateTween({Arrow, "ImageColor3", Color3.fromRGB(255, 255, 255), 0.2})
+                CreateTween({DropFrame, "Size", UDim2.new(0, 152, 0, 0), 0.2, true})
+                NoClickFrame.Visible = false
+            else
+                if HasSearch and SearchTextBox then
+                    SearchTextBox.Text = ""
+                    -- Reseta a visibilidade de todas as opções
+                    for _, item in pairs(Options) do
+                        item.nodes[1].Visible = true
+                    end
+                end
+                NoClickFrame.Visible = true
+                Arrow.Image = "rbxassetid://10709790948"
+                CreateTween({Arrow, "ImageColor3", Theme["Color Theme"], 0.2})
+                CalculateSize(false)
+                CreateTween({DropFrame, "Size", GetFrameSize(), 0.2, true})
+
+                -- Se foi selecionado durante uma pesquisa, rola o ScrollFrame até o item
+                if wasSearching then
+                    ScrollToSelected()
+                    wasSearching = false -- Reseta o estado após aplicar a rolagem
+                end
+            end
+            WaitClick = false
+        end
+
+        Button.Activated:Connect(Minimize)
     end
 
-    Button.Activated:Connect(Minimize)
     NoClickFrame.MouseButton1Down:Connect(Disable)
     NoClickFrame.MouseButton1Click:Connect(Disable)
     MainFrame:GetPropertyChangedSignal("Visible"):Connect(Disable)
