@@ -1309,49 +1309,39 @@ function MyLibrary:Notify(Configs)
     -- Borda (usando o sistema da lib)
     ApplyBorder(Frame)
     
-    -- Barra lateral com a cor do tema
-    local AccentBar = Create("Frame", Frame, {
-        Size = UDim2.new(0, 4, 1, 0),
-        Position = UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = Theme["Color Theme"] or Color3.fromRGB(150, 0, 255),
-        BorderSizePixel = 0,
-        ZIndex = 1001
-    })
-    Make("Corner", AccentBar, UDim.new(1, 0))
-    
-    -- Título
+    -- Título (usando Color Text)
     local TitleLabel = Create("TextLabel", Frame, {
         Size = UDim2.new(1, -45, 0, 18),
-        Position = UDim2.new(0, 12, 0, 3),
+        Position = UDim2.new(0, 10, 0, 3),
         BackgroundTransparency = 1,
-        Text = string.upper(Title),
-        TextColor3 = Theme["Color Theme"] or Color3.fromRGB(150, 0, 255),
+        Text = Title,
+        TextColor3 = Theme["Color Text"] or Color3.fromRGB(240, 240, 240),
         Font = MyLibrary.CurrentFont,
-        TextSize = 12,
+        TextSize = 13,
         TextXAlignment = "Left",
         ZIndex = 1001
     })
     
-    -- Mensagem
+    -- Mensagem (usando Color Dark Text)
     local MessageLabel = Create("TextLabel", Frame, {
         Size = UDim2.new(1, -45, 0, 18),
-        Position = UDim2.new(0, 12, 0, 21),
+        Position = UDim2.new(0, 10, 0, 21),
         BackgroundTransparency = 1,
         Text = Message,
-        TextColor3 = Theme["Color Text"] or Color3.fromRGB(240, 240, 240),
+        TextColor3 = Theme["Color Dark Text"] or Color3.fromRGB(180, 180, 180),
         Font = MyLibrary.CurrentFont,
-        TextSize = 12,
+        TextSize = 11,
         TextXAlignment = "Left",
         TextTruncate = "AtEnd",
         ZIndex = 1001
     })
     
-    -- Botão de fechar
+    -- Botão de fechar (X simples)
     local CloseButton = Create("TextButton", Frame, {
         Size = UDim2.new(0, 30, 1, 0),
         Position = UDim2.new(1, -30, 0, 0),
         BackgroundTransparency = 1,
-        Text = "✕",
+        Text = "X",
         TextColor3 = Theme["Color Dark Text"] or Color3.fromRGB(180, 180, 180),
         Font = Enum.Font.SourceSansBold,
         TextSize = 16,
