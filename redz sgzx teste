@@ -1759,11 +1759,11 @@ end)
 
     function Window:CloseBtn()
         local Dialog = Window:Dialog({
-            Title = "Close",
-            Text = "Do you really want to close the UI?",
+            Title = "Fechar Hub",
+            Text = "Tem Certeza Que Você Quer Fechar o Hub?",
             Options = {
-                {"Confirm", function() ScreenGui:Destroy() end},
-                {"Cancel"}
+                {"Fechar", function() ScreenGui:Destroy() end},
+                {"Cancelar"}
             }
         })
     end
