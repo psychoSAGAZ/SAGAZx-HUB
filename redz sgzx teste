@@ -6191,11 +6191,11 @@ function Tab:AddDropdownPlayer(Configs)
         BackgroundTransparency = 1
     })
 
-    -- 🔘 MINI TOGGLE "CLICK PLAYER" (Abaixo do SelectedFrame)
-    local ClickToggleActive = true -- Começa ativado se a opção estive visível
-    
+    -- 🔘 MINI TOGGLE "CLICK PLAYER" (Estilo Original, em versão reduzida e sem descrição)
+    local ClickToggleActive = false -- Inicia OFF conforme solicitado
+
     local ClickPlayerFrame = InsertTheme(Create("TextButton", Button, {
-        Size = UDim2.new(0, 150, 0, 16),
+        Size = UDim2.new(0, 150, 0, 14),
         Position = UDim2.new(1, -10, 1, 2),
         AnchorPoint = Vector2.new(1, 0),
         BackgroundTransparency = 1,
@@ -6203,41 +6203,60 @@ function Tab:AddDropdownPlayer(Configs)
         Visible = clickToSelectEnabled
     }))
 
-    local ToggleIndicator = InsertTheme(Create("Frame", ClickPlayerFrame, {
-        Size = UDim2.new(0, 10, 0, 10),
-        Position = UDim2.new(0, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        BackgroundColor3 = Theme["Color Theme"]
-    }), "Theme")
-    Make("Corner", ToggleIndicator, UDim.new(0.5, 0))
-
     local ToggleText = InsertTheme(Create("TextLabel", ClickPlayerFrame, {
-        Size = UDim2.new(1, -14, 1, 0),
-        Position = UDim2.new(0, 14, 0.5, 0),
+        Size = UDim2.new(1, -30, 1, 0),
+        Position = UDim2.new(0, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
         BackgroundTransparency = 1,
         Font = MyLibrary.CurrentFont,
         TextSize = 10,
-        TextColor3 = Theme["Color Text"],
-        Text = "Click Player: ON",
-        TextXAlignment = "Left"
-    }), "Text")
+        TextColor3 = Theme["Color Dark Text"],
+        Text = "Click Player",
+        TextXAlignment = "Right"
+    }), "SubText")
 
-    local function UpdateToggleUI()
-        if ClickToggleActive then
-            ToggleText.Text = "Click Player: ON"
-            CreateTween({ToggleIndicator, "BackgroundColor3", Theme["Color Theme"], 0.2})
-            CreateTween({ToggleText, "TextColor3", Theme["Color Text"], 0.2})
+    local MiniToggleHolder = InsertTheme(Create("Frame", ClickPlayerFrame, {
+        Size = UDim2.new(0, 26, 0, 13),
+        Position = UDim2.new(1, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(1, 0.5),
+        BackgroundColor3 = Theme["Color Stroke"]
+    }), "Stroke")
+    AddTransparency(MiniToggleHolder)
+    Make("Corner", MiniToggleHolder, UDim.new(0.5, 0))
+
+    local MiniSlider = Create("Frame", MiniToggleHolder, {
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0.8, 0, 0.8, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5)
+    })
+
+    local MiniToggle = InsertTheme(Create("Frame", MiniSlider, {
+        Size = UDim2.new(0, 9, 0, 9),
+        Position = UDim2.new(0, 0, 0.5),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = Theme["Color Theme"],
+        BackgroundTransparency = 0.8
+    }), "Theme")
+    Make("Corner", MiniToggle, UDim.new(0.5, 0))
+
+    local function UpdateToggleUI(val)
+        if val then
+            CreateTween({ToggleText, "TextColor3", Theme["Color Text"], 0.25})
+            CreateTween({MiniToggle, "Position", UDim2.new(1, 0, 0.5), 0.25})
+            CreateTween({MiniToggle, "BackgroundTransparency", 0, 0.25})
+            CreateTween({MiniToggle, "AnchorPoint", Vector2.new(1, 0.5), 0.25, false})
         else
-            ToggleText.Text = "Click Player: OFF"
-            CreateTween({ToggleIndicator, "BackgroundColor3", Theme["Color Dark Text"], 0.2})
-            CreateTween({ToggleText, "TextColor3", Theme["Color Dark Text"], 0.2})
+            CreateTween({ToggleText, "TextColor3", Theme["Color Dark Text"], 0.25})
+            CreateTween({MiniToggle, "Position", UDim2.new(0, 0, 0.5), 0.25})
+            CreateTween({MiniToggle, "BackgroundTransparency", 0.8, 0.25})
+            CreateTween({MiniToggle, "AnchorPoint", Vector2.new(0, 0.5), 0.25, false})
         end
     end
 
     ClickPlayerFrame.MouseButton1Click:Connect(function()
         ClickToggleActive = not ClickToggleActive
-        UpdateToggleUI()
+        UpdateToggleUI(ClickToggleActive)
     end)
 
     local NoClickFrame = Create("TextButton", DropdownHolder, {
@@ -6764,8 +6783,6 @@ function Tab:AddDropdownPlayer(Configs)
 
     return Dropdown
 end
-
-
 
 
         function Tab:AddSlider(Configs)
