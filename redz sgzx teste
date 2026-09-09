@@ -6125,13 +6125,13 @@ function Tab:AddDropdownPlayer(Configs)
     local Flag = Configs[5] or Configs.Flag or false
     local Callback = Funcs:GetCallback(Configs, 4)
 
-    -- Permite desativar a seleção automática enviando AutoSelect = false nas configurações
+    -- Permite desativar a seleção automática enviando AutoSelect = false
     local autoSelectEnabled = Configs.AutoSelect
     if autoSelectEnabled == nil then
         autoSelectEnabled = true
     end
 
-    -- Configuração do Click Player (padrão true, mas configurável via `ClickToSelect` ou `ClickPlayer`)
+    -- Configuração do Click Player (padrão true, configurável via ClickToSelect ou ClickPlayer)
     local clickToSelectEnabled = Configs.ClickToSelect
     if clickToSelectEnabled == nil then
         clickToSelectEnabled = Configs.ClickPlayer
@@ -6191,8 +6191,8 @@ function Tab:AddDropdownPlayer(Configs)
         BackgroundTransparency = 1
     })
 
-    -- 🔘 MINI TOGGLE "CLICK PLAYER" (Abaixo da SelectedFrame)
-    local ClickToggleActive = clickToSelectEnabled
+    -- 🔘 MINI TOGGLE "CLICK PLAYER" (Abaixo do SelectedFrame)
+    local ClickToggleActive = true -- Começa ativado se a opção estive visível
     
     local ClickPlayerFrame = InsertTheme(Create("TextButton", Button, {
         Size = UDim2.new(0, 150, 0, 16),
@@ -6207,8 +6207,8 @@ function Tab:AddDropdownPlayer(Configs)
         Size = UDim2.new(0, 10, 0, 10),
         Position = UDim2.new(0, 0, 0.5, 0),
         AnchorPoint = Vector2.new(0, 0.5),
-        BackgroundColor3 = ClickToggleActive and Theme["Color Theme"] or Theme["Color Dark Text"]
-    }), ClickToggleActive and "Theme" or "DarkText")
+        BackgroundColor3 = Theme["Color Theme"]
+    }), "Theme")
     Make("Corner", ToggleIndicator, UDim.new(0.5, 0))
 
     local ToggleText = InsertTheme(Create("TextLabel", ClickPlayerFrame, {
@@ -6218,25 +6218,26 @@ function Tab:AddDropdownPlayer(Configs)
         BackgroundTransparency = 1,
         Font = MyLibrary.CurrentFont,
         TextSize = 10,
-        TextColor3 = ClickToggleActive and Theme["Color Text"] or Theme["Color Dark Text"],
-        Text = "Click Player: " .. (ClickToggleActive and "ON" or "OFF"),
+        TextColor3 = Theme["Color Text"],
+        Text = "Click Player: ON",
         TextXAlignment = "Left"
-    }), "SubText")
+    }), "Text")
 
-    local function ToggleClickPlayerState(newState)
-        if newState == nil then
-            ClickToggleActive = not ClickToggleActive
+    local function UpdateToggleUI()
+        if ClickToggleActive then
+            ToggleText.Text = "Click Player: ON"
+            CreateTween({ToggleIndicator, "BackgroundColor3", Theme["Color Theme"], 0.2})
+            CreateTween({ToggleText, "TextColor3", Theme["Color Text"], 0.2})
         else
-            ClickToggleActive = newState
+            ToggleText.Text = "Click Player: OFF"
+            CreateTween({ToggleIndicator, "BackgroundColor3", Theme["Color Dark Text"], 0.2})
+            CreateTween({ToggleText, "TextColor3", Theme["Color Dark Text"], 0.2})
         end
-
-        ToggleText.Text = "Click Player: " .. (ClickToggleActive and "ON" or "OFF")
-        CreateTween({ToggleIndicator, "BackgroundColor3", ClickToggleActive and Theme["Color Theme"] or Theme["Color Dark Text"], 0.2})
-        CreateTween({ToggleText, "TextColor3", ClickToggleActive and Theme["Color Text"] or Theme["Color Dark Text"], 0.2})
     end
 
     ClickPlayerFrame.MouseButton1Click:Connect(function()
-        ToggleClickPlayerState()
+        ClickToggleActive = not ClickToggleActive
+        UpdateToggleUI()
     end)
 
     local NoClickFrame = Create("TextButton", DropdownHolder, {
@@ -6634,9 +6635,12 @@ function Tab:AddDropdownPlayer(Configs)
         CalculateSize(false)
     end
 
-    -- 🖱️ LISTENER DE CLIQUE NO MUNDO 3D PARA SELEÇÃO
+    -- 🖱️ DETECTOR DE CLIQUE NO JOGO
     local cClick = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed or not ClickToggleActive then return end
+        -- Só executa se NÃO clicou na UI e se o toggle "Click Player" estiver ON
+        if gameProcessed or not clickToSelectEnabled or not ClickToggleActive then 
+            return 
+        end
 
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             local mouse = LocalPlayer:GetMouse()
