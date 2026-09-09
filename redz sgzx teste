@@ -6191,8 +6191,8 @@ function Tab:AddDropdownPlayer(Configs)
         BackgroundTransparency = 1
     })
 
-    -- 🔘 MINI TOGGLE "CLICK PLAYER" (Estilo Original, em versão reduzida e sem descrição)
-    local ClickToggleActive = false -- Inicia OFF conforme solicitado
+    -- 🔘 MINI TOGGLE "CLICK PLAYER" (Estilo Original, cor do texto fixa em Color Dark Text)
+    local ClickToggleActive = false -- Inicia OFF
 
     local ClickPlayerFrame = InsertTheme(Create("TextButton", Button, {
         Size = UDim2.new(0, 150, 0, 14),
@@ -6242,12 +6242,10 @@ function Tab:AddDropdownPlayer(Configs)
 
     local function UpdateToggleUI(val)
         if val then
-            CreateTween({ToggleText, "TextColor3", Theme["Color Text"], 0.25})
             CreateTween({MiniToggle, "Position", UDim2.new(1, 0, 0.5), 0.25})
             CreateTween({MiniToggle, "BackgroundTransparency", 0, 0.25})
             CreateTween({MiniToggle, "AnchorPoint", Vector2.new(1, 0.5), 0.25, false})
         else
-            CreateTween({ToggleText, "TextColor3", Theme["Color Dark Text"], 0.25})
             CreateTween({MiniToggle, "Position", UDim2.new(0, 0, 0.5), 0.25})
             CreateTween({MiniToggle, "BackgroundTransparency", 0.8, 0.25})
             CreateTween({MiniToggle, "AnchorPoint", Vector2.new(0, 0.5), 0.25, false})
@@ -6783,6 +6781,7 @@ function Tab:AddDropdownPlayer(Configs)
 
     return Dropdown
 end
+
 
 
         function Tab:AddSlider(Configs)
