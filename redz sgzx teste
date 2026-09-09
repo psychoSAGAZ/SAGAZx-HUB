@@ -7000,80 +7000,82 @@ function Tab:AddDiscordInvite(Configs)
     local TikTokInvite = Configs.TikTok or Configs["Tik Tok"] or ""
     local DiscordInviteLink = Configs[3] or Configs.Discord or Configs.Invite or ""
 
-    -- Container principal
-    local ConviteHolder = Create("Frame", Container, {
+    -- Frame Principal (convite)
+    local convite = Create("Frame", Container, {
         Name = "convite",
         Size = UDim2.new(0, 380, 0, 150),
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BackgroundTransparency = 1
+        BackgroundTransparency = 0
     })
-    Make("Corner", ConviteHolder, UDim.new(0, 8))
+    Make("Corner", convite, UDim.new(0, 8))
 
-    -- Imagem principal (fundo/topo)
-    local ImageHolder = Create("ImageLabel", ConviteHolder, {
+    -- Frame da Imagem (image_3)
+    local image = Create("ImageLabel", convite, {
         Name = "image",
-        Size = UDim2.new(0, 380, 0, 100),
-        Position = UDim2.new(0, 0, 0, 0),
-        Image = Logo,
+        Size = UDim2.new(0, 360, 0, 100),
+        Position = UDim2.new(0.0263, 0, 0.0667, 0),
         BackgroundColor3 = Color3.fromRGB(0, 255, 255),
         BackgroundTransparency = 0,
+        Image = Logo,
         ScaleType = Enum.ScaleType.Crop
     })
-    Make("Corner", ImageHolder, UDim.new(0, 6))
+    Make("Corner", image, UDim.new(0.03, 0))
 
-    -- Container para os botões na parte inferior
-    local BotoesHolder = Create("Frame", ConviteHolder, {
+    -- Frame dos Botões (botoes_2)
+    local botoes = Create("Frame", convite, {
         Name = "botoes",
         Size = UDim2.new(0, 380, 0, 50),
-        Position = UDim2.new(0, 0, 0, 100),
+        Position = UDim2.new(0, 0, 0.6667, 0),
         BackgroundColor3 = Color3.fromRGB(22, 22, 22),
         BackgroundTransparency = 0
     })
-    Make("Corner", BotoesHolder, UDim.new(0, 6))
+    Make("Corner", botoes, UDim.new(0.03, 0))
 
-    -- Botão TikTok
-    local TikTokBtn = Create("TextButton", BotoesHolder, {
+    -- Botão TikTok (TextButton_4)
+    local TikTokBtn = Create("TextButton", botoes, {
         Name = "TikTokButton",
-        Size = UDim2.new(0.42, 0, 0, 36),
-        Position = UDim2.new(0.05, 0, 0.14, 0),
+        Size = UDim2.new(0.2, 0, 0, 40),
+        Position = UDim2.new(0.1, 0, 0.1, 0),
         BackgroundColor3 = Color3.fromRGB(0, 0, 0),
         Font = Enum.Font.SourceSansSemibold,
-        Text = "      TikTok Copy",
+        Text = "      TikTok",
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Center
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        TextYAlignment = Enum.TextYAlignment.Center
     })
-    Make("Corner", TikTokBtn, UDim.new(0, 6))
+    Make("Corner", TikTokBtn, UDim.new(0.03, 0))
 
     local TikTokIcon = Create("ImageLabel", TikTokBtn, {
         Size = UDim2.new(0, 20, 0, 20),
-        Position = UDim2.new(0, 8, 0.5, -10),
+        Position = UDim2.new(0, 5, 0.5, -10),
         Image = "rbxassetid://140658929749855",
         BackgroundTransparency = 1
     })
 
-    -- Botão Discord
-    local DiscordBtn = Create("TextButton", BotoesHolder, {
+    -- Botão Discord (TextButton_5)
+    local DiscordBtn = Create("TextButton", botoes, {
         Name = "DiscordButton",
-        Size = UDim2.new(0.42, 0, 0, 36),
-        Position = UDim2.new(0.53, 0, 0.14, 0),
-        BackgroundColor3 = Color3.fromRGB(88, 101, 242),
+        Size = UDim2.new(0.2, 0, 0, 40),
+        Position = UDim2.new(0.6316, 0, 0, 0),
+        BackgroundColor3 = Color3.fromRGB(140, 80, 255),
         Font = Enum.Font.SourceSansSemibold,
-        Text = "      Discord Copy",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Center
+        Text = "      Discord",
+        TextColor3 = Color3.fromRGB(240, 220, 255),
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        TextYAlignment = Enum.TextYAlignment.Center
     })
-    Make("Corner", DiscordBtn, UDim.new(0, 6))
+    Make("Corner", DiscordBtn, UDim.new(0.03, 0))
 
     local DiscordIcon = Create("ImageLabel", DiscordBtn, {
         Size = UDim2.new(0, 20, 0, 20),
-        Position = UDim2.new(0, 8, 0.5, -10),
+        Position = UDim2.new(0, 5, 0.5, -10),
         Image = "rbxassetid://7552532178",
         BackgroundTransparency = 1
     })
 
-    -- Lógica de Cópia dos Botões
+    -- Eventos de Cópia
     local TikTokDelay
     TikTokBtn.Activated:Connect(function()
         setclipboard(TikTokInvite)
@@ -7081,7 +7083,7 @@ function Tab:AddDiscordInvite(Configs)
         TikTokDelay = true
         SetProps(TikTokBtn, { Text = "Copiado!" })
         task.wait(2)
-        SetProps(TikTokBtn, { Text = "      TikTok Copy" })
+        SetProps(TikTokBtn, { Text = "      TikTok" })
         TikTokDelay = false
     end)
 
@@ -7092,13 +7094,13 @@ function Tab:AddDiscordInvite(Configs)
         DiscordDelay = true
         SetProps(DiscordBtn, { Text = "Copiado!" })
         task.wait(2)
-        SetProps(DiscordBtn, { Text = "      Discord Copy" })
+        SetProps(DiscordBtn, { Text = "      Discord" })
         DiscordDelay = false
     end)
 
     local DiscordInvite = {}
-    function DiscordInvite:Destroy() ConviteHolder:Destroy() end
-    function DiscordInvite:Visible(...) Funcs:ToggleVisible(ConviteHolder, ...) end
+    function DiscordInvite:Destroy() convite:Destroy() end
+    function DiscordInvite:Visible(...) Funcs:ToggleVisible(convite, ...) end
     return DiscordInvite
 end
 
