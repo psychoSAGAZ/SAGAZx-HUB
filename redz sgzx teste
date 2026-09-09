@@ -7009,6 +7009,7 @@ function Tab:AddDiscordInvite(Configs)
         BackgroundTransparency = 1
     })
     Make("Corner", InviteHolder, UDim.new(0, 6))
+    ApplyBorder(InviteHolder)
 
     -- Container do conteúdo principal
     local FrameHolder = InsertTheme(Create("Frame", InviteHolder, {
