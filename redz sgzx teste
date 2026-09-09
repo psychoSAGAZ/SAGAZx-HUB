@@ -6131,9 +6131,19 @@ function Tab:AddDropdownPlayer(Configs)
         autoSelectEnabled = true
     end
 
+    -- Configuração do Click Player (padrão true, mas configurável via `ClickToSelect` ou `ClickPlayer`)
+    local clickToSelectEnabled = Configs.ClickToSelect
+    if clickToSelectEnabled == nil then
+        clickToSelectEnabled = Configs.ClickPlayer
+    end
+    if clickToSelectEnabled == nil then
+        clickToSelectEnabled = true
+    end
+
     local CustomOptions = Configs.Options or Configs[2]
 
     local Players = game:GetService("Players")
+    local UserInputService = game:GetService("UserInputService")
     local LocalPlayer = Players.LocalPlayer
 
     local wasSearching = false
@@ -6180,6 +6190,54 @@ function Tab:AddDropdownPlayer(Configs)
         Image = "rbxassetid://10709791523",
         BackgroundTransparency = 1
     })
+
+    -- 🔘 MINI TOGGLE "CLICK PLAYER" (Abaixo da SelectedFrame)
+    local ClickToggleActive = clickToSelectEnabled
+    
+    local ClickPlayerFrame = InsertTheme(Create("TextButton", Button, {
+        Size = UDim2.new(0, 150, 0, 16),
+        Position = UDim2.new(1, -10, 1, 2),
+        AnchorPoint = Vector2.new(1, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        Visible = clickToSelectEnabled
+    }))
+
+    local ToggleIndicator = InsertTheme(Create("Frame", ClickPlayerFrame, {
+        Size = UDim2.new(0, 10, 0, 10),
+        Position = UDim2.new(0, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = ClickToggleActive and Theme["Color Theme"] or Theme["Color Dark Text"]
+    }), ClickToggleActive and "Theme" or "DarkText")
+    Make("Corner", ToggleIndicator, UDim.new(0.5, 0))
+
+    local ToggleText = InsertTheme(Create("TextLabel", ClickPlayerFrame, {
+        Size = UDim2.new(1, -14, 1, 0),
+        Position = UDim2.new(0, 14, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundTransparency = 1,
+        Font = MyLibrary.CurrentFont,
+        TextSize = 10,
+        TextColor3 = ClickToggleActive and Theme["Color Text"] or Theme["Color Dark Text"],
+        Text = "Click Player: " .. (ClickToggleActive and "ON" or "OFF"),
+        TextXAlignment = "Left"
+    }), "SubText")
+
+    local function ToggleClickPlayerState(newState)
+        if newState == nil then
+            ClickToggleActive = not ClickToggleActive
+        else
+            ClickToggleActive = newState
+        end
+
+        ToggleText.Text = "Click Player: " .. (ClickToggleActive and "ON" or "OFF")
+        CreateTween({ToggleIndicator, "BackgroundColor3", ClickToggleActive and Theme["Color Theme"] or Theme["Color Dark Text"], 0.2})
+        CreateTween({ToggleText, "TextColor3", ClickToggleActive and Theme["Color Text"] or Theme["Color Dark Text"], 0.2})
+    end
+
+    ClickPlayerFrame.MouseButton1Click:Connect(function()
+        ToggleClickPlayerState()
+    end)
 
     local NoClickFrame = Create("TextButton", DropdownHolder, {
         Name = "AntiClick",
@@ -6367,10 +6425,12 @@ function Tab:AddDropdownPlayer(Configs)
         for _, v in pairs(Options) do
             local Slt = v.Value == Selected
             local nodes = v.nodes
-            CreateTween({nodes[2], "BackgroundTransparency", Slt and 0 or 1, 0.35})
-            CreateTween({nodes[2], "Size", Slt and UDim2.fromOffset(4, 20) or UDim2.fromOffset(4, 4), 0.35})
-            CreateTween({nodes[3], "TextTransparency", Slt and 0 or 0.2, 0.35})
-            CreateTween({nodes[4], "TextTransparency", Slt and 0.2 or 0.5, 0.35})
+            if nodes then
+                CreateTween({nodes[2], "BackgroundTransparency", Slt and 0 or 1, 0.35})
+                CreateTween({nodes[2], "Size", Slt and UDim2.fromOffset(4, 20) or UDim2.fromOffset(4, 4), 0.35})
+                CreateTween({nodes[3], "TextTransparency", Slt and 0 or 0.2, 0.35})
+                CreateTween({nodes[4], "TextTransparency", Slt and 0.2 or 0.5, 0.35})
+            end
         end
         UpdateLabel()
     end
@@ -6574,6 +6634,33 @@ function Tab:AddDropdownPlayer(Configs)
         CalculateSize(false)
     end
 
+    -- 🖱️ LISTENER DE CLIQUE NO MUNDO 3D PARA SELEÇÃO
+    local cClick = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed or not ClickToggleActive then return end
+
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local mouse = LocalPlayer:GetMouse()
+            local target = mouse.Target
+
+            if target and target.Parent then
+                local characterModel = target:FindFirstAncestorOfClass("Model")
+                if characterModel then
+                    local playerFound = Players:GetPlayerFromCharacter(characterModel)
+                    if playerFound and playerFound ~= LocalPlayer then
+                        if Options[playerFound.Name] then
+                            Select(Options[playerFound.Name])
+                        else
+                            Selected = playerFound.Name
+                            CallbackSelected()
+                            UpdateSelected()
+                            SendPlayerNotification(playerFound, "Player Selecionado:")
+                        end
+                    end
+                end
+            end
+        end
+    end)
+
     SearchTextBox:GetPropertyChangedSignal("Text"):Connect(function()
         local query = string.lower(SearchTextBox.Text)
         for _, item in pairs(Options) do
@@ -6652,6 +6739,7 @@ function Tab:AddDropdownPlayer(Configs)
     function Dropdown:Destroy()
         c1:Disconnect()
         c2:Disconnect()
+        cClick:Disconnect()
         Button:Destroy()
     end
     Dropdown.ActiveLabel = ActiveLabel
@@ -6672,6 +6760,7 @@ function Tab:AddDropdownPlayer(Configs)
 
     return Dropdown
 end
+
 
 
 
