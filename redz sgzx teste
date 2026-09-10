@@ -7023,7 +7023,7 @@ function Tab:AddDiscordInvite(Configs)
 
     -- Imagem preenchendo o fundo do frame
     local ImageLabel = Create("ImageLabel", FrameHolder, {
-        Size = UDim2.new(1, 0, 1, 0),
+        Size = UDim2.new(1, 0, 0, 85),
         Position = UDim2.new(0, 0, 0, 0),
         Image = Logo,
         BackgroundTransparency = 1,
@@ -7031,15 +7031,16 @@ function Tab:AddDiscordInvite(Configs)
     })
     Make("Corner", ImageLabel, UDim.new(0, 6))
 
-    -- Barra horizontal na parte inferior
-    local BottomBar = Create("Frame", FrameHolder, {
+        -- Barra horizontal na parte inferior usando Color Hub 2
+    local BottomBar = InsertTheme(Create("Frame", FrameHolder, {
         Size = UDim2.new(1, 0, 0, 48),
         AnchorPoint = Vector2.new(0, 1),
         Position = UDim2.new(0, 0, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(15, 15, 20),
-        BackgroundTransparency = 0.25
-    })
+        BackgroundColor3 = Theme["Color Hub 2"]
+    }), "Frame")
     Make("Corner", BottomBar, UDim.new(0, 6))
+    AddTransparency(BottomBar)
+    
 
     -- Nome / Título na barra inferior
     local LTitle = InsertTheme(Create("TextLabel", BottomBar, {
