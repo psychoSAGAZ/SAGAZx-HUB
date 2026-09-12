@@ -5623,8 +5623,8 @@ function Tab:AddDropdownPlayer(Configs)
         BackgroundTransparency = 1
     })
 
-    -- 🔘 MINI TOGGLE "CLICK PLAYER" (Estilo Original, cor do texto fixa em Color Dark Text)
-    local ClickToggleActive = false -- Inicia OFF
+    -- 🔘 MINI TOGGLE "CLICK PLAYER"
+    local ClickToggleActive = false
 
     local ClickPlayerFrame = InsertTheme(Create("TextButton", Button, {
         Size = UDim2.new(0, 150, 0, 14),
@@ -5917,18 +5917,31 @@ function Tab:AddDropdownPlayer(Configs)
         end
     end
 
-    local function AddOption(plr)
-        local Name = plr.Name
+    local function AddOption(optionInput)
+        local Name = ""
+        local plr = nil
+
+        if type(optionInput) == "userdata" and optionInput:IsA("Player") then
+            plr = optionInput
+            Name = plr.Name
+        else
+            Name = tostring(optionInput)
+            plr = Players:FindFirstChild(Name)
+        end
+
         if Options[Name] then return end
 
         local isFriend = false
-        pcall(function()
-            isFriend = LocalPlayer:IsFriendsWith(plr.UserId)
-        end)
+        local displayName = Name
 
-        local displayName = plr.DisplayName
-        if isFriend then
-            displayName = displayName .. " -AMG"
+        if plr then
+            pcall(function()
+                isFriend = LocalPlayer:IsFriendsWith(plr.UserId)
+            end)
+            displayName = plr.DisplayName
+            if isFriend then
+                displayName = displayName .. " -AMG"
+            end
         end
 
         Options[Name] = {
@@ -5966,18 +5979,20 @@ function Tab:AddDropdownPlayer(Configs)
         })
         Make("Corner", PlayerIcon, UDim.new(0.5, 0))
 
-        task.spawn(function()
-            pcall(function()
-                local content, isReady = Players:GetUserThumbnailAsync(
-                    plr.UserId,
-                    Enum.ThumbnailType.HeadShot,
-                    Enum.ThumbnailSize.Size48x48
-                )
-                if isReady then
-                    PlayerIcon.Image = content
-                end
+        if plr then
+            task.spawn(function()
+                pcall(function()
+                    local content, isReady = Players:GetUserThumbnailAsync(
+                        plr.UserId,
+                        Enum.ThumbnailType.HeadShot,
+                        Enum.ThumbnailSize.Size48x48
+                    )
+                    if isReady then
+                        PlayerIcon.Image = content
+                    end
+                end)
             end)
-        end)
+        end
 
         local DisplayLabel = InsertTheme(Create("TextLabel", Button, {
             Size = UDim2.new(1, -34, 0, 14),
@@ -5995,7 +6010,7 @@ function Tab:AddDropdownPlayer(Configs)
         local UserLabel = InsertTheme(Create("TextLabel", Button, {
             Size = UDim2.new(1, -34, 0, 10),
             Position = UDim2.new(0, 32, 0, 16),
-            Text = "@" .. Name,
+            Text = plr and ("@" .. Name) or OptionName or "",
             TextColor3 = Theme["Color Dark Text"],
             Font = MyLibrary.CurrentFont,
             TextSize = 10,
@@ -6029,11 +6044,8 @@ function Tab:AddDropdownPlayer(Configs)
                     RemoveOption(name)
                 end
             end
-            for _, name in ipairs(CustomOptions) do
-                local plr = Players:FindFirstChild(name)
-                if plr and plr ~= LocalPlayer then
-                    AddOption(plr)
-                end
+            for _, item in ipairs(CustomOptions) do
+                AddOption(item)
             end
         else
             for name in pairs(Options) do
@@ -6074,7 +6086,7 @@ function Tab:AddDropdownPlayer(Configs)
                 Selected = OpDefault
             end
         elseif Selected and Selected ~= "..." then
-            if not Options[Selected] or not Players:FindFirstChild(Selected) then
+            if not Options[Selected] then
                 Selected = "..."
                 CallbackSelected()
             end
@@ -6086,7 +6098,6 @@ function Tab:AddDropdownPlayer(Configs)
 
     -- 🖱️ DETECTOR DE CLIQUE NO JOGO
     local cClick = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        -- Só executa se NÃO clicou na UI e se o toggle "Click Player" estiver ON
         if gameProcessed or not clickToSelectEnabled or not ClickToggleActive then 
             return 
         end
@@ -6213,6 +6224,7 @@ function Tab:AddDropdownPlayer(Configs)
 
     return Dropdown
 end
+
 
 
 
