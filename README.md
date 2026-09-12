@@ -156,7 +156,7 @@ Tab1:AddDiscordInvite({
     Description = "",
     Logo = "rbxassetid://86050226751861",
     ["Tik Tok"] = "tiktok.com/@sagazx_xd",
-    Discord = "https://discord.gg/YDqzMCw5P"
+    Discord = "https://discord.gg/JHHZUtUeT8"
 })
 
 Tab1:AddSection({Name = "Perfil"})
