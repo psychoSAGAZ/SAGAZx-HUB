@@ -6038,28 +6038,34 @@ function Tab:AddDropdownPlayer(Configs)
     end
 
     local function RefreshPlayers()
+        -- Tabela com todas as chaves válidas que devem existir no menu
+        local validKeys = {}
+
+        -- 1. Processa as opções customizadas (ex: "All")
         if CustomOptions and type(CustomOptions) == "table" then
-            for name in pairs(Options) do
-                if not table.find(CustomOptions, name) then
-                    RemoveOption(name)
-                end
-            end
             for _, item in ipairs(CustomOptions) do
+                local name = tostring(item)
+                validKeys[name] = true
                 AddOption(item)
-            end
-        else
-            for name in pairs(Options) do
-                if not Players:FindFirstChild(name) then
-                    RemoveOption(name)
-                end
-            end
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= LocalPlayer then
-                    AddOption(plr)
-                end
             end
         end
 
+        -- 2. Processa os jogadores do servidor
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer then
+                validKeys[plr.Name] = true
+                AddOption(plr)
+            end
+        end
+
+        -- 3. Remove opções antigas que não existem mais nem no CustomOptions nem no servidor
+        for name in pairs(Options) do
+            if not validKeys[name] then
+                RemoveOption(name)
+            end
+        end
+
+        -- Seleção inicial automática
         if not hasAutoSelected then
             hasAutoSelected = true
             
@@ -6095,6 +6101,7 @@ function Tab:AddDropdownPlayer(Configs)
         UpdateSelected()
         CalculateSize(false)
     end
+
 
     -- 🖱️ DETECTOR DE CLIQUE NO JOGO
     local cClick = UserInputService.InputBegan:Connect(function(input, gameProcessed)
