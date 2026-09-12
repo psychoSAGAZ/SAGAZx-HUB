@@ -1,24 +1,263 @@
+-- ====================================================================
+-- 🌍 TRADUTOR EXTERNO v2 — Corrigido
+-- ====================================================================
+
+local Translations = {}
+
+do
+    local ok, remoteTable = pcall(function()
+        return loadstring(game:HttpGet(
+            "https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Teste%20part%20Redz"
+        ))()
+    end)
+
+    Translations.Frases = ok and remoteTable or {
+        ["pt"] = {}, ["en"] = {}, ["es"] = {}, ["it"] = {}
+    }
+
+    local locale = (game.Players.LocalPlayer.LocaleId or "en-US"):sub(1, 2):lower()
+    if not Translations.Frases[locale] then locale = "en" end
+    Translations.Idioma = locale
+
+    if not Translations.Frases["pt"] then
+        Translations.Frases["pt"] = {}
+    end
+end
+
+local HttpService = game:GetService("HttpService")
+local LANG_FILE = "SAGAZx HUB Lib/language.json"
+
+local function SaveLanguage(lang)
+    if writefile then
+        pcall(function()
+            writefile(LANG_FILE, HttpService:JSONEncode({language = lang}))
+        end)
+    end
+end
+
+local function LoadLanguage()
+    if isfile and isfile(LANG_FILE) then
+        local s, data = pcall(function()
+            return HttpService:JSONDecode(readfile(LANG_FILE))
+        end)
+        if s and data and data.language and Translations.Frases[data.language] then
+            return data.language
+        end
+    end
+    return nil
+end
+
+local saved = LoadLanguage()
+if saved then Translations.Idioma = saved end
+
+-- ========== API PÚBLICA ==========
+getgenv().Translator = {
+    GetLanguage = function() return Translations.Idioma end,
+
+    SetLanguage = function(lang)
+        if not Translations.Frases[lang] then
+            warn("[Translator] Idioma inválido: " .. tostring(lang))
+            return
+        end
+        Translations.Idioma = lang
+        SaveLanguage(lang)
+        getgenv().Translator._RetranslateAll()
+    end,
+
+    Translate = function(text)
+        if type(text) ~= "string" or text == "" then return text end
+        local dic = Translations.Frases[Translations.Idioma]
+        if not dic then return text end
+        return dic[text] or text
+    end,
+
+    _RetranslateAll = function() end,  -- definido abaixo
+}
+
+-- ====================================================================
+-- 🔥 AUTO-TRADUÇÃO — Só dentro de "SAGAZx HUB"
+-- ====================================================================
+
+local CoreGui = game:GetService("CoreGui")
+local TARGET_GUI_NAME = "SAGAZx HUB"   -- ⬅️ só mexe aqui
+
+-- ⚠️ Verifica se o elemento é filho do SAGAZx HUB
+local function IsInTargetGui(obj)
+    local current = obj
+    while current do
+        if current.Name == TARGET_GUI_NAME and current.Parent == CoreGui then
+            return true
+        end
+        current = current.Parent
+    end
+    return false
+end
+
+-- ⚠️ Verifica se o TextBox está em foco (usuário digitando)
+local function IsFocused(obj)
+    if not obj:IsA("TextBox") then return false end
+    return obj:IsFocused()
+end
+
+-- Traduz UM elemento (regras corrigidas)
+local function TranslateElement(obj)
+    if not obj or not obj.Parent then return end
+    if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
+    if not IsInTargetGui(obj) then return end  -- ⬅️ filtra
+
+    local Translator = getgenv().Translator
+
+    -- ===== TextLabel / TextButton =====
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+        if not obj:GetAttribute("_OriginalText") then
+            if obj.Text and obj.Text ~= "" then
+                obj:SetAttribute("_OriginalText", obj.Text)
+            end
+        end
+
+        local original = obj:GetAttribute("_OriginalText")
+        if original then
+            local translated = Translator.Translate(original)
+            if obj.Text ~= translated then
+                obj.Text = translated
+            end
+        end
+    end
+
+    -- ===== TextBox =====
+    -- ⚠️ Só traduz o PLACEHOLDER, e só quando NÃO está em foco
+    if obj:IsA("TextBox") then
+        -- Placeholder (nunca conflita com input do usuário)
+        if not obj:GetAttribute("_OriginalPlaceholder") then
+            if obj.PlaceholderText and obj.PlaceholderText ~= "" then
+                obj:SetAttribute("_OriginalPlaceholder", obj.PlaceholderText)
+            end
+        end
+        local origPh = obj:GetAttribute("_OriginalPlaceholder")
+        if origPh and not IsFocused(obj) then
+            local translatedPh = Translator.Translate(origPh)
+            if obj.PlaceholderText ~= translatedPh then
+                obj.PlaceholderText = translatedPh
+            end
+        end
+
+        -- ⚠️ NÃO traduz o Text de TextBox
+        -- O conteúdo digitado é do usuário, NUNCA deve ser mexido
+    end
+end
+
+-- Varre só a GUI alvo
+local function TranslateAll()
+    local target = CoreGui:FindFirstChild(TARGET_GUI_NAME)
+    if not target then return end
+
+    for _, obj in ipairs(target:GetDescendants()) do
+        TranslateElement(obj)
+    end
+end
+
+-- Re-traduz quando trocar idioma
+getgenv().Translator._RetranslateAll = function()
+    local target = CoreGui:FindFirstChild(TARGET_GUI_NAME)
+    if not target then return end
+
+    for _, obj in ipairs(target:GetDescendants()) do
+        if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+            local original = obj:GetAttribute("_OriginalText")
+            if original then
+                obj.Text = getgenv().Translator.Translate(original)
+            end
+        elseif obj:IsA("TextBox") then
+            local origPh = obj:GetAttribute("_OriginalPlaceholder")
+            if origPh and not obj:IsFocused() then
+                obj.PlaceholderText = getgenv().Translator.Translate(origPh)
+            end
+        end
+    end
+end
+
+-- ========== OBSERVADORES ==========
+
+-- Espera a GUI alvo aparecer e conecta observadores
+local function HookTargetGui()
+    local target = CoreGui:WaitForChild(TARGET_GUI_NAME, 30)
+    if not target then
+        warn("[Translator] GUI '" .. TARGET_GUI_NAME .. "' não encontrada em 30s.")
+        return
+    end
+
+    -- Traduz tudo que já existe
+    for _, obj in ipairs(target:GetDescendants()) do
+        TranslateElement(obj)
+    end
+
+    -- Novos elementos (botões, dropdowns, notificações)
+    target.DescendantAdded:Connect(function(obj)
+        task.wait(0.05)
+        TranslateElement(obj)
+    end)
+
+    print("[Translator] Hook aplicado em '" .. TARGET_GUI_NAME .. "'")
+end
+
+task.spawn(HookTargetGui)
+
+-- Loop de segurança (bem mais espaçado agora — 2s)
+task.spawn(function()
+    while task.wait(2) do
+        pcall(TranslateAll)
+    end
+end)
+
+-- ====================================================================
+
+
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Redz Lib-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
-local MyLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/REDZ-lib-TESTE/refs/heads/main/README.md"))()
+local MyLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/redz%20sgzx%20teste"))()
 
 local Window = MyLibrary:MakeWindow({
-    Title = "SAGAZx HUB",
-    SubTitle = "| by SAGAZx😎",
+    Title = "SAGAZx Hub",
+    SubTitle = "by SAGAZx😎",
     SaveFolder = "SAGAZxConfig"
 })
+
 
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Home-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
 local Tab1 = Window:MakeTab({ "| Início", "menu" })
 
+-- Suponha que você já tem uma aba de config
+Tab1:AddSection({"Idioma / Language"})
+
+Tab1:AddDropdown({
+    Name = "Idioma/language",
+    Options = {"Português", "English", "Español", "Italiano"},
+    Default = ({
+        pt = "Português", en = "English", es = "Español", it = "Italiano"
+    })[getgenv().Translator.GetLanguage()] or "Português",
+    Callback = function(value)
+        local map = {
+            ["Português"] = "pt",
+            ["English"]   = "en",
+            ["Español"]   = "es",
+            ["Italiano"]  = "it"
+        }
+        local code = map[value]
+        if code then
+            getgenv().Translator.SetLanguage(code)
+        end
+    end
+})
+
 Tab1:AddDiscordInvite({
     Name = "SAGAZx",
-    Description = "Me Siga No Discord e TikTok",
+    Description = "",
     Logo = "rbxassetid://86050226751861",
-    Invite = "Discord: ''https://discord.gg/YDqzMCw5P''         TikTok: ''tiktok.com/@sagazx_xd''   ",
+    ["Tik Tok"] = "tiktok.com/@sagazx_xd",
+    Discord = "https://discord.gg/YDqzMCw5P"
 })
 
 Tab1:AddSection({Name = "Perfil"})
@@ -1087,7 +1326,7 @@ local DropdownJogadores = Tab3:AddDropdownPlayer({
     Callback = function(Value)
         selectedPlayer = Value
     end
-})
+}) 
 
 
 local selectedKillMethod = nil -- Variável global que vai guardar o método ativo
@@ -2321,14 +2560,9 @@ local auraHeight = -3
 local auraEnabled = false -- Orbita Você
 local auraTargetEnabled = false -- Orbita Alvo
 local currentShape = "Circulo"
-local currentMovement = "Em fila sentido horario"
+local currentMovement = "Em fila"
 
-local effectWaveEnabled = false
-local effectWaveV2Enabled = false
-local maxWaveHeight = 5 
-
--- Novas Variáveis
-local effectPingPongEnabled = false -- Efeito Vai e Vem
+-- Nova Variável
 local orbitStaticEnabled = false -- Órbita Posição Atual
 local staticPosition = nil -- Guarda a posição capturada
 
@@ -2358,34 +2592,25 @@ Tab3:AddDropdown({
 
 Tab3:AddDropdown({
     Name = "Movimentos",
-    Default = "Em fila sentido horario",
+    Default = "Em fila",
     Multi = false,
     Options = {
-        "Em fila sentido horario", 
-        "Em fila sentido anti horario", 
-        "Virado para fora sentido horario", 
-        "Virado para fora sentido anti horario", 
-        "Virado para dentro sentido horario", 
-        "Virado para dentro sentido anti horario",
-        "De cabeça para baixo sentido horario",
-        "De cabeça para baixo sentido anti horario",
-        "De cabeça para baixo virado para dentro horario",
-        "De cabeça para baixo virado para dentro anti horario",
-        "De cabeça para baixo virado para fora horario",
-        "De cabeça para baixo virado para fora anti horario",
-        "Deitado horário",
-        "Deitado anti horario",
-        "Deitado virado para dentro horario",
-        "Deitado virado para dentro anti horario",
-        "Deitado virado para fora horário",
-        "Deitado virado para fora anti horario"
+        "Em fila",
+        "Para fora",
+        "Para dentro",
+        "De cabeça para baixo",
+        "De cabeça para baixo para dentro",
+        "De cabeça para baixo para fora",
+        "Deitado",
+        "Deitado para dentro",
+        "Deitado para fora"
     },
     Callback = function(movement) currentMovement = movement end
 })
 
 Tab3:AddSlider({
     Name = "Distância",
-    Min = 1, -- Ajustado para o mínimo exigido pelo Vai e Vem
+    Min = 1,
     Max = 100,
     Default = 6,
     Increase = 0.5,
@@ -2403,45 +2628,18 @@ Tab3:AddSlider({
 
 Tab3:AddSlider({
     Name = "Altura",
-    Min = -3, 
+    Min = -3,
     Max = 100,
     Default = -3,
     Increase = 0.5,
     Callback = function(v) auraHeight = v end
 })
 
-Tab3:AddSlider({
-    Name = "Altura Efeitos",
-    Min = 1,
-    Max = 20,
-    Default = 5,
-    Increase = 0.5,
-    Callback = function(v) maxWaveHeight = v end
-})
-
-Tab3:AddToggle({
-    Name = "Efeito Sobe e Desce",
-    Default = false,
-    Callback = function(v) effectWaveEnabled = v end
-})
-
-Tab3:AddToggle({
-    Name = "Efeito Sobe e Desce V2",
-    Default = false,
-    Callback = function(v) effectWaveV2Enabled = v end
-})
-
-Tab3:AddToggle({
-    Name = "Efeito Vai e Vem",
-    Default = false,
-    Callback = function(v) effectPingPongEnabled = v end
-})
-
 Tab3:AddToggle({
     Name = "Órbita Posição Atual",
     Default = false,
-    Callback = function(v) 
-        orbitStaticEnabled = v 
+    Callback = function(v)
+        orbitStaticEnabled = v
         if v then
             -- Captura a posição APENAS UMA VEZ no momento do clique
             local char = LocalPlayer.Character
@@ -2488,8 +2686,6 @@ end
 -- Loop Principal
 task.spawn(function()
     local angle = 0
-    local waveTime = 0
-    local pingPongTime = 0
 
     RunService.RenderStepped:Connect(function(dt)
         if not auraEnabled and not auraTargetEnabled and not orbitStaticEnabled then return end
@@ -2505,15 +2701,8 @@ task.spawn(function()
         local propsFolder = folder and folder:FindFirstChild("001_TrafficCones")
         if not propsFolder then return end
 
-        -- Sentido da rotação
-        if currentMovement:find("anti horario") then
-            angle = angle - (dt * auraSpeed)
-        else
-            angle = angle + (dt * auraSpeed)
-        end
-        
-        waveTime = waveTime + (dt * 1.5)
-        pingPongTime = pingPongTime + (dt * 2) -- Velocidade do Vai e Vem
+        -- Sentido da rotação (sempre horário agora)
+        angle = angle + (dt * auraSpeed)
 
         local myProps = {}
         for _, prop in ipairs(propsFolder:GetChildren()) do
@@ -2576,56 +2765,31 @@ task.spawn(function()
 
             if centerPosition then
                 local offsetAngle = angle + ((index - 1) * (math.pi * 2 / groupTotal))
-                
-                -- Cálculo Dinâmico da Distância (Efeito Vai e Vem)
-                local dynamicDistance = auraDistance
-                if effectPingPongEnabled then
-                    if auraDistance > 5 then
-                        -- Oscila suavemente de 5 até o valor do slider máximo configurado
-                        local wave = (math.sin(pingPongTime) + 1) * 0.5
-                        dynamicDistance = 5 + (wave * (auraDistance - 5))
-                    else
-                        dynamicDistance = 5
-                    end
-                end
 
-                -- 1. Calcula Posição X e Z com a nova distância dinâmica
+                -- 1. Calcula Posição X e Z
                 local px, pz = 0, 0
                 if currentShape == "Quadrado" then
-                    px, pz = getSquareOffset(offsetAngle, dynamicDistance)
+                    px, pz = getSquareOffset(offsetAngle, auraDistance)
                 elseif currentShape == "Triangulo" then
-                    px, pz = getTriangleOffset(offsetAngle, dynamicDistance)
+                    px, pz = getTriangleOffset(offsetAngle, auraDistance)
                 else
-                    px = math.cos(offsetAngle) * dynamicDistance
-                    pz = math.sin(offsetAngle) * dynamicDistance
+                    px = math.cos(offsetAngle) * auraDistance
+                    pz = math.sin(offsetAngle) * auraDistance
                 end
 
-                -- 2. Efeito Sobe e Desce
-                local yOffset = 0
-                if effectWaveEnabled then
-                    local activeIndex = (math.floor(waveTime / math.pi) % groupTotal) + 1
-                    local activeProgress = waveTime % math.pi 
-                    if index == activeIndex then
-                        yOffset = math.sin(activeProgress) * maxWaveHeight
-                    end
-                elseif effectWaveV2Enabled then
-                    local groupFactor = (index % 2 == 0) and 1 or -1
-                    yOffset = (math.sin(waveTime * 0.8 * groupFactor) + 1) * 0.5 * maxWaveHeight
-                end
+                local targetPosition = centerPosition + Vector3.new(px, auraHeight, pz)
 
-                local targetPosition = centerPosition + Vector3.new(px, auraHeight + yOffset, pz)
-
-                -- 3. Rotação/Direção do CFrame
+                -- 2. Rotação/Direção do CFrame
                 local baseCFrame
-                if currentMovement:find("virado para fora") or currentMovement:find("Virado para fora") then
+                if currentMovement:find("para fora") or currentMovement:find("Para fora") then
                     baseCFrame = CFrame.lookAt(targetPosition, targetPosition + Vector3.new(px, 0, pz))
-                elseif currentMovement:find("virado para dentro") or currentMovement:find("Virado para dentro") then
+                elseif currentMovement:find("para dentro") or currentMovement:find("Para dentro") then
                     baseCFrame = CFrame.lookAt(targetPosition, Vector3.new(centerPosition.X, targetPosition.Y, centerPosition.Z))
                 else
                     baseCFrame = CFrame.new(targetPosition) * (referenceCFrame - referenceCFrame.Position)
                 end
 
-                -- 4. Multiplicadores de Eixo Especiais
+                -- 3. Multiplicadores de Eixo Especiais
                 local targetCFrame = baseCFrame
                 if currentMovement:find("De cabeça para baixo") then
                     targetCFrame = baseCFrame * CFrame.Angles(0, 0, math.pi)
@@ -2645,8 +2809,6 @@ task.spawn(function()
         end
     end)
 end)
-
-
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Antis-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -3854,103 +4016,195 @@ Tab5:AddButton({
     end
 })
 
--- Gerar Código da Skin Selecionada
-Tab5:AddButton({
-    Name = "Gerar Código da Skin Selecionada",
-    Description = "Gere o Código Para o Carregamento Instantâneo",
-    Callback = function()
-        if not SelectedSkin or not Skins[SelectedSkin] then
-            CreateNotification("Aviso", "Selecione uma skin na dropdown de skins!", 4)
-            return
-        end
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SavePath = "saved_skins.json"
 
-        local skinName = SelectedSkin
-        local skinData = Skins[skinName]
+-- Estrutura inicial do arquivo JSON
+local function GetDefaultData()
+    return {
+        LastSlot = 25, -- O próximo slot gerado será 26
+        Skins = {}
+    }
+end
 
-        CreateNotification("Processando", "Aplicando skin '" .. skinName .. "' para gerar o código...", 5)
-
-        -- Aplica a skin selecionada usando o corpo e revisões
-        AplicarSkin(skinData)
-
-        -- Solicita a exportação do código do servidor
-        local success, result1, result2 = pcall(function()
-            return Remotes.AvatarEditorOutfitCodes:InvokeServer("Export")
+-- Carregar dados do JSON
+local function LoadSkinsData()
+    if isfile and isfile(SavePath) then
+        local success, result = pcall(function()
+            return HttpService:JSONDecode(readfile(SavePath))
         end)
-
-        local generatedCode = nil
-        if success then
-            if tostring(result1):find("BH%-AE") then
-                generatedCode = result1
-            elseif tostring(result2):find("BH%-AE") then
-                generatedCode = result2
-            end
+        if success and type(result) == "table" and result.Skins then
+            return result
         end
+    end
+    return GetDefaultData()
+end
 
-        if generatedCode then
-            Outfits[skinName] = {
-                Code = generatedCode,
-                CreatedAt = os.time()
-            }
-            SaveCodesFile()
-            RefreshCodesDropdown()
-            CreateNotification("Sucesso", "Código gerado para " .. skinName, 4)
-        else
-            CreateNotification("Erro", "Erro ao gerar código do servidor.", 4)
-        end
+-- Salvar dados no JSON
+local function SaveSkinsData(data)
+    if writefile then
+        writefile(SavePath, HttpService:JSONEncode(data))
+    end
+end
+
+-- Tabela em memória
+local SkinData = LoadSkinsData()
+
+-- Obter lista de nomes das skins salvas
+local function GetSkinNames()
+    local names = {}
+    for name, _ in pairs(SkinData.Skins) do
+        table.insert(names, name)
+    end
+    return names
+end
+
+Tab5:AddSection({ "skins instataneas" })
+
+-- 1. TextBox para o Nome da Skin
+local SkinNameInput = ""
+Tab5:AddTextBox({
+    Name = "Nome da Skin",
+    Default = "",
+    PlaceholderText = "Digite o nome aqui...",
+    ClearTextOnFocus = false,
+    Callback = function(Value)
+        SkinNameInput = Value
     end
 })
 
-Tab5:AddSection({ "Carrega Skins Salvas Instantaneamente" })
+-- Variáveis de controle do Dropdown
+local SelectedSkinName = ""
+local SkinDropdown
 
-DropdownCodes = Tab5:AddDropdown({
-    Name = "Codigos de Skins",
-    Options = GetFormattedCodesList(),
-    Callback = function(option)
-        if option then
-            local name = option:match("^(.-)%s*%(")
-            if name then
-                SelectedOutfitKey = name:gsub("%s+$", "")
-            else
-                SelectedOutfitKey = option
-            end
-        end
+-- 2. Dropdown com as Skins Salvas
+SkinDropdown = Tab5:AddDropdown({
+    Name = "Skins Salvas",
+    Options = GetSkinNames(),
+    Default = "",
+    Callback = function(Value)
+        SelectedSkinName = Value
     end
 })
 
--- Carregar Código Selecionado
+-- Função auxiliar para atualizar a lista do Dropdown
+local function RefreshDropdown()
+    local currentNames = GetSkinNames()
+    if SkinDropdown and SkinDropdown.Set then
+        SkinDropdown:Set(currentNames)
+    end
+end
+
+-- 3. Botão para Salvar Skin
 Tab5:AddButton({
-    Name = "Carregar Skin Selecionado",
+    Name = "Salvar Skin",
     Callback = function()
-        if not SelectedOutfitKey or not Outfits[SelectedOutfitKey] then
-            CreateNotification("Aviso", "Selecione Uma Skin  na Dropdown Primeiro!", 4)
+        if SkinNameInput == "" then
+            MyLibrary:Notify({
+                Title = "Erro",
+                Message = "Digite um nome para a skin!",
+                Duration = 3
+            })
             return
         end
-        
-        local info = Outfits[SelectedOutfitKey]
-        task.spawn(function()
-            pcall(function()
-                Remotes.AvatarEditorOutfitCodes:InvokeServer("Load", info.Code)
-            end)
-        end)
-        CreateNotification("Sucesso", "Skin Carregada Com Sucesso!", 4)
+
+        -- Impede o salvamento com nome duplicado
+        if SkinData.Skins[SkinNameInput] then
+            MyLibrary:Notify({
+                Title = "Aviso",
+                Message = "Já existe uma skin com esse nome!",
+                Duration = 3
+            })
+            return
+        end
+
+        -- Gera o próximo slot sequencial
+        SkinData.LastSlot = SkinData.LastSlot + 1
+        local currentSlot = SkinData.LastSlot
+
+        -- Chamada do Remote
+        local args = {
+            [1] = currentSlot,
+            [2] = SkinNameInput
+        }
+        ReplicatedStorage.Remotes.SaveOutfit:InvokeServer(unpack(args))
+
+        -- Salva no JSON
+        SkinData.Skins[SkinNameInput] = currentSlot
+        SaveSkinsData(SkinData)
+
+        -- Atualiza o Dropdown
+        RefreshDropdown()
+
+        MyLibrary:Notify({
+            Title = "Sucesso",
+            Message = "Skin '" .. SkinNameInput .. "' salva com sucesso!",
+            Duration = 3
+        })
     end
 })
 
--- Excluir Código Selecionado
+-- 4. Botão para Carregar Skin Selecionada
 Tab5:AddButton({
-    Name = "Excluir Skin Selecionada",
+    Name = "Carregar Skin",
     Callback = function()
-        if not SelectedOutfitKey or not Outfits[SelectedOutfitKey] then
-            CreateNotification("Aviso", "Selecione um código para excluir!", 4)
+        if SelectedSkinName == "" or not SkinData.Skins[SelectedSkinName] then
+            MyLibrary:Notify({
+                Title = "Aviso",
+                Message = "Selecione uma skin válida no Dropdown!",
+                Duration = 3
+            })
             return
         end
-        
-        Outfits[SelectedOutfitKey] = nil
-        SaveCodesFile()
-        RefreshCodesDropdown()
-        CreateNotification("Sucesso", "Código de Skin Excluído Com Sucesso!", 4)
+
+        local SlotToLoad = SkinData.Skins[SelectedSkinName]
+
+        local args = {
+            [1] = SlotToLoad
+        }
+        ReplicatedStorage.Remotes.LoadOutfit:InvokeServer(unpack(args))
+
+        MyLibrary:Notify({
+            Title = "Sucesso",
+            Message = "Skin '" .. SelectedSkinName .. "' carregada!",
+            Duration = 3
+        })
     end
 })
+
+-- 5. Botão para Deletar Skin Selecionada
+Tab5:AddButton({
+    Name = "Deletar Skin",
+    Callback = function()
+        if SelectedSkinName == "" or not SkinData.Skins[SelectedSkinName] then
+            MyLibrary:Notify({
+                Title = "Aviso",
+                Message = "Selecione uma skin para deletar!",
+                Duration = 3
+            })
+            return
+        end
+
+        local DeletedName = SelectedSkinName
+
+        -- Remove a skin da tabela local
+        SkinData.Skins[SelectedSkinName] = nil
+        SaveSkinsData(SkinData)
+
+        SelectedSkinName = ""
+
+        -- Atualiza o Dropdown
+        RefreshDropdown()
+
+        MyLibrary:Notify({
+            Title = "Removido",
+            Message = "Skin '" .. DeletedName .. "' foi deletada!",
+            Duration = 3
+        })
+    end
+})
+
 
 Tab5:AddSection({ " Animações Secretas" })
 
