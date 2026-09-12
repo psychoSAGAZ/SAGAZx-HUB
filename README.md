@@ -7,219 +7,131 @@ task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
 end)
 
-
 -- ====================================================================
--- 🌍 TRADUTOR EXTERNO v2 — Corrigido
+-- 🌍 TRADUTOR SIMPLIFICADO — SAGAZx HUB
 -- ====================================================================
-
-local Translations = {}
-
-do
-    local ok, remoteTable = pcall(function()
-        return loadstring(game:HttpGet(
-            "https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Teste%20part%20Redz"
-        ))()
-    end)
-
-    Translations.Frases = ok and remoteTable or {
-        ["pt"] = {}, ["en"] = {}, ["es"] = {}, ["it"] = {}
-    }
-
-    local locale = (game.Players.LocalPlayer.LocaleId or "en-US"):sub(1, 2):lower()
-    if not Translations.Frases[locale] then locale = "en" end
-    Translations.Idioma = locale
-
-    if not Translations.Frases["pt"] then
-        Translations.Frases["pt"] = {}
-    end
-end
 
 local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+
+local TARGET_GUI = "SAGAZx HUB"
 local LANG_FILE = "SAGAZx HUB Lib/language.json"
+
+-- ========== CARREGAMENTO DAS TRADUÇÕES REMOTE ==========
+local Translations = { Frases = { ["pt"] = {}, ["en"] = {}, ["es"] = {}, ["it"] = {} } }
+
+local ok, remoteTable = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Teste%20part%20Redz"))()
+end)
+
+if ok and type(remoteTable) == "table" then
+    Translations.Frases = remoteTable
+end
+
+-- Determina idioma padrão do jogo ou do arquivo salvo
+local defaultLocale = (game.Players.LocalPlayer.LocaleId or "en-US"):sub(1, 2):lower()
+Translations.Idioma = Translations.Frases[defaultLocale] and defaultLocale or "en"
 
 local function SaveLanguage(lang)
     if writefile then
-        pcall(function()
-            writefile(LANG_FILE, HttpService:JSONEncode({language = lang}))
-        end)
+        pcall(function() writefile(LANG_FILE, HttpService:JSONEncode({ language = lang })) end)
     end
 end
 
 local function LoadLanguage()
     if isfile and isfile(LANG_FILE) then
-        local s, data = pcall(function()
-            return HttpService:JSONDecode(readfile(LANG_FILE))
-        end)
+        local s, data = pcall(function() return HttpService:JSONEncode(readfile(LANG_FILE)) end)
         if s and data and data.language and Translations.Frases[data.language] then
             return data.language
         end
     end
-    return nil
 end
 
-local saved = LoadLanguage()
-if saved then Translations.Idioma = saved end
-
--- ========== API PÚBLICA ==========
-getgenv().Translator = {
-    GetLanguage = function() return Translations.Idioma end,
-
-    SetLanguage = function(lang)
-        if not Translations.Frases[lang] then
-            warn("[Translator] Idioma inválido: " .. tostring(lang))
-            return
-        end
-        Translations.Idioma = lang
-        SaveLanguage(lang)
-        getgenv().Translator._RetranslateAll()
-    end,
-
-    Translate = function(text)
-        if type(text) ~= "string" or text == "" then return text end
-        local dic = Translations.Frases[Translations.Idioma]
-        if not dic then return text end
-        return dic[text] or text
-    end,
-
-    _RetranslateAll = function() end,  -- definido abaixo
-}
+Translations.Idioma = LoadLanguage() or Translations.Idioma
 
 -- ====================================================================
--- 🔥 AUTO-TRADUÇÃO — Só dentro de "SAGAZx HUB"
+-- ⚙️ MOTOR DE TRADUÇÃO DAS GUIS
 -- ====================================================================
 
-local CoreGui = game:GetService("CoreGui")
-local TARGET_GUI_NAME = "SAGAZx HUB"   -- ⬅️ só mexe aqui
-
--- ⚠️ Verifica se o elemento é filho do SAGAZx HUB
-local function IsInTargetGui(obj)
-    local current = obj
-    while current do
-        if current.Name == TARGET_GUI_NAME and current.Parent == CoreGui then
-            return true
-        end
-        current = current.Parent
-    end
-    return false
+local function TranslateText(text)
+    if not text or text == "" then return text end
+    local dic = Translations.Frases[Translations.Idioma]
+    return (dic and dic[text]) or text
 end
 
--- ⚠️ Verifica se o TextBox está em foco (usuário digitando)
-local function IsFocused(obj)
-    if not obj:IsA("TextBox") then return false end
-    return obj:IsFocused()
-end
-
--- Traduz UM elemento (regras corrigidas)
-local function TranslateElement(obj)
-    if not obj or not obj.Parent then return end
+local function ApplyTranslation(obj)
     if not (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox")) then return end
-    if not IsInTargetGui(obj) then return end  -- ⬅️ filtra
 
-    local Translator = getgenv().Translator
-
-    -- ===== TextLabel / TextButton =====
+    -- TextLabel e TextButton
     if obj:IsA("TextLabel") or obj:IsA("TextButton") then
-        if not obj:GetAttribute("_OriginalText") then
-            if obj.Text and obj.Text ~= "" then
-                obj:SetAttribute("_OriginalText", obj.Text)
-            end
+        if not obj:GetAttribute("_OriginalText") and obj.Text ~= "" then
+            obj:SetAttribute("_OriginalText", obj.Text)
         end
 
         local original = obj:GetAttribute("_OriginalText")
         if original then
-            local translated = Translator.Translate(original)
-            if obj.Text ~= translated then
-                obj.Text = translated
-            end
+            obj.Text = TranslateText(original)
         end
     end
 
-    -- ===== TextBox =====
-    -- ⚠️ Só traduz o PLACEHOLDER, e só quando NÃO está em foco
+    -- TextBox (Apenas Placeholder)
     if obj:IsA("TextBox") then
-        -- Placeholder (nunca conflita com input do usuário)
-        if not obj:GetAttribute("_OriginalPlaceholder") then
-            if obj.PlaceholderText and obj.PlaceholderText ~= "" then
-                obj:SetAttribute("_OriginalPlaceholder", obj.PlaceholderText)
-            end
+        if not obj:GetAttribute("_OriginalPlaceholder") and obj.PlaceholderText ~= "" then
+            obj:SetAttribute("_OriginalPlaceholder", obj.PlaceholderText)
         end
+
         local origPh = obj:GetAttribute("_OriginalPlaceholder")
-        if origPh and not IsFocused(obj) then
-            local translatedPh = Translator.Translate(origPh)
-            if obj.PlaceholderText ~= translatedPh then
-                obj.PlaceholderText = translatedPh
-            end
+        if origPh and not obj:IsFocused() then
+            obj.PlaceholderText = TranslateText(origPh)
         end
-
-        -- ⚠️ NÃO traduz o Text de TextBox
-        -- O conteúdo digitado é do usuário, NUNCA deve ser mexido
     end
 end
 
--- Varre só a GUI alvo
 local function TranslateAll()
-    local target = CoreGui:FindFirstChild(TARGET_GUI_NAME)
-    if not target then return end
+    local gui = CoreGui:FindFirstChild(TARGET_GUI) or CoreGui:FindFirstChild("Redz Library")
+    if not gui then return end
 
-    for _, obj in ipairs(target:GetDescendants()) do
-        TranslateElement(obj)
+    for _, descendant in ipairs(gui:GetDescendants()) do
+        ApplyTranslation(descendant)
     end
 end
-
--- Re-traduz quando trocar idioma
-getgenv().Translator._RetranslateAll = function()
-    local target = CoreGui:FindFirstChild(TARGET_GUI_NAME)
-    if not target then return end
-
-    for _, obj in ipairs(target:GetDescendants()) do
-        if obj:IsA("TextLabel") or obj:IsA("TextButton") then
-            local original = obj:GetAttribute("_OriginalText")
-            if original then
-                obj.Text = getgenv().Translator.Translate(original)
-            end
-        elseif obj:IsA("TextBox") then
-            local origPh = obj:GetAttribute("_OriginalPlaceholder")
-            if origPh and not obj:IsFocused() then
-                obj.PlaceholderText = getgenv().Translator.Translate(origPh)
-            end
-        end
-    end
-end
-
--- ========== OBSERVADORES ==========
-
--- Espera a GUI alvo aparecer e conecta observadores
-local function HookTargetGui()
-    local target = CoreGui:WaitForChild(TARGET_GUI_NAME, 30)
-    if not target then
-        warn("[Translator] GUI '" .. TARGET_GUI_NAME .. "' não encontrada em 30s.")
-        return
-    end
-
-    -- Traduz tudo que já existe
-    for _, obj in ipairs(target:GetDescendants()) do
-        TranslateElement(obj)
-    end
-
-    -- Novos elementos (botões, dropdowns, notificações)
-    target.DescendantAdded:Connect(function(obj)
-        task.wait(0.05)
-        TranslateElement(obj)
-    end)
-
-    print("[Translator] Hook aplicado em '" .. TARGET_GUI_NAME .. "'")
-end
-
-task.spawn(HookTargetGui)
-
--- Loop de segurança (bem mais espaçado agora — 2s)
-task.spawn(function()
-    while task.wait(2) do
-        pcall(TranslateAll)
-    end
-end)
 
 -- ====================================================================
+-- 🌐 API PÚBLICA (Translator)
+-- ====================================================================
+
+getgenv().Translator = {
+    GetLanguage = function() 
+        return Translations.Idioma 
+    end,
+
+    SetLanguage = function(lang)
+        if not Translations.Frases[lang] then return end
+        Translations.Idioma = lang
+        SaveLanguage(lang)
+        TranslateAll()
+    end,
+
+    Translate = TranslateText
+}
+
+-- ====================================================================
+-- 🚀 AUTOLOAD E CONEXÕES
+-- ====================================================================
+
+task.spawn(function()
+    local gui = CoreGui:WaitForChild(TARGET_GUI, 10) or CoreGui:WaitForChild("Redz Library", 5)
+    if not gui then return end
+
+    -- Tradução Inicial
+    TranslateAll()
+
+    -- Traduz dinamicamente novos elementos inseridos (Dropdowns, Notificações, etc)
+    gui.DescendantAdded:Connect(function(descendant)
+        task.wait(0.05)
+        ApplyTranslation(descendant)
+    end)
+end)
 
 
 ----------------------------------------------------------------------------------------------------------------
