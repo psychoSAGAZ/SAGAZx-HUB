@@ -1,3 +1,20 @@
+
+-- ============================================================
+-- 🔍 VERIFICADOR DE PLACE ID
+-- ============================================================
+local TARGET_PLACE_ID = 4924922222
+
+if game.PlaceId ~= TARGET_PLACE_ID then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/SAGAZx%20Hub%20Universal"))()
+    return
+end
+
+-- ============================================================
+-- 🎮 CÓDIGO DO JOGO (4924922222)
+-- ============================================================
+
+-- (aqui vai todo o resto do seu script do jogo específico)
+
 -------------------------------------------
 -- Intro
 -------------------------------------------
