@@ -9,19 +9,7 @@ if game.PlaceId ~= TARGET_PLACE_ID then
     return
 end
 
--- ============================================================
--- 🎮 CÓDIGO DO JOGO (4924922222)
--- ============================================================
 
--- (aqui vai todo o resto do seu script do jogo específico)
-
--------------------------------------------
--- Intro
--------------------------------------------
-
-task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
-end)
 
 -- ====================================================================
 -- 🌍 TRADUTOR SIMPLIFICADO — SAGAZx HUB
@@ -370,6 +358,128 @@ Tab2:AddToggle({
        InfiniteJumpEnabled = Value
     end
 })
+
+----------------------------------------------------
+-- FLOAT V1 + V2 (SAGAZx HUB) - autocontido
+----------------------------------------------------
+do
+    local Players     = game:GetService("Players")
+    local RunService  = game:GetService("RunService")
+    local LocalPlayer = Players.LocalPlayer
+
+    local function makeFloat(isV2)
+        local state = {
+            Enabled = false,
+            Part = nil,
+            Render = nil,
+            Jump = nil,
+            TargetY = 0,
+            IsV2 = isV2
+        }
+
+        local function disconnectAll()
+            if state.Render then state.Render:Disconnect(); state.Render = nil end
+            if state.Jump   then state.Jump:Disconnect();   state.Jump   = nil end
+        end
+
+        local function disable()
+            state.Enabled = false
+            disconnectAll()
+            if state.Part then state.Part:Destroy(); state.Part = nil end
+        end
+
+        local function enable()
+            if state.Enabled then return end
+            local char = LocalPlayer.Character
+            if not char then return end
+
+            local root = char:FindFirstChild("HumanoidRootPart")
+            local hum  = char:FindFirstChildOfClass("Humanoid")
+            if not root or not hum then return end
+
+            state.Enabled = true
+            state.TargetY = root.Position.Y - (hum.HipHeight + 1.5)
+
+            state.Part = Instance.new("Part")
+            state.Part.Name          = "SAGAZ_Float_" .. (isV2 and "V2" or "V1")
+            state.Part.Size          = Vector3.new(7, 1, 7)
+            state.Part.Transparency  = 1
+            state.Part.Anchored      = true
+            state.Part.CanCollide    = true
+            state.Part.Parent        = workspace
+
+            -- Pulo
+            state.Jump = hum.Jumping:Connect(function()
+                if not state.Part then return end
+                state.Part.CanCollide = false
+
+                task.spawn(function()
+                    local r = root
+                    while r and r.Parent and r.AssemblyLinearVelocity.Y > 0 do
+                        task.wait()
+                    end
+                    if state.Part then
+                        if not isV2 and r and r.Parent then
+                            local h = char:FindFirstChildOfClass("Humanoid")
+                            if h then
+                                state.TargetY = r.Position.Y - (h.HipHeight + 1.5)
+                            end
+                        end
+                        state.Part.CanCollide = true
+                    end
+                end)
+            end)
+
+            -- Render
+            state.Render = RunService.RenderStepped:Connect(function()
+                local c = LocalPlayer.Character
+                if not state.Part or not c then return end
+                local r = c:FindFirstChild("HumanoidRootPart")
+                local h = c:FindFirstChildOfClass("Humanoid")
+                if not r or not h then return end
+
+                state.Part.Position = Vector3.new(r.Position.X, state.TargetY, r.Position.Z)
+
+                local st = h:GetState()
+                local grounded =
+                    st == Enum.HumanoidStateType.Running
+                    or st == Enum.HumanoidStateType.RunningNoPhysics
+                    or st == Enum.HumanoidStateType.Landed
+                    or st == Enum.HumanoidStateType.Seated
+
+                if grounded and state.Part.CanCollide then
+                    r.AssemblyLinearVelocity =
+                        Vector3.new(r.AssemblyLinearVelocity.X, 0, r.AssemblyLinearVelocity.Z)
+                end
+            end)
+        end
+
+        return {
+            SetState = function(v) if v then enable() else disable() end end,
+            Disable  = disable
+        }
+    end
+
+    local FloatV1 = makeFloat(false)
+    local FloatV2 = makeFloat(true)
+
+    LocalPlayer.CharacterAdded:Connect(function()
+        FloatV1.Disable()
+        FloatV2.Disable()
+    end)
+
+    Tab2:AddToggle({
+        Name = "Float",
+        Default = false,
+        Callback = function(v) FloatV1.SetState(v) end
+    })
+
+    Tab2:AddToggle({
+        Name = "Float v2",
+        Default = false,
+        Callback = function(v) FloatV2.SetState(v) end
+    })
+end
 
 Tab2:AddToggle({
     Name = "NOCLIP",
@@ -877,357 +987,6 @@ Tab2:AddToggle({
     end
 })
 
-
-
-Tab2:AddSection({ Name = "Spawn Bombas", Icon = "rbxassetid://" })
-
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local WorkspaceService = game:GetService("Workspace")
-
-
-local BombAmount = 5 
-local ColetandoBombas = false -- Controla se o loop de coleta deve rodar ou parar
-
-
-local BlowBombsServer = nil
-pcall(function()
-    local SettingsModule = require(Player:WaitForChild("PlayerGui"):WaitForChild("Player8Handler"):WaitForChild("Game8Settings"))
-    BlowBombsServer = SettingsModule.BlowBombsServer
-end)
-
-local BombFolder = nil
-pcall(function()
-    BombFolder = WorkspaceService.WorkspaceCom["001_CriminalWeapons"].GiveTools
-end)
-
-
-Tab2:AddTextBox({
-    Name = "Quantidade De Bombas",
-    Default = "5",
-    PlaceholderText = "Digite um numero...",
-    ClearTextOnFocus = false,
-    Callback = function(value)
-        local num = tonumber(value)
-        if num and num > 0 then
-            BombAmount = num
-        else
-            BombAmount = 5 -- Valor padrao caso o texto digitado seja invÃ¡lido
-        end
-    end
-})
-
-
-local function getBombCount()
-    local cnt = 0
-    if Player:FindFirstChild("Backpack") then
-        for _, t in ipairs(Player.Backpack:GetChildren()) do
-            if t:IsA("Tool") and t.Name:lower():find("bomb") then
-                cnt = cnt + 1
-            end
-        end
-    end
-    if Player.Character then
-        for _, t in ipairs(Player.Character:GetChildren()) do
-            if t:IsA("Tool") and t.Name:lower():find("bomb") then
-                cnt = cnt + 1
-            end
-        end
-    end
-    return cnt
-end
-
-
-Tab2:AddButton({
-    Name = "Pega Bombas",
-    Callback = function()
-        if ColetandoBombas then 
-            print("Já existe uma coleta em andamento!")
-            return 
-        end
-        
-        ColetandoBombas = true
-        
-        task.spawn(function()
-            local Character = Player.Character
-            if not Character then
-                print("Character não encontrado!")
-                ColetandoBombas = false
-                return
-            end
-            
-            local RootPart = Character:WaitForChild("HumanoidRootPart", 5)
-            if not RootPart then
-                print("HumanoidRootPart não encontrado!")
-                ColetandoBombas = false
-                return
-            end
-            
-            local origin = RootPart.CFrame
-            local attempts = 0
-            local collected = getBombCount()
-
-            if CreateNotification and CreateNotification.Notification then
-                CreateNotification:Notification("Coleta", "Iniciando coleta automatizada...", 2)
-            else
-                print("Iniciando coleta automatizada...")
-            end
-
-            -- Loop de repetição principal
-            while ColetandoBombas and collected < BombAmount and attempts < 150 do
-                attempts = attempts + 1
-                
-                -- Busca a bomba dinamicamente a cada loop para evitar referências nulas (nil)
-                local AlvoBomba = nil
-                
-                -- 1ª Tentativa: Procura na pasta oficial que você informou
-                if BombFolder then
-                    AlvoBomba = BombFolder:FindFirstChild("Bomb") or BombFolder:FindFirstChildWhichIsA("BasePart")
-                end
-                
-                -- 2ª Tentativa: Se não achou na pasta, escaneia o workspace por ClickDetectors de bomba
-                if not AlvoBomba then
-                    for _, v in ipairs(workspace:GetDescendants()) do
-                        if v:IsA("ClickDetector") and v.Parent and v.Parent.Name:lower():find("bomb") then
-                            AlvoBomba = v.Parent
-                            break
-                        end
-                    end
-                end
-
-                -- Se encontrou a bomba e o ClickDetector, executa a aproximação e clique
-                if AlvoBomba and AlvoBomba:FindFirstChild("ClickDetector") and RootPart then
-                    pcall(function()
-                        -- Teleporta ligeiramente acima do item
-                        RootPart.CFrame = AlvoBomba.CFrame * CFrame.new(0, 1.8, 0)
-                        task.wait(0.02)
-                        fireclickdetector(AlvoBomba.ClickDetector, 2)
-                    end)
-                else
-                    -- Se não encontrou nenhuma bomba no mapa inteiro, avisa no console
-                    print("Procurando bomba no mapa... Nenhuma encontrada nesta tentativa (" .. tostring(attempts) .. ")")
-                end
-
-                task.wait(0.05) -- Delay seguro para o Roblox registrar o clique
-                collected = getBombCount()
-            end
-            
-            -- Retorna à posição original de forma segura
-            pcall(function() 
-                RootPart.CFrame = origin 
-            end)
-            
-            -- Verificação final de estoque
-            if ColetandoBombas then
-                if collected >= BombAmount then
-                    if CreateNotification and CreateNotification.Notification then
-                        CreateNotification:Notification("Sucesso", "Total de " .. tostring(collected) .. " bombas coletadas!", 3)
-                    end
-                else
-                    if CreateNotification and CreateNotification.Notification then
-                        CreateNotification:Notification("Aviso", "A coleta encerrou. Total obtido: " .. tostring(collected) .. "/" .. tostring(BombAmount), 4)
-                    end
-                end
-            end
-            
-            ColetandoBombas = false
-        end)
-    end
-})
-
-
-
-
-Tab2:AddButton({
-    Name = "Parar de Pega Bombas",
-    Callback = function()
-        if ColetandoBombas then
-            ColetandoBombas = false -- Altera a flag para fechar o loop do botÃ£o acima imediatamente
-            CreateNotification:Notification("Interrompido", "Cancelando coleta e retornando Ã  posiÃ§Ã£o...", 3)
-        else
-            CreateNotification:Notification("Info", "VocÃª nÃ£o estÃ¡ coletando bombas no momento.", 2)
-        end
-    end
-})
-
-
-Tab2:AddButton({
-    Name = "Spawn Bombas",
-    Callback = function()
-        task.spawn(function()
-            local Character = Player.Character or Player.CharacterAdded:Wait()
-            local RootPart = Character:WaitForChild("HumanoidRootPart")
-            
-            local ferramentas = {}
-            
-            if Player:FindFirstChild("Backpack") then
-                for _, t in ipairs(Player.Backpack:GetChildren()) do
-                    if t:IsA("Tool") and t.Name:lower():find("bomb") then
-                        table.insert(ferramentas, t)
-                    end
-                end
-            end
-
-            for _, t in ipairs(Character:GetChildren()) do
-                if t:IsA("Tool") and t.Name:lower():find("bomb") then
-                    table.insert(ferramentas, t)
-                end
-            end
-
-            if #ferramentas == 0 then
-                CreateNotification:Notification("Erro", "Nenhuma bomba encontrada no seu inventÃ¡rio!", 3)
-                return
-            end
-
-            for _, bomb in ipairs(ferramentas) do
-                task.spawn(function()
-                    pcall(function()
-                        local mouseLoc = bomb:FindFirstChild("MouseLoc")
-                        local mouseLocCone = bomb:FindFirstChild("MouseLocCone")
-
-                        if mouseLoc then
-                            mouseLoc.OnClientInvoke = function()
-                                return RootPart.Position + Vector3.new(0, 4, 0)
-                            end
-                        end
-
-                        if mouseLocCone then
-                            mouseLocCone.OnClientInvoke = function()
-                                return RootPart
-                            end
-                        end
-
-                        if bomb.Parent ~= Character then
-                            bomb.Parent = Character
-                        end
-                        bomb:Activate()
-                    end)
-                end)
-            end
-        end)
-    end
-})
-
-
-Tab2:AddButton({
-    Name = "Ativa Bombas",
-    Callback = function()
-        if BlowBombsServer and BlowBombsServer:IsA("RemoteEvent") then
-            pcall(function()
-                BlowBombsServer:FireServer("Bomb" .. Player.Name)
-                CreateNotification:Notification("DetonaÃ§Ã£o", "Sinal enviado para explodir as bombas!", 3)
-            end)
-        else
-            pcall(function()
-                ReplicatedStorage.RE["1Blo1wBomb1sServe1r"]:FireServer("Bomb" .. Player.Name)
-                CreateNotification:Notification("DetonaÃ§Ã£o", "Sinal alternativo enviado!", 3)
-            end)
-        end
-    end
-})
-
-
-local LoopSpamBomba = false
-
-Tab2:AddToggle({
-    Name = "Auto Spawn e Ativar Bombas",
-    Default = false,
-    Callback = function(state)
-        LoopSpamBomba = state
-        
-        if LoopSpamBomba then
-            task.spawn(function()
-                if CreateNotification and CreateNotification.Notification then
-                    CreateNotification:Notification("Auto Spam", "Loop de bombas ativado!", 2)
-                end
-                
-                -- Loop principal enquanto o Toggle estiver ligado
-                while LoopSpamBomba do
-                    local Character = Player.Character
-                    local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
-                    
-                    if Character and RootPart then
-                        local ferramentas = {}
-                        
-                        -- 1. Coleta todas as bombas do inventário
-                        if Player:FindFirstChild("Backpack") then
-                            for _, t in ipairs(Player.Backpack:GetChildren()) do
-                                if t:IsA("Tool") and t.Name:lower():find("bomb") then
-                                    table.insert(ferramentas, t)
-                                end
-                            end
-                        end
-                        for _, t in ipairs(Character:GetChildren()) do
-                            if t:IsA("Tool") and t.Name:lower():find("bomb") then
-                                table.insert(ferramentas, t)
-                            end
-                        end
-
-                        -- 2. Se houver bombas, inicia o processo de descarregar
-                        if #ferramentas > 0 then
-                            -- Move todas as bombas para o personagem imediatamente
-                            for _, bomb in ipairs(ferramentas) do
-                                pcall(function()
-                                    local mouseLoc = bomb:FindFirstChild("MouseLoc")
-                                    local mouseLocCone = bomb:FindFirstChild("MouseLocCone")
-
-                                    if mouseLoc then
-                                        mouseLoc.OnClientInvoke = function()
-                                            return RootPart.Position + Vector3.new(0, 4, 0)
-                                        end
-                                    end
-                                    if mouseLocCone then
-                                        mouseLocCone.OnClientInvoke = function()
-                                            return RootPart
-                                        end
-                                    end
-
-                                    if bomb.Parent ~= Character then
-                                        bomb.Parent = Character
-                                    end
-                                end)
-                            end
-                            
-                            --  PAUSA CRÍTICA: Dá tempo (0.03s) para o Roblox reconhecer as bombas nas suas mãos
-                            task.wait(0.03)
-
-                            -- Ativa todas que foram equipadas
-                            for _, bomb in ipairs(ferramentas) do
-                                pcall(function()
-                                    bomb:Activate()
-                                end)
-                            end
-
-                            --  SEGUNDA PAUSA CRÍTICA: Dá tempo para as bombas irem para a cabeça antes do "Boom"
-                            task.wait(0.05)
-                            
-                            -- 3. Detonação remota
-                            if BlowBombsServer and BlowBombsServer:IsA("RemoteEvent") then
-                                pcall(function()
-                                    BlowBombsServer:FireServer("Bomb" .. Player.Name)
-                                end)
-                            else
-                                pcall(function()
-                                    ReplicatedStorage.RE["1Blo1wBomb1sServe1r"]:FireServer("Bomb" .. Player.Name)
-                                end)
-                            end
-                        end
-                    end
-                    
-                    -- Pequena espera de 0.1 segundos antes de repetir todo o ciclo novamente
-                    task.wait(0.1) 
-                end
-                
-                if CreateNotification and CreateNotification.Notification then
-                    CreateNotification:Notification("Auto Spam", "Loop de bombas desativado.", 2)
-                end
-            end)
-        end
-    end
-})
-
-
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Jogadores-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -1259,163 +1018,83 @@ Tab3:AddDropdown({
     end
 })
 
---==============================================================
--- 🎥 SEÇÃO: VIEW PLAYER
---==============================================================
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Cam = workspace.CurrentCamera
 
 local viewing = false
-local cam = workspace.CurrentCamera
-local player = game.Players.LocalPlayer
 
--- Notificação de entrada (visualizando jogador)
-local function ShowPlayerNotification(plr)
-    local username    = plr.Name
-    local displayname = plr.DisplayName
-    local thumbUrl    = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. plr.UserId .. "&width=150&height=150&format=png"
-
-    local playerGui = player:WaitForChild("PlayerGui")
-    local screenGui = playerGui:FindFirstChild("AnexedNotificationUI")
-    if not screenGui then
-        screenGui = Instance.new("ScreenGui")
-        screenGui.IgnoreGuiInset = true
-        screenGui.Name = "AnexedNotificationUI"
-        screenGui.ResetOnSpawn = false
-        screenGui.Parent = playerGui
+-- Restaura a câmera para o próprio personagem
+local function ResetCamera()
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            Cam.CameraSubject = hum
+        end
     end
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 200, 0, 60)
-    frame.Position = UDim2.new(1, 0, 0, -10)
-    frame.AnchorPoint = Vector2.new(1, 0)
-    frame.BackgroundTransparency = 1
-    frame.BorderSizePixel = 0
-    frame.ZIndex = 20
-    frame.Parent = screenGui
-
-    local image = Instance.new("ImageLabel", frame)
-    image.Size = UDim2.new(0, 40, 0, 40)
-    image.Position = UDim2.new(0, 10, 0, 10)
-    image.BackgroundTransparency = 1
-    image.Image = thumbUrl
-
-    local title = Instance.new("TextLabel", frame)
-    title.Size = UDim2.new(1, -60, 0, 20)
-    title.Position = UDim2.new(0, 60, 0, 8)
-    title.BackgroundTransparency = 1
-    title.Text = "Visualizando " .. displayname
-    title.TextColor3 = Color3.new(1, 1, 1)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 14
-    title.TextXAlignment = Enum.TextXAlignment.Left
-
-    local subtitle = Instance.new("TextLabel", frame)
-    subtitle.Size = UDim2.new(1, -60, 0, 18)
-    subtitle.Position = UDim2.new(0, 60, 0, 30)
-    subtitle.BackgroundTransparency = 1
-    subtitle.Text = "@" .. username
-    subtitle.TextColor3 = Color3.new(1, 1, 1)
-    subtitle.Font = Enum.Font.Gotham
-    subtitle.TextSize = 12
-    subtitle.TextXAlignment = Enum.TextXAlignment.Left
-
-    local TweenService = game:GetService("TweenService")
-    TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {
-        Position = UDim2.new(1, -10, 0, 10)
-    }):Play()
-
-    task.delay(3, function()
-        local exitTween = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Position = UDim2.new(1, 0, 0, -60)
-        })
-        exitTween:Play()
-        exitTween.Completed:Wait()
-        frame:Destroy()
-    end)
 end
 
--- Notificação de saída
-local function ShowLeaveNotification(playerName)
-    local playerGui = player:WaitForChild("PlayerGui")
-    local screenGui = playerGui:FindFirstChild("AnexedNotificationUI")
-    if not screenGui then
-        screenGui = Instance.new("ScreenGui")
-        screenGui.IgnoreGuiInset = true
-        screenGui.Name = "AnexedNotificationUI"
-        screenGui.ResetOnSpawn = false
-        screenGui.Parent = playerGui
-    end
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 240, 0, 40)
-    frame.Position = UDim2.new(1, 0, 0, -10)
-    frame.AnchorPoint = Vector2.new(1, 0)
-    frame.BackgroundTransparency = 1
-    frame.BorderSizePixel = 0
-    frame.ZIndex = 20
-    frame.Parent = screenGui
-
-    local title = Instance.new("TextLabel", frame)
-    title.Size = UDim2.new(1, -20, 1, -10)
-    title.Position = UDim2.new(0, 10, 0, 5)
-    title.BackgroundTransparency = 1
-    title.Text = "@" .. playerName .. " saiu do jogo"
-    title.TextColor3 = Color3.fromRGB(255, 120, 120)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 14
-    title.TextXAlignment = Enum.TextXAlignment.Left
-
-    local TweenService = game:GetService("TweenService")
-    TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {
-        Position = UDim2.new(1, -10, 0, 10)
-    }):Play()
-
-    task.delay(3, function()
-        local exitTween = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Position = UDim2.new(1, 0, 0, -60)
-        })
-        exitTween:Play()
-        exitTween.Completed:Wait()
-        frame:Destroy()
-    end)
-end
+----------------------------------------------------
+-- TOGGLE REDZ LIB
+----------------------------------------------------
 
 Tab3:AddToggle({
     Name = "Visualizar Jogador",
+    Default = false,
     Callback = function(Value)
         viewing = Value
+
         if viewing then
             task.spawn(function()
-                local watched = selectedPlayer -- snapshot pra evitar race condition
                 local shown = false
-                while viewing and watched == selectedPlayer do
-                    local target = game.Players:FindFirstChild(watched)
+
+                while viewing do
+                    -- Busca o jogador pelo nome selecionado no Dropdown
+                    local target = Players:FindFirstChild(selectedPlayer)
+
                     if target then
+                        -- Envia a notificação apenas uma vez ao iniciar a visualização
                         if not shown then
-                            ShowPlayerNotification(target)
+                            local thumbUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. target.UserId .. "&width=150&height=150&format=png"
+                            
+                            MyLibrary:NotifyWithImage({
+                                Name = "Visualizando:",
+                                Sub = target.DisplayName,        -- Nome secundário / visual
+                                Text = "@" .. target.Name,       -- Nome original / username
+                                Icon = thumbUrl,
+                                Time = 3
+                            })
                             shown = true
                         end
-                        local character = target.Character or target.CharacterAdded:Wait()
-                        local humanoid = character:FindFirstChild("Humanoid")
-                        if humanoid then
-                            cam.CameraSubject = humanoid
+
+                        -- Acompanha o Humanoid do alvo
+                        local char = target.Character
+                        if char then
+                            local hum = char:FindFirstChildOfClass("Humanoid")
+                            if hum then
+                                Cam.CameraSubject = hum
+                            end
                         end
                     else
-                        ShowLeaveNotification(watched)
+                        -- Notificação quando o jogador selecionado não é encontrado ou sai
+                        MyLibrary:NotifyWithImage({
+                            Name = "Jogador Indisponível",
+                            Sub = tostring(selectedPlayer),
+                            Text = "Jogador desconectado ou inválido",
+                            Icon = "rbxassetid://86050226751861",
+                            Time = 3
+                        })
+
                         viewing = false
-                        local myChar = player.Character
-                        if myChar and myChar:FindFirstChild("Humanoid") then
-                            cam.CameraSubject = myChar.Humanoid
-                        end
+                        ResetCamera()
                         break
                     end
                     task.wait(0.1)
                 end
             end)
         else
-            local myChar = player.Character
-            if myChar and myChar:FindFirstChild("Humanoid") then
-                cam.CameraSubject = myChar.Humanoid
-            end
+            ResetCamera()
         end
     end
 })
@@ -2492,266 +2171,6 @@ Tab3:AddButton({
     end
 })
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-
--- Variáveis de Configuração
-local auraDistance = 6
-local auraSpeed = 1
-local auraHeight = -3
-local auraEnabled = false -- Orbita Você
-local auraTargetEnabled = false -- Orbita Alvo
-local currentShape = "Circulo"
-local currentMovement = "Em fila"
-
--- Nova Variável
-local orbitStaticEnabled = false -- Órbita Posição Atual
-local staticPosition = nil -- Guarda a posição capturada
-
--- Elementos da Interface (Tab3)
-Tab3:AddSection({ Name = "Orbita Props", Icon = "rbxassetid://" })
-
-Tab3:AddButton({
-    Name = "Pega a Caixa de Props",
-    Callback = function()
-        local args = {
-            [1] = "PickingTools",
-            [2] = "PropMaker"
-        }
-        pcall(function()
-            game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
-        end)
-    end
-})
-
-Tab3:AddDropdown({
-    Name = "Formas",
-    Default = "Circulo",
-    Multi = false,
-    Options = {"Circulo", "Quadrado", "Triangulo"},
-    Callback = function(shape) currentShape = shape end
-})
-
-Tab3:AddDropdown({
-    Name = "Movimentos",
-    Default = "Em fila",
-    Multi = false,
-    Options = {
-        "Em fila",
-        "Para fora",
-        "Para dentro",
-        "De cabeça para baixo",
-        "De cabeça para baixo para dentro",
-        "De cabeça para baixo para fora",
-        "Deitado",
-        "Deitado para dentro",
-        "Deitado para fora"
-    },
-    Callback = function(movement) currentMovement = movement end
-})
-
-Tab3:AddSlider({
-    Name = "Distância",
-    Min = 1,
-    Max = 100,
-    Default = 6,
-    Increase = 0.5,
-    Callback = function(v) auraDistance = v end
-})
-
-Tab3:AddSlider({
-    Name = "Velocidade",
-    Min = 1,
-    Max = 20,
-    Default = 4,
-    Increase = 1,
-    Callback = function(v) auraSpeed = v end
-})
-
-Tab3:AddSlider({
-    Name = "Altura",
-    Min = -3,
-    Max = 100,
-    Default = -3,
-    Increase = 0.5,
-    Callback = function(v) auraHeight = v end
-})
-
-Tab3:AddToggle({
-    Name = "Órbita Posição Atual",
-    Default = false,
-    Callback = function(v)
-        orbitStaticEnabled = v
-        if v then
-            -- Captura a posição APENAS UMA VEZ no momento do clique
-            local char = LocalPlayer.Character
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                staticPosition = hrp.Position
-            else
-                staticPosition = Vector3.new(0, 0, 0)
-            end
-        else
-            staticPosition = nil
-        end
-    end
-})
-
-Tab3:AddToggle({
-    Name = "Orbita Você",
-    Default = false,
-    Callback = function(v) auraEnabled = v end
-})
-
-Tab3:AddToggle({
-    Name = "Orbita Alvo",
-    Default = false,
-    Callback = function(v) auraTargetEnabled = v end
-})
-
--- Funções Matemáticas para Formas Geométricas
-local function getSquareOffset(angle, distance)
-    local c = math.cos(angle)
-    local s = math.sin(angle)
-    local maxCoord = math.max(math.abs(c), math.abs(s))
-    if maxCoord == 0 then maxCoord = 1 end
-    return (c / maxCoord) * distance, (s / maxCoord) * distance
-end
-
-local function getTriangleOffset(angle, distance)
-    local outAngle = math.fmod(angle, math.pi * 2 / 3)
-    if outAngle < 0 then outAngle = outAngle + (math.pi * 2 / 3) end
-    local r = distance * math.cos(math.pi / 3) / math.cos(outAngle - math.pi / 3)
-    return math.cos(angle) * r, math.sin(angle) * r
-end
-
--- Loop Principal
-task.spawn(function()
-    local angle = 0
-
-    RunService.RenderStepped:Connect(function(dt)
-        if not auraEnabled and not auraTargetEnabled and not orbitStaticEnabled then return end
-        
-        local myChar = LocalPlayer.Character
-        local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
-        
-        local targetPlayerObj = selectedPlayer and Players:FindFirstChild(selectedPlayer)
-        local targetChar = targetPlayerObj and targetPlayerObj.Character
-        local targetHrp = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
-
-        local folder = workspace:FindFirstChild("WorkspaceCom")
-        local propsFolder = folder and folder:FindFirstChild("001_TrafficCones")
-        if not propsFolder then return end
-
-        -- Sentido da rotação (sempre horário agora)
-        angle = angle + (dt * auraSpeed)
-
-        local myProps = {}
-        for _, prop in ipairs(propsFolder:GetChildren()) do
-            if prop.Name:find("Prop" .. LocalPlayer.Name) then
-                table.insert(myProps, prop)
-            end
-        end
-
-        local totalProps = #myProps
-        if totalProps == 0 then return end
-
-        local targetGroups = {}
-        
-        -- Prioridade 1: Se Órbita Estática estiver ligada, ignora os eixos móveis dos players
-        if orbitStaticEnabled and staticPosition then
-            for index, prop in ipairs(myProps) do
-                table.insert(targetGroups, {prop = prop, isStatic = true, staticCenter = staticPosition, groupIndex = index, groupTotal = totalProps})
-            end
-        -- Prioridade 2: Divisão mútua entre você e o Alvo
-        elseif auraEnabled and auraTargetEnabled and targetHrp then
-            local half = math.ceil(totalProps / 2)
-            for index, prop in ipairs(myProps) do
-                if index <= half then
-                    table.insert(targetGroups, {prop = prop, centerHrp = myHrp, groupIndex = index, groupTotal = half})
-                else
-                    table.insert(targetGroups, {prop = prop, centerHrp = targetHrp, groupIndex = index - half, groupTotal = totalProps - half})
-                end
-            end
-        -- Prioridade 3: Apenas no Alvo
-        elseif auraTargetEnabled and targetHrp then
-            for index, prop in ipairs(myProps) do
-                table.insert(targetGroups, {prop = prop, centerHrp = targetHrp, groupIndex = index, groupTotal = totalProps})
-            end
-        -- Prioridade 4: Apenas em Você
-        else
-            if myHrp then
-                for index, prop in ipairs(myProps) do
-                    table.insert(targetGroups, {prop = prop, centerHrp = myHrp, groupIndex = index, groupTotal = totalProps})
-                end
-            end
-        end
-
-        -- Lógica de cálculo posicional por prop
-        for _, data in ipairs(targetGroups) do
-            local prop = data.prop
-            local index = data.groupIndex
-            local groupTotal = data.groupTotal
-            
-            -- Define qual será o ponto central (Estático ou um Player HRP)
-            local centerPosition = nil
-            local referenceCFrame = nil
-            
-            if data.isStatic then
-                centerPosition = data.staticCenter
-                referenceCFrame = CFrame.new(centerPosition)
-            elseif data.centerHrp then
-                centerPosition = data.centerHrp.Position
-                referenceCFrame = data.centerHrp.CFrame
-            end
-
-            if centerPosition then
-                local offsetAngle = angle + ((index - 1) * (math.pi * 2 / groupTotal))
-
-                -- 1. Calcula Posição X e Z
-                local px, pz = 0, 0
-                if currentShape == "Quadrado" then
-                    px, pz = getSquareOffset(offsetAngle, auraDistance)
-                elseif currentShape == "Triangulo" then
-                    px, pz = getTriangleOffset(offsetAngle, auraDistance)
-                else
-                    px = math.cos(offsetAngle) * auraDistance
-                    pz = math.sin(offsetAngle) * auraDistance
-                end
-
-                local targetPosition = centerPosition + Vector3.new(px, auraHeight, pz)
-
-                -- 2. Rotação/Direção do CFrame
-                local baseCFrame
-                if currentMovement:find("para fora") or currentMovement:find("Para fora") then
-                    baseCFrame = CFrame.lookAt(targetPosition, targetPosition + Vector3.new(px, 0, pz))
-                elseif currentMovement:find("para dentro") or currentMovement:find("Para dentro") then
-                    baseCFrame = CFrame.lookAt(targetPosition, Vector3.new(centerPosition.X, targetPosition.Y, centerPosition.Z))
-                else
-                    baseCFrame = CFrame.new(targetPosition) * (referenceCFrame - referenceCFrame.Position)
-                end
-
-                -- 3. Multiplicadores de Eixo Especiais
-                local targetCFrame = baseCFrame
-                if currentMovement:find("De cabeça para baixo") then
-                    targetCFrame = baseCFrame * CFrame.Angles(0, 0, math.pi)
-                elseif currentMovement:find("Deitado") then
-                    targetCFrame = baseCFrame * CFrame.Angles(math.pi / 2, 0, 0)
-                end
-
-                local remote = prop:FindFirstChild("SetCurrentCFrame")
-                if remote then
-                    task.spawn(function()
-                        pcall(function()
-                            remote:InvokeServer(targetCFrame)
-                        end)
-                    end)
-                end
-            end
-        end
-    end)
-end)
 ----------------------------------------------------------------------------------------------------------------
 -----------------------------------------Aba Antis-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
@@ -5342,21 +4761,99 @@ local Toggle = Tab7:AddToggle({
     end
 })
 ----------------------------------------------------------------------------------------------------------------
------------------------------------------Aba kid-----------------------------------------------------
+-----------------------------------------Aba Outros-----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------
 
 -- Aba Child
-local Tab8= Window:MakeTab({"| Criança", "baby"})
+local Tab8= Window:MakeTab({"| Outros", "rbxassetid://10723424505"})
 
---==============================================================
--- 🎯 DROPDOWN DE TARGET (TAB8 - CRIANÇA)
---==============================================================
-local selectedPlayerKid = nil
+local selectedPlayerOutros = nil
 
 local DropdownJogadoresKid = Tab8:AddDropdownPlayer({
     Name = "Selecionar Jogador",
     Callback = function(Value)
-        selectedPlayerKid = Value
+        selectedPlayerOutros = Value
+    end
+})
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Cam = workspace.CurrentCamera
+
+local viewing = false
+
+-- Restaura a câmera para o próprio personagem
+local function ResetCamera()
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            Cam.CameraSubject = hum
+        end
+    end
+end
+
+----------------------------------------------------
+-- TOGGLE REDZ LIB
+----------------------------------------------------
+
+Tab8:AddToggle({
+    Name = "Visualizar Jogador",
+    Default = false,
+    Callback = function(Value)
+        viewing = Value
+
+        if viewing then
+            task.spawn(function()
+                local shown = false
+
+                while viewing do
+                    -- Busca o jogador pelo nome selecionado no Dropdown
+                    local target = Players:FindFirstChild(selectedPlayerOutros)
+
+                    if target then
+                        -- Envia a notificação apenas uma vez ao iniciar a visualização
+                        if not shown then
+                            local thumbUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. target.UserId .. "&width=150&height=150&format=png"
+                            
+                            MyLibrary:NotifyWithImage({
+                                Name = "Visualizando:",
+                                Sub = target.DisplayName,        -- Nome secundário / visual
+                                Text = "@" .. target.Name,       -- Nome original / username
+                                Icon = thumbUrl,
+                                Time = 3
+                            })
+                            shown = true
+                        end
+
+                        -- Acompanha o Humanoid do alvo
+                        local char = target.Character
+                        if char then
+                            local hum = char:FindFirstChildOfClass("Humanoid")
+                            if hum then
+                                Cam.CameraSubject = hum
+                            end
+                        end
+                    else
+                        -- Notificação quando o jogador selecionado não é encontrado ou sai
+                        MyLibrary:NotifyWithImage({
+                            Name = "Jogador Indisponível",
+                            Sub = tostring(selectedPlayerOutros),
+                            Text = "Jogador desconectado ou inválido",
+                            Icon = "rbxassetid://86050226751861",
+                            Time = 3
+                        })
+
+                        viewing = false
+                        ResetCamera()
+                        break
+                    end
+                    task.wait(0.1)
+                end
+            end)
+        else
+            ResetCamera()
+        end
     end
 })
 
@@ -5432,164 +4929,9 @@ local function DisconnectChildLoop()
     end
 end
 
---==============================================================
--- 🎥 SEÇÃO: VIEW PLAYER
---==============================================================
-local viewing = false
-local cam = workspace.CurrentCamera
-local player = game.Players.LocalPlayer
 
--- Notificação de entrada
-local function ShowPlayerNotification(plr)
-    local username    = plr.Name
-    local displayname = plr.DisplayName
-    local thumbUrl    = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. plr.UserId .. "&width=150&height=150&format=png"
 
-    local playerGui = player:WaitForChild("PlayerGui")
-    local screenGui = playerGui:FindFirstChild("AnexedNotificationUI")
-    if not screenGui then
-        screenGui = Instance.new("ScreenGui")
-        screenGui.IgnoreGuiInset = true
-        screenGui.Name = "AnexedNotificationUI"
-        screenGui.ResetOnSpawn = false
-        screenGui.Parent = playerGui
-    end
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 200, 0, 60)
-    frame.Position = UDim2.new(1, 0, 0, -10)
-    frame.AnchorPoint = Vector2.new(1, 0)
-    frame.BackgroundTransparency = 1
-    frame.BorderSizePixel = 0
-    frame.ZIndex = 20
-    frame.Parent = screenGui
-
-    local image = Instance.new("ImageLabel", frame)
-    image.Size = UDim2.new(0, 40, 0, 40)
-    image.Position = UDim2.new(0, 10, 0, 10)
-    image.BackgroundTransparency = 1
-    image.Image = thumbUrl
-
-    local title = Instance.new("TextLabel", frame)
-    title.Size = UDim2.new(1, -60, 0, 20)
-    title.Position = UDim2.new(0, 60, 0, 8)
-    title.BackgroundTransparency = 1
-    title.Text = "Visualizando " .. displayname
-    title.TextColor3 = Color3.new(1, 1, 1)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 14
-    title.TextXAlignment = Enum.TextXAlignment.Left
-
-    local subtitle = Instance.new("TextLabel", frame)
-    subtitle.Size = UDim2.new(1, -60, 0, 18)
-    subtitle.Position = UDim2.new(0, 60, 0, 30)
-    subtitle.BackgroundTransparency = 1
-    subtitle.Text = "@" .. username
-    subtitle.TextColor3 = Color3.new(1, 1, 1)
-    subtitle.Font = Enum.Font.Gotham
-    subtitle.TextSize = 12
-    subtitle.TextXAlignment = Enum.TextXAlignment.Left
-
-    local TweenService = game:GetService("TweenService")
-    TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {
-        Position = UDim2.new(1, -10, 0, 10)
-    }):Play()
-
-    task.delay(3, function()
-        local exitTween = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Position = UDim2.new(1, 0, 0, -60)
-        })
-        exitTween:Play()
-        exitTween.Completed:Wait()
-        frame:Destroy()
-    end)
-end
-
--- Notificação de saída
-local function ShowLeaveNotification(playerName)
-    local playerGui = player:WaitForChild("PlayerGui")
-    local screenGui = playerGui:FindFirstChild("AnexedNotificationUI")
-    if not screenGui then
-        screenGui = Instance.new("ScreenGui")
-        screenGui.IgnoreGuiInset = true
-        screenGui.Name = "AnexedNotificationUI"
-        screenGui.ResetOnSpawn = false
-        screenGui.Parent = playerGui
-    end
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 240, 0, 40)
-    frame.Position = UDim2.new(1, 0, 0, -10)
-    frame.AnchorPoint = Vector2.new(1, 0)
-    frame.BackgroundTransparency = 1
-    frame.BorderSizePixel = 0
-    frame.ZIndex = 20
-    frame.Parent = screenGui
-
-    local title = Instance.new("TextLabel", frame)
-    title.Size = UDim2.new(1, -20, 1, -10)
-    title.Position = UDim2.new(0, 10, 0, 5)
-    title.BackgroundTransparency = 1
-    title.Text = "@" .. playerName .. " saiu do jogo"
-    title.TextColor3 = Color3.fromRGB(255, 120, 120)
-    title.Font = Enum.Font.GothamBold
-    title.TextSize = 14
-    title.TextXAlignment = Enum.TextXAlignment.Left
-
-    local TweenService = game:GetService("TweenService")
-    TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {
-        Position = UDim2.new(1, -10, 0, 10)
-    }):Play()
-
-    task.delay(3, function()
-        local exitTween = TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Position = UDim2.new(1, 0, 0, -60)
-        })
-        exitTween:Play()
-        exitTween.Completed:Wait()
-        frame:Destroy()
-    end)
-end
-
-Tab8:AddToggle({
-    Name = "Visualizar Jogador",
-    Callback = function(Value)
-        viewing = Value
-        if viewing then
-            task.spawn(function()
-                local shown = false
-                while viewing do
-                    local target = game.Players:FindFirstChild(selectedPlayerKid)
-                    if target then
-                        if not shown then
-                            ShowPlayerNotification(target)
-                            shown = true
-                        end
-                        local character = target.Character or target.CharacterAdded:Wait()
-                        local humanoid = character:FindFirstChild("Humanoid")
-                        if humanoid then
-                            cam.CameraSubject = humanoid
-                        end
-                    else
-                        ShowLeaveNotification(selectedPlayerKid)
-                        viewing = false
-                        local myChar = player.Character
-                        if myChar and myChar:FindFirstChild("Humanoid") then
-                            cam.CameraSubject = myChar.Humanoid
-                        end
-                        break
-                    end
-                    task.wait(0.1)
-                end
-            end)
-        else
-            local myChar = player.Character
-            if myChar and myChar:FindFirstChild("Humanoid") then
-                cam.CameraSubject = myChar.Humanoid
-            end
-        end
-    end
-})
+Tab8:AddSection({ Name = "Criança"})
 
 --==============================================================
 -- 👶 SEÇÃO: CRIANÇA - CONTROLE BÁSICO
@@ -5598,7 +4940,7 @@ Tab8:AddToggle({
 Tab8:AddButton({
     Name = "Enviar criança",
     Callback = function()
-        if not selectedPlayerKid then
+        if not selectedPlayerOutros then
             warn("Nenhum jogador selecionado!")
             return
         end
@@ -5607,7 +4949,7 @@ Tab8:AddButton({
         if not followCharacter then return end
 
         -- Reparent para o alvo
-        local targetFolder = workspace:FindFirstChild(selectedPlayerKid)
+        local targetFolder = workspace:FindFirstChild(selectedPlayerOutros)
         if not (targetFolder and followCharacter) then return end
 
         followCharacter.Parent = targetFolder
@@ -5636,31 +4978,10 @@ Tab8:AddButton({
 })
 
 Tab8:AddButton({
-    Name = "Retornar criança",
-    Callback = function()
-        DisconnectChildLoop()
-
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        pcall(function()
-            ReplicatedStorage.RE:FindFirstChild("1Bab1yFollo1w"):FireServer("DeleteFollowCharacter")
-        end)
-        pcall(function()
-            ReplicatedStorage.RE:FindFirstChild("1Bab1yFollo1w"):FireServer("CharacterFollowSpawnPlayer", "BabyBoy")
-        end)
-    end
-})
-
---==============================================================
--- 💥 SEÇÃO: BANG
---==============================================================
-Tab8:AddSection({ Name = "BANG", Icon = "rbxassetid://" })
-
--- BANG FACE (frente do rosto)
-Tab8:AddButton({
-    Title = "BANG FACE",
+    Title = "BANG NA o FRENTE DO ALVO",
     Description = "",
     Callback = function()
-        if not selectedPlayerKid then
+        if not selectedPlayerOutros then
             warn("Nenhum player selecionado!")
             return
         end
@@ -5668,7 +4989,46 @@ Tab8:AddButton({
         local followCharacter, torso = GetOrSpawnChild()
         if not (followCharacter and torso) then return end
 
-        local targetChar = workspace:FindFirstChild(selectedPlayerKid)
+        local targetChar = workspace:FindFirstChild(selectedPlayerOutros)
+        local hrp = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+        if not hrp then warn("Target não encontrada!") return end
+
+        followCharacter.Parent = workspace
+        DisconnectChildLoop()
+
+        getgenv().ChildFollowLoop = RunService.Heartbeat:Connect(function()
+            if not (targetChar and targetChar:FindFirstChild("HumanoidRootPart") and torso) then
+                getgenv().ChildFollowLoop:Disconnect()
+                return
+            end
+
+            local currentHrp = targetChar:FindFirstChild("HumanoidRootPart")
+            if not currentHrp then return end
+
+            -- Posição: 2.5 studs na FRENTE do alvo, na altura do HRP
+            local frontPos = currentHrp.Position + currentHrp.CFrame.LookVector * 2.5
+
+            torso.BodyPosition.Position = frontPos
+            -- Criança vira para o alvo
+            torso.BodyGyro.CFrame = CFrame.lookAt(torso.Position, currentHrp.Position)
+        end)
+    end
+})
+
+-- BANG FACE (frente do rosto)
+Tab8:AddButton({
+    Title = "BANG FACE",
+    Description = "",
+    Callback = function()
+        if not selectedPlayerOutros then
+            warn("Nenhum player selecionado!")
+            return
+        end
+
+        local followCharacter, torso = GetOrSpawnChild()
+        if not (followCharacter and torso) then return end
+
+        local targetChar = workspace:FindFirstChild(selectedPlayerOutros)
         local hrp = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
         if not hrp then warn("Target não encontrada!") return end
 
@@ -5702,51 +5062,11 @@ Tab8:AddButton({
     end
 })
 
--- 🆕 BANG NA FRENTE DO ALVO (fica parado na frente, virado pro alvo)
-Tab8:AddButton({
-    Title = "BANG NA FRENTE DO ALVO",
-    Description = "",
-    Callback = function()
-        if not selectedPlayerKid then
-            warn("Nenhum player selecionado!")
-            return
-        end
-
-        local followCharacter, torso = GetOrSpawnChild()
-        if not (followCharacter and torso) then return end
-
-        local targetChar = workspace:FindFirstChild(selectedPlayerKid)
-        local hrp = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
-        if not hrp then warn("Target não encontrada!") return end
-
-        followCharacter.Parent = workspace
-        DisconnectChildLoop()
-
-        getgenv().ChildFollowLoop = RunService.Heartbeat:Connect(function()
-            if not (targetChar and targetChar:FindFirstChild("HumanoidRootPart") and torso) then
-                getgenv().ChildFollowLoop:Disconnect()
-                return
-            end
-
-            local currentHrp = targetChar:FindFirstChild("HumanoidRootPart")
-            if not currentHrp then return end
-
-            -- Posição: 2.5 studs na FRENTE do alvo, na altura do HRP
-            local frontPos = currentHrp.Position + currentHrp.CFrame.LookVector * 2.5
-
-            torso.BodyPosition.Position = frontPos
-            -- Criança vira para o alvo
-            torso.BodyGyro.CFrame = CFrame.lookAt(torso.Position, currentHrp.Position)
-        end)
-    end
-})
-
--- BANG ATRÁS DO ALVO (com oscilação entre -2.8 e +0.2)
 Tab8:AddButton({
     Title = "BANG ATRÁS DO ALVO",
     Description = "",
     Callback = function()
-        if not selectedPlayerKid then
+        if not selectedPlayerOutros then
             warn("Nenhum player selecionado!")
             return
         end
@@ -5754,7 +5074,7 @@ Tab8:AddButton({
         local followCharacter, torso = GetOrSpawnChild()
         if not (followCharacter and torso) then return end
 
-        local targetChar = workspace:FindFirstChild(selectedPlayerKid)
+        local targetChar = workspace:FindFirstChild(selectedPlayerOutros)
         local hrp = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
         if not hrp then warn("Target não encontrada!") return end
 
@@ -5784,10 +5104,24 @@ Tab8:AddButton({
     end
 })
 
+Tab8:AddButton({
+    Name = "Retornar criança",
+    Callback = function()
+        DisconnectChildLoop()
+
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        pcall(function()
+            ReplicatedStorage.RE:FindFirstChild("1Bab1yFollo1w"):FireServer("DeleteFollowCharacter")
+        end)
+        pcall(function()
+            ReplicatedStorage.RE:FindFirstChild("1Bab1yFollo1w"):FireServer("CharacterFollowSpawnPlayer", "BabyBoy")
+        end)
+    end
+})
+
 --==============================================================
 -- 🎮 SEÇÃO: CONTROLAR CRIANÇA (câmera + botões direcionais)
 --==============================================================
-Tab8:AddSection({ "Controle da Criança" })
 
 -- Estado
 local controllingChild   = false
@@ -5805,22 +5139,6 @@ local HEIGHT_STEP  = 0.5  -- quanto +/− altera por clique
 local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Exclude
 rayParams.IgnoreWater = true
-
--- ---------------------------------------------
--- TextBox: Altura
--- ---------------------------------------------
-Tab8:AddTextBox({
-    Name = "Altura da Criança",
-    PlaceholderText = "3",
-    Default = "3",
-    Callback = function(text)
-        local n = tonumber(text)
-        if n then
-            childHeight = n
-        end
-    end
-})
-
 -- ---------------------------------------------
 -- Cria a UI de controle
 -- ---------------------------------------------
@@ -6045,7 +5363,7 @@ end
 -- ---------------------------------------------
 Tab8:AddToggle({
     Name = "Controlar Criança",
-    Description = "Câmera vai pra criança e aparecem botões direcionais",
+    Description = "",
     Default = false,
     Callback = function(Value)
         if Value then
@@ -6095,6 +5413,644 @@ Tab8:AddToggle({
         end
     end
 })
+
+Tab8:AddSection({ Name = "Spawn Bombas", Icon = "rbxassetid://" })
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local WorkspaceService = game:GetService("Workspace")
+
+
+local BombAmount = 5 
+local ColetandoBombas = false -- Controla se o loop de coleta deve rodar ou parar
+
+
+local BlowBombsServer = nil
+pcall(function()
+    local SettingsModule = require(Player:WaitForChild("PlayerGui"):WaitForChild("Player8Handler"):WaitForChild("Game8Settings"))
+    BlowBombsServer = SettingsModule.BlowBombsServer
+end)
+
+local BombFolder = nil
+pcall(function()
+    BombFolder = WorkspaceService.WorkspaceCom["001_CriminalWeapons"].GiveTools
+end)
+
+
+Tab8:AddTextBox({
+    Name = "Quantidade De Bombas",
+    Default = "5",
+    PlaceholderText = "Digite um numero...",
+    ClearTextOnFocus = false,
+    Callback = function(value)
+        local num = tonumber(value)
+        if num and num > 0 then
+            BombAmount = num
+        else
+            BombAmount = 5 -- Valor padrao caso o texto digitado seja inválido
+        end
+    end
+})
+
+
+local function getBombCount()
+    local cnt = 0
+    if Player:FindFirstChild("Backpack") then
+        for _, t in ipairs(Player.Backpack:GetChildren()) do
+            if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                cnt = cnt + 1
+            end
+        end
+    end
+    if Player.Character then
+        for _, t in ipairs(Player.Character:GetChildren()) do
+            if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                cnt = cnt + 1
+            end
+        end
+    end
+    return cnt
+end
+
+
+Tab8:AddButton({
+    Name = "Pega Bombas",
+    Callback = function()
+        if ColetandoBombas then 
+            print("Já existe uma coleta em andamento!")
+            return 
+        end
+        
+        ColetandoBombas = true
+        
+        task.spawn(function()
+            local Character = Player.Character
+            if not Character then
+                print("Character não encontrado!")
+                ColetandoBombas = false
+                return
+            end
+            
+            local RootPart = Character:WaitForChild("HumanoidRootPart", 5)
+            if not RootPart then
+                print("HumanoidRootPart não encontrado!")
+                ColetandoBombas = false
+                return
+            end
+            
+            local origin = RootPart.CFrame
+            local attempts = 0
+            local collected = getBombCount()
+
+            MyLibrary:Notify({
+                Title = "Coleta",
+                Message = "Iniciando coleta automatizada...",
+                Duration = 2
+            })
+
+            -- Loop de repetição principal
+            while ColetandoBombas and collected < BombAmount and attempts < 150 do
+                attempts = attempts + 1
+                
+                -- Busca a bomba dinamicamente a cada loop para evitar referências nulas (nil)
+                local AlvoBomba = nil
+                
+                -- 1ª Tentativa: Procura na pasta oficial que você informou
+                if BombFolder then
+                    AlvoBomba = BombFolder:FindFirstChild("Bomb") or BombFolder:FindFirstChildWhichIsA("BasePart")
+                end
+                
+                -- 2ª Tentativa: Se não achou na pasta, escaneia o workspace por ClickDetectors de bomba
+                if not AlvoBomba then
+                    for _, v in ipairs(workspace:GetDescendants()) do
+                        if v:IsA("ClickDetector") and v.Parent and v.Parent.Name:lower():find("bomb") then
+                            AlvoBomba = v.Parent
+                            break
+                        end
+                    end
+                end
+
+                -- Se encontrou a bomba e o ClickDetector, executa a aproximação e clique
+                if AlvoBomba and AlvoBomba:FindFirstChild("ClickDetector") and RootPart then
+                    pcall(function()
+                        -- Teleporta ligeiramente acima do item
+                        RootPart.CFrame = AlvoBomba.CFrame * CFrame.new(0, 1.8, 0)
+                        task.wait(0.02)
+                        fireclickdetector(AlvoBomba.ClickDetector, 2)
+                    end)
+                else
+                    -- Se não encontrou nenhuma bomba no mapa inteiro, avisa no console
+                    print("Procurando bomba no mapa... Nenhuma encontrada nesta tentativa (" .. tostring(attempts) .. ")")
+                end
+
+                task.wait(0.05) -- Delay seguro para o Roblox registrar o clique
+                collected = getBombCount()
+            end
+            
+            -- Retorna à posição original de forma segura
+            pcall(function() 
+                RootPart.CFrame = origin 
+            end)
+            
+            -- Verificação final de estoque
+            if ColetandoBombas then
+                if collected >= BombAmount then
+                    MyLibrary:Notify({
+                        Title = "Sucesso",
+                        Message = "Total de " .. tostring(collected) .. " bombas coletadas!",
+                        Duration = 3
+                    })
+                else
+                    MyLibrary:Notify({
+                        Title = "Aviso",
+                        Message = "A coleta encerrou. Total obtido: " .. tostring(collected) .. "/" .. tostring(BombAmount),
+                        Duration = 4
+                    })
+                end
+            end
+            
+            ColetandoBombas = false
+        end)
+    end
+})
+
+
+
+
+Tab8:AddButton({
+    Name = "Parar de Pega Bombas",
+    Callback = function()
+        if ColetandoBombas then
+            ColetandoBombas = false -- Altera a flag para fechar o loop do botão acima imediatamente
+            MyLibrary:Notify({
+                Title = "Interrompido",
+                Message = "Cancelando coleta e retornando à posição...",
+                Duration = 3
+            })
+        else
+            MyLibrary:Notify({
+                Title = "Info",
+                Message = "Você não está coletando bombas no momento.",
+                Duration = 2
+            })
+        end
+    end
+})
+
+
+Tab8:AddButton({
+    Name = "Spawn Bombas",
+    Callback = function()
+        task.spawn(function()
+            local Character = Player.Character or Player.CharacterAdded:Wait()
+            local RootPart = Character:WaitForChild("HumanoidRootPart")
+            
+            local ferramentas = {}
+            
+            if Player:FindFirstChild("Backpack") then
+                for _, t in ipairs(Player.Backpack:GetChildren()) do
+                    if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                        table.insert(ferramentas, t)
+                    end
+                end
+            end
+
+            for _, t in ipairs(Character:GetChildren()) do
+                if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                    table.insert(ferramentas, t)
+                end
+            end
+
+            if #ferramentas == 0 then
+                MyLibrary:Notify({
+                    Title = "Erro",
+                    Message = "Nenhuma bomba encontrada no seu inventário!",
+                    Duration = 3
+                })
+                return
+            end
+
+            for _, bomb in ipairs(ferramentas) do
+                task.spawn(function()
+                    pcall(function()
+                        local mouseLoc = bomb:FindFirstChild("MouseLoc")
+                        local mouseLocCone = bomb:FindFirstChild("MouseLocCone")
+
+                        if mouseLoc then
+                            mouseLoc.OnClientInvoke = function()
+                                return RootPart.Position + Vector3.new(0, 4, 0)
+                            end
+                        end
+
+                        if mouseLocCone then
+                            mouseLocCone.OnClientInvoke = function()
+                                return RootPart
+                            end
+                        end
+
+                        if bomb.Parent ~= Character then
+                            bomb.Parent = Character
+                        end
+                        bomb:Activate()
+                    end)
+                end)
+            end
+        end)
+    end
+})
+
+
+Tab8:AddButton({
+    Name = "Ativa Bombas",
+    Callback = function()
+        if BlowBombsServer and BlowBombsServer:IsA("RemoteEvent") then
+            pcall(function()
+                BlowBombsServer:FireServer("Bomb" .. Player.Name)
+                MyLibrary:Notify({
+                    Title = "Detonação",
+                    Message = "Sinal enviado para explodir as bombas!",
+                    Duration = 3
+                })
+            end)
+        else
+            pcall(function()
+                ReplicatedStorage.RE["1Blo1wBomb1sServe1r"]:FireServer("Bomb" .. Player.Name)
+                MyLibrary:Notify({
+                    Title = "Detonação",
+                    Message = "Sinal alternativo enviado!",
+                    Duration = 3
+                })
+            end)
+        end
+    end
+})
+
+
+local LoopSpamBomba = false
+
+Tab8:AddToggle({
+    Name = "Auto Spawn e Ativar Bombas",
+    Default = false,
+    Callback = function(state)
+        LoopSpamBomba = state
+        
+        if LoopSpamBomba then
+            task.spawn(function()
+                MyLibrary:Notify({
+                    Title = "Auto Spam",
+                    Message = "Loop de bombas ativado!",
+                    Duration = 2
+                })
+                
+                -- Loop principal enquanto o Toggle estiver ligado
+                while LoopSpamBomba do
+                    local Character = Player.Character
+                    local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+                    
+                    if Character and RootPart then
+                        local ferramentas = {}
+                        
+                        -- 1. Coleta todas as bombas do inventário
+                        if Player:FindFirstChild("Backpack") then
+                            for _, t in ipairs(Player.Backpack:GetChildren()) do
+                                if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                                    table.insert(ferramentas, t)
+                                end
+                            end
+                        end
+                        for _, t in ipairs(Character:GetChildren()) do
+                            if t:IsA("Tool") and t.Name:lower():find("bomb") then
+                                table.insert(ferramentas, t)
+                            end
+                        end
+
+                        -- 2. Se houver bombas, inicia o processo de descarregar
+                        if #ferramentas > 0 then
+                            -- Move todas as bombas para o personagem imediatamente
+                            for _, bomb in ipairs(ferramentas) do
+                                pcall(function()
+                                    local mouseLoc = bomb:FindFirstChild("MouseLoc")
+                                    local mouseLocCone = bomb:FindFirstChild("MouseLocCone")
+
+                                    if mouseLoc then
+                                        mouseLoc.OnClientInvoke = function()
+                                            return RootPart.Position + Vector3.new(0, 4, 0)
+                                        end
+                                    end
+                                    if mouseLocCone then
+                                        mouseLocCone.OnClientInvoke = function()
+                                            return RootPart
+                                        end
+                                    end
+
+                                    if bomb.Parent ~= Character then
+                                        bomb.Parent = Character
+                                    end
+                                end)
+                            end
+                            
+                            -- PAUSA CRÍTICA: Dá tempo (0.03s) para o Roblox reconhecer as bombas nas suas mãos
+                            task.wait(0.03)
+
+                            -- Ativa todas que foram equipadas
+                            for _, bomb in ipairs(ferramentas) do
+                                pcall(function()
+                                    bomb:Activate()
+                                end)
+                            end
+
+                            -- SEGUNDA PAUSA CRÍTICA: Dá tempo para as bombas irem para a cabeça antes do "Boom"
+                            task.wait(0.05)
+                            
+                            -- 3. Detonação remota
+                            if BlowBombsServer and BlowBombsServer:IsA("RemoteEvent") then
+                                pcall(function()
+                                    BlowBombsServer:FireServer("Bomb" .. Player.Name)
+                                end)
+                            else
+                                pcall(function()
+                                    ReplicatedStorage.RE["1Blo1wBomb1sServe1r"]:FireServer("Bomb" .. Player.Name)
+                                end)
+                            end
+                        end
+                    end
+                    
+                    -- Pequena espera de 0.1 segundos antes de repetir todo o ciclo novamente
+                    task.wait(0.1) 
+                end
+                
+                MyLibrary:Notify({
+                    Title = "Auto Spam",
+                    Message = "Loop de bombas desativado.",
+                    Duration = 2
+                })
+            end)
+        end
+    end
+})
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Variáveis de Configuração
+local auraDistance = 6
+local auraSpeed = 1
+local auraHeight = -3
+local auraEnabled = false -- Orbita Você
+local auraTargetEnabled = false -- Orbita Alvo
+local currentShape = "Circulo"
+local currentMovement = "Em fila"
+
+-- Nova Variável
+local orbitStaticEnabled = false -- Órbita Posição Atual
+local staticPosition = nil -- Guarda a posição capturada
+
+-- Elementos da Interface (Tab8)
+Tab8:AddSection({ Name = "Orbita Props", Icon = "rbxassetid://" })
+
+Tab8:AddButton({
+    Name = "Pega a Caixa de Props",
+    Callback = function()
+        local args = {
+            [1] = "PickingTools",
+            [2] = "PropMaker"
+        }
+        pcall(function()
+            game:GetService("ReplicatedStorage").RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+        end)
+    end
+})
+
+Tab8:AddDropdown({
+    Name = "Formas",
+    Default = "Circulo",
+    Multi = false,
+    Options = {"Circulo", "Quadrado", "Triangulo"},
+    Callback = function(shape) currentShape = shape end
+})
+
+Tab8:AddDropdown({
+    Name = "Movimentos",
+    Default = "Em fila",
+    Multi = false,
+    Options = {
+        "Em fila",
+        "Para fora",
+        "Para dentro",
+        "De cabeça para baixo",
+        "De cabeça para baixo para dentro",
+        "De cabeça para baixo para fora",
+        "Deitado",
+        "Deitado para dentro",
+        "Deitado para fora"
+    },
+    Callback = function(movement) currentMovement = movement end
+})
+
+Tab8:AddSlider({
+    Name = "Distância",
+    Min = 1,
+    Max = 100,
+    Default = 6,
+    Increase = 0.5,
+    Callback = function(v) auraDistance = v end
+})
+
+Tab8:AddSlider({
+    Name = "Velocidade",
+    Min = 1,
+    Max = 20,
+    Default = 4,
+    Increase = 1,
+    Callback = function(v) auraSpeed = v end
+})
+
+Tab8:AddSlider({
+    Name = "Altura",
+    Min = -3,
+    Max = 100,
+    Default = -3,
+    Increase = 0.5,
+    Callback = function(v) auraHeight = v end
+})
+
+Tab8:AddToggle({
+    Name = "Órbita Posição Atual",
+    Default = false,
+    Callback = function(v)
+        orbitStaticEnabled = v
+        if v then
+            -- Captura a posição APENAS UMA VEZ no momento do clique
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                staticPosition = hrp.Position
+            else
+                staticPosition = Vector3.new(0, 0, 0)
+            end
+        else
+            staticPosition = nil
+        end
+    end
+})
+
+Tab8:AddToggle({
+    Name = "Orbita Você",
+    Default = false,
+    Callback = function(v) auraEnabled = v end
+})
+
+Tab8:AddToggle({
+    Name = "Orbita Alvo",
+    Default = false,
+    Callback = function(v) auraTargetEnabled = v end
+})
+
+-- Funções Matemáticas para Formas Geométricas
+local function getSquareOffset(angle, distance)
+    local c = math.cos(angle)
+    local s = math.sin(angle)
+    local maxCoord = math.max(math.abs(c), math.abs(s))
+    if maxCoord == 0 then maxCoord = 1 end
+    return (c / maxCoord) * distance, (s / maxCoord) * distance
+end
+
+local function getTriangleOffset(angle, distance)
+    local outAngle = math.fmod(angle, math.pi * 2 / 3)
+    if outAngle < 0 then outAngle = outAngle + (math.pi * 2 / 3) end
+    local r = distance * math.cos(math.pi / 3) / math.cos(outAngle - math.pi / 3)
+    return math.cos(angle) * r, math.sin(angle) * r
+end
+
+-- Loop Principal
+task.spawn(function()
+    local angle = 0
+
+    RunService.RenderStepped:Connect(function(dt)
+        if not auraEnabled and not auraTargetEnabled and not orbitStaticEnabled then return end
+        
+        local myChar = LocalPlayer.Character
+        local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
+        
+        local targetPlayerObj = selectedPlayerOutros and Players:FindFirstChild(selectedPlayerOutros)
+        local targetChar = targetPlayerObj and targetPlayerObj.Character
+        local targetHrp = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+
+        local folder = workspace:FindFirstChild("WorkspaceCom")
+        local propsFolder = folder and folder:FindFirstChild("001_TrafficCones")
+        if not propsFolder then return end
+
+        -- Sentido da rotação (sempre horário agora)
+        angle = angle + (dt * auraSpeed)
+
+        local myProps = {}
+        for _, prop in ipairs(propsFolder:GetChildren()) do
+            if prop.Name:find("Prop" .. LocalPlayer.Name) then
+                table.insert(myProps, prop)
+            end
+        end
+
+        local totalProps = #myProps
+        if totalProps == 0 then return end
+
+        local targetGroups = {}
+        
+        -- Prioridade 1: Se Órbita Estática estiver ligada, ignora os eixos móveis dos players
+        if orbitStaticEnabled and staticPosition then
+            for index, prop in ipairs(myProps) do
+                table.insert(targetGroups, {prop = prop, isStatic = true, staticCenter = staticPosition, groupIndex = index, groupTotal = totalProps})
+            end
+        -- Prioridade 2: Divisão mútua entre você e o Alvo
+        elseif auraEnabled and auraTargetEnabled and targetHrp then
+            local half = math.ceil(totalProps / 2)
+            for index, prop in ipairs(myProps) do
+                if index <= half then
+                    table.insert(targetGroups, {prop = prop, centerHrp = myHrp, groupIndex = index, groupTotal = half})
+                else
+                    table.insert(targetGroups, {prop = prop, centerHrp = targetHrp, groupIndex = index - half, groupTotal = totalProps - half})
+                end
+            end
+        -- Prioridade 3: Apenas no Alvo
+        elseif auraTargetEnabled and targetHrp then
+            for index, prop in ipairs(myProps) do
+                table.insert(targetGroups, {prop = prop, centerHrp = targetHrp, groupIndex = index, groupTotal = totalProps})
+            end
+        -- Prioridade 4: Apenas em Você
+        else
+            if myHrp then
+                for index, prop in ipairs(myProps) do
+                    table.insert(targetGroups, {prop = prop, centerHrp = myHrp, groupIndex = index, groupTotal = totalProps})
+                end
+            end
+        end
+
+        -- Lógica de cálculo posicional por prop
+        for _, data in ipairs(targetGroups) do
+            local prop = data.prop
+            local index = data.groupIndex
+            local groupTotal = data.groupTotal
+            
+            -- Define qual será o ponto central (Estático ou um Player HRP)
+            local centerPosition = nil
+            local referenceCFrame = nil
+            
+            if data.isStatic then
+                centerPosition = data.staticCenter
+                referenceCFrame = CFrame.new(centerPosition)
+            elseif data.centerHrp then
+                centerPosition = data.centerHrp.Position
+                referenceCFrame = data.centerHrp.CFrame
+            end
+
+            if centerPosition then
+                local offsetAngle = angle + ((index - 1) * (math.pi * 2 / groupTotal))
+
+                -- 1. Calcula Posição X e Z
+                local px, pz = 0, 0
+                if currentShape == "Quadrado" then
+                    px, pz = getSquareOffset(offsetAngle, auraDistance)
+                elseif currentShape == "Triangulo" then
+                    px, pz = getTriangleOffset(offsetAngle, auraDistance)
+                else
+                    px = math.cos(offsetAngle) * auraDistance
+                    pz = math.sin(offsetAngle) * auraDistance
+                end
+
+                local targetPosition = centerPosition + Vector3.new(px, auraHeight, pz)
+
+                -- 2. Rotação/Direção do CFrame
+                local baseCFrame
+                if currentMovement:find("para fora") or currentMovement:find("Para fora") then
+                    baseCFrame = CFrame.lookAt(targetPosition, targetPosition + Vector3.new(px, 0, pz))
+                elseif currentMovement:find("para dentro") or currentMovement:find("Para dentro") then
+                    baseCFrame = CFrame.lookAt(targetPosition, Vector3.new(centerPosition.X, targetPosition.Y, centerPosition.Z))
+                else
+                    baseCFrame = CFrame.new(targetPosition) * (referenceCFrame - referenceCFrame.Position)
+                end
+
+                -- 3. Multiplicadores de Eixo Especiais
+                local targetCFrame = baseCFrame
+                if currentMovement:find("De cabeça para baixo") then
+                    targetCFrame = baseCFrame * CFrame.Angles(0, 0, math.pi)
+                elseif currentMovement:find("Deitado") then
+                    targetCFrame = baseCFrame * CFrame.Angles(math.pi / 2, 0, 0)
+                end
+
+                local remote = prop:FindFirstChild("SetCurrentCFrame")
+                if remote then
+                    task.spawn(function()
+                        pcall(function()
+                            remote:InvokeServer(targetCFrame)
+                        end)
+                    end)
+                end
+            end
+        end
+    end)
+end)
 ---------------------------------------------------------------------------------------------------------------------------------
                                           -- === Tab 9 Troll la === --
 ---------------------------------------------------------------------------------------------------------------------------------
