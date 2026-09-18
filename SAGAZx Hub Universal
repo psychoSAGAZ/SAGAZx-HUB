@@ -347,6 +347,128 @@ Tab2:AddToggle({
     end
 })
 
+----------------------------------------------------
+-- FLOAT V1 + V2 (SAGAZx HUB) - autocontido
+----------------------------------------------------
+do
+    local Players     = game:GetService("Players")
+    local RunService  = game:GetService("RunService")
+    local LocalPlayer = Players.LocalPlayer
+
+    local function makeFloat(isV2)
+        local state = {
+            Enabled = false,
+            Part = nil,
+            Render = nil,
+            Jump = nil,
+            TargetY = 0,
+            IsV2 = isV2
+        }
+
+        local function disconnectAll()
+            if state.Render then state.Render:Disconnect(); state.Render = nil end
+            if state.Jump   then state.Jump:Disconnect();   state.Jump   = nil end
+        end
+
+        local function disable()
+            state.Enabled = false
+            disconnectAll()
+            if state.Part then state.Part:Destroy(); state.Part = nil end
+        end
+
+        local function enable()
+            if state.Enabled then return end
+            local char = LocalPlayer.Character
+            if not char then return end
+
+            local root = char:FindFirstChild("HumanoidRootPart")
+            local hum  = char:FindFirstChildOfClass("Humanoid")
+            if not root or not hum then return end
+
+            state.Enabled = true
+            state.TargetY = root.Position.Y - (hum.HipHeight + 1.5)
+
+            state.Part = Instance.new("Part")
+            state.Part.Name          = "SAGAZ_Float_" .. (isV2 and "V2" or "V1")
+            state.Part.Size          = Vector3.new(7, 1, 7)
+            state.Part.Transparency  = 1
+            state.Part.Anchored      = true
+            state.Part.CanCollide    = true
+            state.Part.Parent        = workspace
+
+            -- Pulo
+            state.Jump = hum.Jumping:Connect(function()
+                if not state.Part then return end
+                state.Part.CanCollide = false
+
+                task.spawn(function()
+                    local r = root
+                    while r and r.Parent and r.AssemblyLinearVelocity.Y > 0 do
+                        task.wait()
+                    end
+                    if state.Part then
+                        if not isV2 and r and r.Parent then
+                            local h = char:FindFirstChildOfClass("Humanoid")
+                            if h then
+                                state.TargetY = r.Position.Y - (h.HipHeight + 1.5)
+                            end
+                        end
+                        state.Part.CanCollide = true
+                    end
+                end)
+            end)
+
+            -- Render
+            state.Render = RunService.RenderStepped:Connect(function()
+                local c = LocalPlayer.Character
+                if not state.Part or not c then return end
+                local r = c:FindFirstChild("HumanoidRootPart")
+                local h = c:FindFirstChildOfClass("Humanoid")
+                if not r or not h then return end
+
+                state.Part.Position = Vector3.new(r.Position.X, state.TargetY, r.Position.Z)
+
+                local st = h:GetState()
+                local grounded =
+                    st == Enum.HumanoidStateType.Running
+                    or st == Enum.HumanoidStateType.RunningNoPhysics
+                    or st == Enum.HumanoidStateType.Landed
+                    or st == Enum.HumanoidStateType.Seated
+
+                if grounded and state.Part.CanCollide then
+                    r.AssemblyLinearVelocity =
+                        Vector3.new(r.AssemblyLinearVelocity.X, 0, r.AssemblyLinearVelocity.Z)
+                end
+            end)
+        end
+
+        return {
+            SetState = function(v) if v then enable() else disable() end end,
+            Disable  = disable
+        }
+    end
+
+    local FloatV1 = makeFloat(false)
+    local FloatV2 = makeFloat(true)
+
+    LocalPlayer.CharacterAdded:Connect(function()
+        FloatV1.Disable()
+        FloatV2.Disable()
+    end)
+
+    Tab2:AddToggle({
+        Name = "Float",
+        Default = false,
+        Callback = function(v) FloatV1.SetState(v) end
+    })
+
+    Tab2:AddToggle({
+        Name = "Float v2",
+        Default = false,
+        Callback = function(v) FloatV2.SetState(v) end
+    })
+end
+
 Tab2:AddToggle({
     Name = "NOCLIP",
     Description = "ATRAVESSA PAREDES",
