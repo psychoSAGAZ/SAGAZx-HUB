@@ -2413,7 +2413,7 @@ local LocalPlayer        = Players.LocalPlayer
 --==============================================================
 local BODY_CODES = {
     ["Corpo Normal"]          = "BH-AE-b13ebf33569a4d909d1995f401511ba6",
-    ["Corpo Normal Esticado"] = "BH-AE-00e12b1c7a95401398d1a0f8ffdc2eda"
+    ["Corpo Normal Esticado"] = "BH-AE-00e12b1c7a95401398d1a0f8ffdc2eda",
     ["Corpo Alto Fino"]       = "BH-AE-a6dc40c61d634003b173e343aa5c880a"
 }
 
