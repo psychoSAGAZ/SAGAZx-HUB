@@ -9,10 +9,6 @@ if game.PlaceId ~= TARGET_PLACE_ID then
     return
 end
 
--------------------------------------------
--- Intro
--------------------------------------------
-
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
 end)
@@ -2416,9 +2412,9 @@ local LocalPlayer        = Players.LocalPlayer
 -- 🧬 TABELA GLOBAL DE CORPOS
 --==============================================================
 local BODY_CODES = {
-    ["Corpo Normal"]          = "BH-AE-2b3636f80a1d4554bb1571035a202374",
-    ["Corpo Normal Esticado"] = "BH-AE-8a760f757e594be7bcebba8030df614f",
-    ["Corpo Alto Fino"]       = "BH-AE-67ceaab967b14798825daab9cfd2144d"
+    ["Corpo Normal"]          = "BH-AE-b13ebf33569a4d909d1995f401511ba6",
+    ["Corpo Normal Esticado"] = "BH-AE-00e12b1c7a95401398d1a0f8ffdc2eda"
+    ["Corpo Alto Fino"]       = "BH-AE-a6dc40c61d634003b173e343aa5c880a"
 }
 
 local BODY_OPTIONS = { "Corpo Normal", "Corpo Normal Esticado", "Corpo Alto Fino" }
