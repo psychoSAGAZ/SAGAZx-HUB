@@ -655,13 +655,28 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
 
     if imageInput:find("https://") or imageInput:find("http://") then
         if not requestFunc or not getAssetFunc then
-            warn("Executor nÃ£o suporta request/getcustomasset.")
+            warn("Executor não suporta request/getcustomasset.")
             return imageInput
         end
 
         local fileName = IMAGES_FOLDER .. "/" .. namePrefix .. ".png"
+        local metaFile = IMAGES_FOLDER .. "/" .. namePrefix .. ".link"  -- 📝 guarda o link atual
 
-        if isfile and isfile(fileName) then
+        -- 🔍 Lê o link antigo salvo (se existir)
+        local oldLink = nil
+        if isfile and isfile(metaFile) then
+            local ok, content = pcall(readfile, metaFile)
+            if ok and type(content) == "string" then
+                oldLink = content
+            end
+        end
+
+        -- 🗑️ Se o link mudou OU o arquivo não existe, força redownload
+        local linkChanged = (oldLink ~= imageInput)
+        local fileExists = isfile and isfile(fileName)
+
+        if fileExists and not linkChanged then
+            -- Usa o cache somente se o link é o mesmo
             local assetPath = getAssetFunc(fileName)
             if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
                 objectTarget.Image = assetPath
@@ -669,6 +684,12 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
             return assetPath
         end
 
+        -- 🔥 Deleta o arquivo antigo antes de baixar o novo
+        if fileExists then
+            pcall(delfile, fileName)
+        end
+
+        -- ⬇️ Baixa a nova imagem
         local response = requestFunc({
             Url = imageInput,
             Method = "GET",
@@ -677,6 +698,11 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
 
         if response and response.Body then
             writefile(fileName, response.Body)
+            -- 💾 Salva o link atual para comparação futura
+            if writefile then
+                pcall(writefile, metaFile, imageInput)
+            end
+
             local assetPath = getAssetFunc(fileName)
             if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
                 objectTarget.Image = assetPath
@@ -687,6 +713,7 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
             return imageInput
         end
     else
+        -- 🔗 AssetId direto do Roblox (não usa cache local)
         local formattedId = imageInput
         if not imageInput:find("rbxassetid://") and not imageInput:find("rbxasset://") then
             formattedId = "rbxassetid://" .. imageInput
