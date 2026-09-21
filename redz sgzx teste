@@ -1820,7 +1820,7 @@ function Window:Minimize()
     end
 end
 
--- Cria automaticamente o botÃ£o de minimizar externo
+-- Cria automaticamente o botão de minimizar externo
 local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Size = UDim2.fromOffset(35, 35),
     Position = UDim2.fromScale(0.15, 0.15),
@@ -1829,9 +1829,51 @@ local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Image = "",
     Name = "MinimizeExternalButton"
 }))
-Make("Corner", MinimizeExternalButton, UDim.new(0, 8))  -- cantos arredondados
+Make("Corner", MinimizeExternalButton, UDim.new(0, 8))
 ApplyMinimizeBorder(MinimizeExternalButton)
-MinimizeExternalButton.Activated:Connect(Window.Minimize)  -- conecta Ã  funÃ§Ã£o de minimizar
+MinimizeExternalButton.Activated:Connect(Window.Minimize)
+
+-- ═══════════════════════════════════════════════════════
+-- CLAMP: mantém o botão sempre dentro da tela
+-- ═══════════════════════════════════════════════════════
+local function ClampMinimizePos()
+    local btn = MinimizeExternalButton
+    if not btn or not btn.Parent then return end
+
+    local viewport = workspace.CurrentCamera.ViewportSize
+    -- Como o ScreenGui tem UIScale, precisamos dividir o viewport pelo scale
+    local scale = UIScale or 1
+    local screenW = viewport.X / scale
+    local screenH = viewport.Y / scale
+
+    local posX = btn.Position.X.Offset
+    local posY = btn.Position.Y.Offset
+
+    -- Se estiver usando Scale, converte pra Offset primeiro
+    if btn.Position.X.Scale ~= 0 or btn.Position.Y.Scale ~= 0 then
+        posX = btn.Position.X.Scale * screenW + btn.Position.X.Offset
+        posY = btn.Position.Y.Scale * screenH + btn.Position.Y.Offset
+    end
+
+    local maxX = screenW - btn.AbsoluteSize.X / scale
+    local maxY = screenH - btn.AbsoluteSize.Y / scale
+
+    local clampedX = math.clamp(posX, 0, math.max(0, maxX))
+    local clampedY = math.clamp(posY, 0, math.max(0, maxY))
+
+    if clampedX ~= posX or clampedY ~= posY then
+        btn.Position = UDim2.fromOffset(clampedX, clampedY)
+    end
+end
+
+-- Aplica clamp quando a posição mudar (durante drag)
+MinimizeExternalButton:GetPropertyChangedSignal("Position"):Connect(ClampMinimizePos)
+
+-- Aplica clamp quando a tela redimensionar
+workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(ClampMinimizePos)
+
+-- Aplica clamp inicial (garante que começa dentro)
+task.defer(ClampMinimizePos)
 
 MyLibrary.MinimizeExternalButton = MinimizeExternalButton
 
