@@ -648,6 +648,8 @@ end
 -- Guarda o último link usado para cada imagem
 local LastImageLinks = {}
 
+local LastImageLinks = {}
+
 local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
     if not objectTarget or type(imageInput) ~= "string" or imageInput == "" then
         if objectTarget and (objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton")) then
@@ -656,42 +658,34 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
         return ""
     end
 
-    -- ============ LINK (https://) ============
     if imageInput:find("https://") or imageInput:find("http://") then
         if not requestFunc or not getAssetFunc then
             warn("Executor não suporta request/getcustomasset.")
             return imageInput
         end
 
-        local fileName = IMAGES_FOLDER .. "/" .. namePrefix .. ".png"
-        local linkMudou = (LastImageLinks[namePrefix] ~= imageInput)
-
-        -- ⚠️ SE O LINK MUDOU, LIMPA TUDO ANTES
-        if linkMudou then
-            -- 1. Limpa a referência visual primeiro (força o Roblox a "esquecer" a textura)
-            if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
-                objectTarget.Image = ""
-            end
-
-            -- 2. Deleta o arquivo antigo
-            if isfile and isfile(fileName) then
-                pcall(delfile, fileName)
-            end
-
-            -- 3. Espera um frame pra garantir que o file handle foi liberado
-            task.wait()
+        -- ⚠️ USA NOME ÚNICO POR LINK (hash) para contornar cache do executor
+        local linkHash = 0
+        for i = 1, #imageInput do
+            linkHash = (linkHash * 31 + string.byte(imageInput, i)) % 2147483647
         end
+        local fileName = IMAGES_FOLDER .. "/" .. namePrefix .. "_" .. tostring(linkHash) .. ".png"
 
-        -- Se o link NÃO mudou e o arquivo existe, usa direto
-        if not linkMudou and isfile and isfile(fileName) then
+        -- 1. Se o arquivo já existe, usa direto
+        if isfile and isfile(fileName) then
             local assetPath = getAssetFunc(fileName)
             if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
                 objectTarget.Image = assetPath
             end
+            LastImageLinks[namePrefix] = imageInput
             return assetPath
         end
 
-        -- Baixa o novo arquivo
+        -- 2. Limpa referência visual e baixa novo
+        if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
+            objectTarget.Image = ""
+        end
+
         local response = requestFunc({
             Url = imageInput,
             Method = "GET",
@@ -702,12 +696,10 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
             writefile(fileName, response.Body)
             LastImageLinks[namePrefix] = imageInput
 
-            -- ⚠️ getcustomasset às vezes retorna cache mesmo após delfile.
-            -- Solução: chamamos e forçamos a atualização via "ContentProvider"
             local assetPath = getAssetFunc(fileName)
             if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
                 objectTarget.Image = ""
-                task.wait()  -- limpa a referência
+                task.wait()
                 objectTarget.Image = assetPath
             end
             return assetPath
@@ -715,16 +707,12 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
             warn("Falha ao baixar imagem: " .. tostring(imageInput))
             return imageInput
         end
-
-    -- ============ RBXASSETID ============
     else
         local formattedId = imageInput
         if not imageInput:find("rbxassetid://") and not imageInput:find("rbxasset://") then
             formattedId = "rbxassetid://" .. imageInput
         end
-
         LastImageLinks[namePrefix] = imageInput
-
         if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
             objectTarget.Image = formattedId
         end
