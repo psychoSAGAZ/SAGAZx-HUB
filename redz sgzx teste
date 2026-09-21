@@ -645,6 +645,9 @@ local function SaveImageSettings(data)
     SaveJson(JSON_FILE_PATH, data)
 end
 
+-- Guarda o último link usado para cada imagem (evita rebaixar a mesma)
+local LastImageLinks = {}
+
 local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
     if not objectTarget or type(imageInput) ~= "string" or imageInput == "" then
         if objectTarget and (objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton")) then
@@ -653,6 +656,7 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
         return ""
     end
 
+    -- ============ LINK (https://) ============
     if imageInput:find("https://") or imageInput:find("http://") then
         if not requestFunc or not getAssetFunc then
             warn("Executor não suporta request/getcustomasset.")
@@ -660,23 +664,9 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
         end
 
         local fileName = IMAGES_FOLDER .. "/" .. namePrefix .. ".png"
-        local metaFile = IMAGES_FOLDER .. "/" .. namePrefix .. ".link"  -- 📝 guarda o link atual
 
-        -- 🔍 Lê o link antigo salvo (se existir)
-        local oldLink = nil
-        if isfile and isfile(metaFile) then
-            local ok, content = pcall(readfile, metaFile)
-            if ok and type(content) == "string" then
-                oldLink = content
-            end
-        end
-
-        -- 🗑️ Se o link mudou OU o arquivo não existe, força redownload
-        local linkChanged = (oldLink ~= imageInput)
-        local fileExists = isfile and isfile(fileName)
-
-        if fileExists and not linkChanged then
-            -- Usa o cache somente se o link é o mesmo
+        -- ⚠️ SE O LINK NÃO MUDOU E O ARQUIVO EXISTE, USA O CACHE
+        if LastImageLinks[namePrefix] == imageInput and isfile and isfile(fileName) then
             local assetPath = getAssetFunc(fileName)
             if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
                 objectTarget.Image = assetPath
@@ -684,12 +674,11 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
             return assetPath
         end
 
-        -- 🔥 Deleta o arquivo antigo antes de baixar o novo
-        if fileExists then
+        -- ⚠️ SE O LINK MUDOU, DELETA O ARQUIVO ANTIGO E BAIXA NOVO
+        if isfile and isfile(fileName) then
             pcall(delfile, fileName)
         end
 
-        -- ⬇️ Baixa a nova imagem
         local response = requestFunc({
             Url = imageInput,
             Method = "GET",
@@ -698,10 +687,7 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
 
         if response and response.Body then
             writefile(fileName, response.Body)
-            -- 💾 Salva o link atual para comparação futura
-            if writefile then
-                pcall(writefile, metaFile, imageInput)
-            end
+            LastImageLinks[namePrefix] = imageInput  -- ⚠️ Marca o link atual
 
             local assetPath = getAssetFunc(fileName)
             if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
@@ -712,12 +698,16 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
             warn("Falha ao baixar imagem: " .. tostring(imageInput))
             return imageInput
         end
+
+    -- ============ RBXASSETID ============
     else
-        -- 🔗 AssetId direto do Roblox (não usa cache local)
         local formattedId = imageInput
         if not imageInput:find("rbxassetid://") and not imageInput:find("rbxasset://") then
             formattedId = "rbxassetid://" .. imageInput
         end
+
+        -- Registra o link para não conflitar com o cache de URL
+        LastImageLinks[namePrefix] = imageInput
 
         if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
             objectTarget.Image = formattedId
