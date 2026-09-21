@@ -1833,7 +1833,7 @@ local savedPos = MyLibrary.Save.MinimizePos or {0.15, 0.15}
 
 local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Size = UDim2.fromOffset(35, 35),
-    Position = UDim2.fromScale(savedPos[1], savedPos[2]),  -- ⬅️ usa a posição salva
+    Position = UDim2.fromScale(savedPos[1], savedPos[2]),
     BackgroundTransparency = 0,
     AutoButtonColor = false,
     Image = "",
@@ -1878,32 +1878,46 @@ local function ClampMinimizePos()
 end
 
 -- ═══════════════════════════════════════════════════════
--- SALVAR POSIÇÃO quando o drag termina
+-- SALVAR POSIÇÃO (com debounce pra não floodar o JSON)
 -- ═══════════════════════════════════════════════════════
+local saveDebounce = false
 local function SaveMinimizePos()
-    local btn = MinimizeExternalButton
-    if not btn then return end
+    if saveDebounce then return end
+    saveDebounce = true
 
-    local viewport = workspace.CurrentCamera.ViewportSize
-    local scale = UIScale or 1
-    local screenW = viewport.X / scale
-    local screenH = viewport.Y / scale
+    task.delay(0.5, function()  -- espera 0.5s pra ver se a posição estabiliza
+        saveDebounce = false
 
-    -- Converte Offset pra Scale (normalizado) para funcionar em qualquer resolução
-    local posX = btn.Position.X.Offset
-    local posY = btn.Position.Y.Offset
-    if btn.Position.X.Scale ~= 0 then
-        posX = btn.Position.X.Scale * screenW + posX
-    end
-    if btn.Position.Y.Scale ~= 0 then
-        posY = btn.Position.Y.Scale * screenH + posY
-    end
+        local btn = MinimizeExternalButton
+        if not btn then return end
 
-    local scaleX = posX / screenW
-    local scaleY = posY / screenH
+        local viewport = workspace.CurrentCamera.ViewportSize
+        local scale = UIScale or 1
+        local screenW = viewport.X / scale
+        local screenH = viewport.Y / scale
 
-    MyLibrary.Save.MinimizePos = {scaleX, scaleY}
-    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+        -- Converte Offset pra Scale (normalizado)
+        local posX = btn.Position.X.Offset
+        local posY = btn.Position.Y.Offset
+        if btn.Position.X.Scale ~= 0 then
+            posX = btn.Position.X.Scale * screenW + posX
+        end
+        if btn.Position.Y.Scale ~= 0 then
+            posY = btn.Position.Y.Scale * screenH + posY
+        end
+
+        local newScaleX = posX / screenW
+        local newScaleY = posY / screenH
+
+        -- Só salva se mudou de verdade
+        local old = MyLibrary.Save.MinimizePos or {0, 0}
+        if math.abs(old[1] - newScaleX) < 0.001 and math.abs(old[2] - newScaleY) < 0.001 then
+            return
+        end
+
+        MyLibrary.Save.MinimizePos = {newScaleX, newScaleY}
+        SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+    end)
 end
 
 -- ═══════════════════════════════════════════════════════
@@ -1916,18 +1930,26 @@ MinimizeExternalButton:GetPropertyChangedSignal("Position"):Connect(ClampMinimiz
 -- Clamp quando a tela redimensionar
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(ClampMinimizePos)
 
--- ⚠️ Salva a posição APENAS quando o mouse soltar (fim do drag)
+-- ⚠️ Salva quando o mouse soltar EM CIMA do botão
+MinimizeExternalButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        SaveMinimizePos()
+    end
+end)
+
+-- ⚠️ Também salva quando o mouse soltar em qualquer lugar (caso tenha arrastado pra fora)
+-- Mas só se o botão foi movido recentemente
+local lastMoveTime = 0
+MinimizeExternalButton:GetPropertyChangedSignal("Position"):Connect(function()
+    lastMoveTime = tick()
+end)
+
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        -- Verifica se o mouse está em cima do botão (drag acabou de acontecer)
-        local mousePos = UserInputService:GetMouseLocation()
-        local btnAbsPos = MinimizeExternalButton.AbsolutePosition
-        local btnAbsSize = MinimizeExternalButton.AbsoluteSize
-
-        -- Se o botão foi movido recentemente, salva
-        task.defer(function()
+        -- Só salva se o botão foi movido nos últimos 1.5s
+        if tick() - lastMoveTime < 1.5 then
             SaveMinimizePos()
-        end)
+        end
     end
 end)
 
@@ -1935,6 +1957,7 @@ end)
 task.defer(ClampMinimizePos)
 
 MyLibrary.MinimizeExternalButton = MinimizeExternalButton
+
 -- ==================== JANELA SECUNDÁRIA ====================
 local SecondaryFrame = InsertTheme(Create("ImageButton", MainFrame, {
     Size = UDim2.fromOffset(250, 300),
