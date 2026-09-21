@@ -6475,15 +6475,24 @@ function Tab:AddDiscordInvite(Configs)
     AddTransparency(FrameHolder)
     Make("Corner", FrameHolder, UDim.new(0, 6))
 
-    -- Imagem preenchendo o fundo do frame
-    local ImageLabel = Create("ImageLabel", FrameHolder, {
-        Size = UDim2.new(1, 0, 0, 85),
-        Position = UDim2.new(0, 0, 0, 0),
-        Image = Logo,
-        BackgroundTransparency = 1,
-        ScaleType = Enum.ScaleType.Crop
-    })
-    Make("Corner", ImageLabel, UDim.new(0, 6))
+-- Imagem preenchendo o fundo do frame
+local ImageLabel = Create("ImageLabel", FrameHolder, {
+    Size = UDim2.new(1, 0, 0, 85),
+    Position = UDim2.new(0, 0, 0, 0),
+    Image = "",  -- ✅ vazio, será preenchido pelo ProcessAndApplyImage
+    BackgroundTransparency = 1,
+    ScaleType = Enum.ScaleType.Crop
+})
+Make("Corner", ImageLabel, UDim.new(0, 6))
+
+-- ⚠️ Aplica a imagem aceitando ID OU link HTTP
+if Logo and Logo ~= "" then
+    task.spawn(function()
+        -- nome único por AddDiscordInvite (usa contador pra não colidir se tiver vários)
+        local uniqueId = "DiscordInvite_" .. tostring(math.random(100000, 999999))
+        ProcessAndApplyImage(ImageLabel, Logo, uniqueId)
+    end)
+end
 
         -- Barra horizontal na parte inferior usando Color Hub 2
     local BottomBar = InsertTheme(Create("Frame", FrameHolder, {
