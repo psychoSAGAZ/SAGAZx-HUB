@@ -10,15 +10,15 @@ local PlayerMouse = Player:GetMouse()
 
 local MyLibrary = {
     Themes = {
-		Purple = {
+		Customize = {
 			["Color Hub 1"] = ColorSequence.new({
 				ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 0, 0)),
-				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(128, 90, 255)),
+				ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 0, 0)),
 				ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))
 			}),
-			["Color Hub 2"] = Color3.fromRGB(30, 30, 30),
-			["Color Stroke"] = Color3.fromRGB(100, 72, 180),
-			["Color Theme"] = Color3.fromRGB(77, 52, 255),
+			["Color Hub 2"] = Color3.fromRGB(114, 0, 0),
+			["Color Stroke"] = Color3.fromRGB(84, 0, 0),
+			["Color Theme"] = Color3.fromRGB(255, 0, 0),
 			["Color Text"] = Color3.fromRGB(238, 255, 63),
 			["Color Dark Text"] = Color3.fromRGB(0, 255, 109)
 		}
@@ -29,17 +29,16 @@ local MyLibrary = {
 Save = {
     UISize = {430, 314},
     TabSize = 135,
-    Theme = "Purple",
+    Theme = "Customize",
     CustomColors = {},
     ToggleKey = "RightShift",
     GlobalTransparency = 0,
     HubTransparency = 0,
     HubImageTransparency = 0,
     StrokeTransparency = 0,
-    StrokeColor = "#FFFFFF",
-    MinimizeStrokeColor = "#5B50FF",
+    StrokeColor = "#FF0000",
+    MinimizeStrokeColor = "#FF0000",
     Font = "LuckiestGuy",
-    TopbarImage = "rbxassetid://86050226751861",
     ClickSoundEnabled = false,
     ClickSoundId = "rbxassetid://18998603679",
     ClickSoundVolume = 0.1,
@@ -606,9 +605,9 @@ local function SaveJson(FileName, save)
     end
 end
 
-local DEFAULT_HUB_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1549938098371297450/file_0000000064cc820e9c9e1c5fa32089df.png?ex=6ab27297&is=6ab12117&hm=c6fef53d20a609b37e1329a4d972e42526e9e950da10d6babdf8b90cf09d5962&"
-local DEFAULT_MINIMIZE_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1549935068917661796/file_000000001d70820e9b5e7b24883b432b.png?ex=6ab26fc4&is=6ab11e44&hm=ea676555fed2b1d27969f937bdafc40d8d58d1c5326388a1b3981605bd3cb1ae&"
-local DEFAULT_TOP_BAR_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1549935050488021022/file_00000000d864820ea7af9197cb2581ba.png?ex=6ab26fc0&is=6ab11e40&hm=5cc26daf92b8cb6c506771978c8fc150135c9325f1b867df2455d0cd00731a92&"
+local DEFAULT_HUB_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1549935068917661796/file_000000001d70820e9b5e7b24883b432b.png?ex=6ab26fc4&is=6ab11e44&hm=ea676555fed2b1d27969f937bdafc40d8d58d1c5326388a1b3981605bd3cb1ae&"
+local DEFAULT_MINIMIZE_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1551719479921348659/file_00000000d864820ea7af9197cb2581ba.png?ex=6ab2fee1&is=6ab1ad61&hm=e21aa1ee63658224051ee73621871d5b91e1e2fa103486fb56dff08a028f3bbb&"
+local DEFAULT_TOP_BAR_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1549938098371297450/file_0000000064cc820e9c9e1c5fa32089df.png?ex=6ab27297&is=6ab12117&hm=c6fef53d20a609b37e1329a4d972e42526e9e950da10d6babdf8b90cf09d5962&"
 
 local IMAGES_FOLDER = LibFolder .. "/imagens"
 local JSON_FILE_PATH = IMAGES_FOLDER .. "/imagens.json"
