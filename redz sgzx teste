@@ -423,6 +423,7 @@ end
 
 local ScreenGui = Create("ScreenGui", CoreGui, {
     Name = "SAGAZx HUB",
+    IgnoreGuiInset = true,  -- ⬅️ ADICIONE ISSO
 }, {
     Create("UIScale", {
         Scale = UIScale,
@@ -1841,25 +1842,28 @@ local function ClampMinimizePos()
     if not btn or not btn.Parent then return end
 
     local viewport = workspace.CurrentCamera.ViewportSize
-    -- Como o ScreenGui tem UIScale, precisamos dividir o viewport pelo scale
     local scale = UIScale or 1
     local screenW = viewport.X / scale
     local screenH = viewport.Y / scale
 
+    -- Converte Scale pra Offset
     local posX = btn.Position.X.Offset
     local posY = btn.Position.Y.Offset
-
-    -- Se estiver usando Scale, converte pra Offset primeiro
-    if btn.Position.X.Scale ~= 0 or btn.Position.Y.Scale ~= 0 then
-        posX = btn.Position.X.Scale * screenW + btn.Position.X.Offset
-        posY = btn.Position.Y.Scale * screenH + btn.Position.Y.Offset
+    if btn.Position.X.Scale ~= 0 then
+        posX = btn.Position.X.Scale * screenW + posX
+    end
+    if btn.Position.Y.Scale ~= 0 then
+        posY = btn.Position.Y.Scale * screenH + posY
     end
 
-    local maxX = screenW - btn.AbsoluteSize.X / scale
-    local maxY = screenH - btn.AbsoluteSize.Y / scale
+    local btnW = btn.AbsoluteSize.X / scale
+    local btnH = btn.AbsoluteSize.Y / scale
+    local maxX = math.max(0, screenW - btnW)
+    local maxY = math.max(0, screenH - btnH)
 
-    local clampedX = math.clamp(posX, 0, math.max(0, maxX))
-    local clampedY = math.clamp(posY, 0, math.max(0, maxY))
+    -- ⚠️ Permite Y=0 (dentro da topbar)
+    local clampedX = math.clamp(posX, 0, maxX)
+    local clampedY = math.clamp(posY, 0, maxY)
 
     if clampedX ~= posX or clampedY ~= posY then
         btn.Position = UDim2.fromOffset(clampedX, clampedY)
