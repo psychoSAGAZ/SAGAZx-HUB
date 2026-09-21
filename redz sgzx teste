@@ -625,7 +625,7 @@ local function LoadImageSettings()
     local defaultData = {
     HubImage = DEFAULT_HUB_IMAGE,
     MinimizeImage = DEFAULT_MINIMIZE_IMAGE,
-    TopbarImage = MyLibrary.Save.TopbarImage or "rbxassetid://86050226751861",
+    TopbarImage = DEFAULT_TOP_BAR_IMAGE
 }
     if isfile and isfile(JSON_FILE_PATH) then
         local ok, decoded = pcall(function()
