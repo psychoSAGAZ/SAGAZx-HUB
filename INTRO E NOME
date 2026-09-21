@@ -1,1 +1,1930 @@
 
+task.spawn(function()
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+local LoadingConfig = {
+    Duration = 8,
+    FadeOutTime = 1.5,
+    BarColor = Color3.fromRGB(255, 255, 255),
+    BarGlow = Color3.fromRGB(200, 200, 200),
+    BackgroundColor = Color3.fromRGB(0, 0, 0),
+    TextColor = Color3.fromRGB(255, 255, 255),
+    ParticleCount = 150,
+    ParticleSpeed = 2,
+    ParticleSize = 3,
+    
+    -- CONFIGURAÇÃO DE MÚSICA
+    MusicID = 105126065014034,
+    MusicVolume = 0.5,
+    PlayMusic = true
+}
+
+local LoadingElements = {
+    "Starting system...",
+    "Loading interface...",
+    "Loading scripts...",
+    "Optimizing performance...",
+    "Thank you for running...",
+    "Finalizing loading...",
+    "Ready to use!"
+}
+
+local Particles = {}
+local AnimationConnections = {}
+local LoadingMusic = nil
+
+-- Função para criar e tocar a música
+local function CreateLoadingMusic()
+    if not LoadingConfig.PlayMusic then
+        return nil
+    end
+    
+    local sound = Instance.new("Sound")
+    sound.Name = "LoadingMusic"
+    sound.SoundId = "rbxassetid://" .. LoadingConfig.MusicID
+    sound.Volume = LoadingConfig.MusicVolume
+    sound.Looped = true
+    sound.Parent = game:GetService("SoundService")
+    
+    sound:Play()
+    LoadingMusic = sound
+    
+    return sound
+end
+
+-- Função para fazer fade out da música
+local function FadeOutMusic(duration)
+    if LoadingMusic then
+        local fadeInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local fadeTween = TweenService:Create(LoadingMusic, fadeInfo, {Volume = 0})
+        
+        fadeTween:Play()
+        fadeTween.Completed:Connect(function()
+            if LoadingMusic then
+                LoadingMusic:Stop()
+                LoadingMusic:Destroy()
+                LoadingMusic = nil
+            end
+        end)
+    end
+end
+
+local function CreateStarParticle(parent, x, y)
+    local star = Instance.new("Frame")
+    star.Name = "StarParticle"
+    star.Parent = parent
+    star.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+    star.BorderSizePixel = 0
+    star.Size = UDim2.new(0, math.random(2, LoadingConfig.ParticleSize), 0, math.random(2, LoadingConfig.ParticleSize))
+    star.Position = UDim2.new(0, x, 0, y)
+    star.ZIndex = 8
+    star.BackgroundTransparency = math.random(0, 50) / 100
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = star
+    
+    local gradient = Instance.new("UIGradient")
+    gradient.Parent = star
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 150, 150)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+    })
+    
+    local particle = {
+        frame = star,
+        speedX = (math.random(-100, 100) / 100) * LoadingConfig.ParticleSpeed,
+        speedY = (math.random(-100, 100) / 100) * LoadingConfig.ParticleSpeed,
+        rotationSpeed = math.random(-5, 5),
+        pulseSpeed = math.random(1, 3),
+        opacity = math.random(30, 100) / 100
+    }
+    
+    return particle
+end
+
+local function CreateParticleSystem(parent)
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    
+    for i = 1, LoadingConfig.ParticleCount do
+        local x = math.random(0, screenSize.X)
+        local y = math.random(0, screenSize.Y)
+        local particle = CreateStarParticle(parent, x, y)
+        table.insert(Particles, particle)
+    end
+end
+
+local function UpdateParticles(parentFrame)
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    
+    for _, particle in pairs(Particles) do
+        if particle.frame and particle.frame.Parent then
+            local currentPos = particle.frame.Position
+            local newX = currentPos.X.Offset + particle.speedX
+            local newY = currentPos.Y.Offset + particle.speedY
+            
+            if newX < -10 then
+                newX = screenSize.X + 10
+            elseif newX > screenSize.X + 10 then
+                newX = -10
+            end
+            
+            if newY < -10 then
+                newY = screenSize.Y + 10
+            elseif newY > screenSize.Y + 10 then
+                newY = -10
+            end
+            
+            particle.frame.Position = UDim2.new(0, newX, 0, newY)
+            particle.frame.Rotation = particle.frame.Rotation + particle.rotationSpeed
+            
+            local pulseValue = math.sin(tick() * particle.pulseSpeed) * 0.3 + 0.7
+            particle.frame.BackgroundTransparency = 1 - (particle.opacity * pulseValue)
+            
+            local sizeMultiplier = 1 + (math.sin(tick() * particle.pulseSpeed * 0.5) * 0.2)
+            particle.frame.Size = UDim2.new(0, LoadingConfig.ParticleSize * sizeMultiplier, 0, LoadingConfig.ParticleSize * sizeMultiplier)
+        end
+    end
+end
+
+local function CreateAdvancedBackground(parent)
+    local bgFrame = Instance.new("Frame")
+    bgFrame.Name = "AdvancedBackground"
+    bgFrame.Parent = parent
+    bgFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bgFrame.BorderSizePixel = 0
+    bgFrame.Size = UDim2.new(1, 0, 1, 0)
+    bgFrame.Position = UDim2.new(0, 0, 0, 0)
+    bgFrame.ZIndex = 1
+    
+    local gradient1 = Instance.new("UIGradient")
+    gradient1.Parent = bgFrame
+    gradient1.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 10)),
+        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(0, 0, 0)),
+        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(15, 15, 15)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+    })
+    gradient1.Rotation = 45
+    
+    local animateGradient = TweenService:Create(
+        gradient1,
+        TweenInfo.new(4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Rotation = 225}
+    )
+    animateGradient:Play()
+    table.insert(AnimationConnections, animateGradient)
+    
+    local overlay = Instance.new("Frame")
+    overlay.Name = "Overlay"
+    overlay.Parent = bgFrame
+    overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    overlay.BorderSizePixel = 0
+    overlay.Size = UDim2.new(1, 0, 1, 0)
+    overlay.Position = UDim2.new(0, 0, 0, 0)
+    overlay.ZIndex = 2
+    overlay.BackgroundTransparency = 0.3
+    
+    local overlayGradient = Instance.new("UIGradient")
+    overlayGradient.Parent = overlay
+    overlayGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 0, 0)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 25))
+    })
+    overlayGradient.Rotation = -45
+    
+    local animateOverlay = TweenService:Create(
+        overlayGradient,
+        TweenInfo.new(6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Rotation = 315}
+    )
+    animateOverlay:Play()
+    table.insert(AnimationConnections, animateOverlay)
+    
+    return bgFrame
+end
+
+local function CreatePulsingCircles(parent)
+    for i = 1, 5 do
+        local circle = Instance.new("Frame")
+        circle.Name = "PulsingCircle" .. i
+        circle.Parent = parent
+        circle.BackgroundColor3 = Color3.fromRGB(255, 30, 30) -- VERMELHO
+        circle.BorderSizePixel = 0
+        circle.Size = UDim2.new(0, 100 + (i * 50), 0, 100 + (i * 50))
+        circle.Position = UDim2.new(0.5, -(50 + (i * 25)), 0.5, -(50 + (i * 25)))
+        circle.ZIndex = 3
+        circle.BackgroundTransparency = 0.9 + (i * 0.01)
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(1, 0)
+        corner.Parent = circle
+        
+        local pulseTween = TweenService:Create(
+            circle,
+            TweenInfo.new(2 + (i * 0.3), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+            {
+                Size = UDim2.new(0, 120 + (i * 60), 0, 120 + (i * 60)),
+                Position = UDim2.new(0.5, -(60 + (i * 30)), 0.5, -(60 + (i * 30))),
+                BackgroundTransparency = 0.97
+            }
+        )
+        pulseTween:Play()
+        table.insert(AnimationConnections, pulseTween)
+    end
+end
+
+local function CreateLoadingScreen()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "PremiumLoadingScreen"
+    ScreenGui.Parent = CoreGui
+    ScreenGui.DisplayOrder = 999999
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.ScreenInsets = Enum.ScreenInsets.None
+    ScreenGui.IgnoreGuiInset = true
+    
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = ScreenGui
+    MainFrame.BackgroundColor3 = LoadingConfig.BackgroundColor
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Size = UDim2.new(1, 0, 1, 0)
+    MainFrame.Position = UDim2.new(0, 0, 0, 0)
+    MainFrame.ZIndex = 10
+    
+    local advancedBg = CreateAdvancedBackground(MainFrame)
+    CreatePulsingCircles(MainFrame)
+    CreateParticleSystem(MainFrame)
+    
+    local CenterContainer = Instance.new("Frame")
+    CenterContainer.Name = "CenterContainer"
+    CenterContainer.Parent = MainFrame
+    CenterContainer.BackgroundTransparency = 1
+    CenterContainer.Size = UDim2.new(0, 600, 0, 400)
+    CenterContainer.Position = UDim2.new(0.5, -300, 0.5, -200)
+    CenterContainer.ZIndex = 11
+    
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Name = "TitleLabel"
+    TitleLabel.Parent = CenterContainer
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Size = UDim2.new(1, 0, 0, 80)
+    TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+    TitleLabel.Text = "SAGAZx HUB"
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 30, 30) -- VERMELHO
+    TitleLabel.TextScaled = true
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.ZIndex = 12
+    
+    local titleStroke = Instance.new("UIStroke")
+    titleStroke.Parent = TitleLabel
+    titleStroke.Color = Color3.fromRGB(200, 200, 200)
+    titleStroke.Thickness = 2
+    titleStroke.Transparency = 0.5
+    
+    local TitleGradient = Instance.new("UIGradient")
+    TitleGradient.Parent = TitleLabel
+    TitleGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 60, 60)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 200, 200)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 60, 60))
+    })
+    
+    local titleAnimation = TweenService:Create(
+        TitleGradient,
+        TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Offset = Vector2.new(2, 0)}
+    )
+    titleAnimation:Play()
+    table.insert(AnimationConnections, titleAnimation)
+    
+    local glowTween = TweenService:Create(
+        titleStroke,
+        TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Transparency = 0.1}
+    )
+    glowTween:Play()
+    table.insert(AnimationConnections, glowTween)
+    
+    local SubtitleLabel = Instance.new("TextLabel")
+    SubtitleLabel.Name = "SubtitleLabel"
+    SubtitleLabel.Parent = CenterContainer
+    SubtitleLabel.BackgroundTransparency = 1
+    SubtitleLabel.Size = UDim2.new(1, 0, 0, 40)
+    SubtitleLabel.Position = UDim2.new(0, 0, 0, 90)
+    SubtitleLabel.Text = "by SAGAZx"
+    SubtitleLabel.TextColor3 = Color3.fromRGB(255, 30, 30) -- VERMELHO
+    SubtitleLabel.TextScaled = true
+    SubtitleLabel.Font = Enum.Font.Gotham
+    SubtitleLabel.ZIndex = 12
+    
+    local ProgressContainer = Instance.new("Frame")
+    ProgressContainer.Name = "ProgressContainer"
+    ProgressContainer.Parent = CenterContainer
+    ProgressContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    ProgressContainer.BorderSizePixel = 0
+    ProgressContainer.Size = UDim2.new(1, 0, 0, 25)
+    ProgressContainer.Position = UDim2.new(0, 0, 0, 160)
+    ProgressContainer.ZIndex = 12
+    
+    local ProgressCorner = Instance.new("UICorner")
+    ProgressCorner.CornerRadius = UDim.new(0, 12)
+    ProgressCorner.Parent = ProgressContainer
+    
+    local ProgressStroke = Instance.new("UIStroke")
+    ProgressStroke.Parent = ProgressContainer
+    ProgressStroke.Color = Color3.fromRGB(200,200,200)
+    ProgressStroke.Thickness = 2
+    ProgressStroke.Transparency = 0.3
+    
+    local strokePulse = TweenService:Create(
+        ProgressStroke,
+        TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Transparency = 0.1}
+    )
+    strokePulse:Play()
+    table.insert(AnimationConnections, strokePulse)
+    
+    local ProgressBar = Instance.new("Frame")
+    ProgressBar.Name = "ProgressBar"
+    ProgressBar.Parent = ProgressContainer
+    ProgressBar.BackgroundColor3 = Color3.fromRGB(255, 30, 30) -- VERMELHO
+    ProgressBar.BorderSizePixel = 0
+    ProgressBar.Size = UDim2.new(0, 0, 1, 0)
+    ProgressBar.Position = UDim2.new(0, 0, 0, 0)
+    ProgressBar.ZIndex = 13
+    
+    local BarCorner = Instance.new("UICorner")
+    BarCorner.CornerRadius = UDim.new(0, 12)
+    BarCorner.Parent = ProgressBar
+    
+    local BarGradient = Instance.new("UIGradient")
+    BarGradient.Parent = ProgressBar
+    BarGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 60, 60)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 200, 200)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 60, 60))
+    })
+    
+    local barGradientAnim = TweenService:Create(
+        BarGradient,
+        TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Offset = Vector2.new(1, 0)}
+    )
+    barGradientAnim:Play()
+    table.insert(AnimationConnections, barGradientAnim)
+    
+    local GlowEffect = Instance.new("Frame")
+    GlowEffect.Name = "GlowEffect"
+    GlowEffect.Parent = ProgressBar
+    GlowEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    GlowEffect.BackgroundTransparency = 1
+    GlowEffect.BorderSizePixel = 0
+    GlowEffect.Size = UDim2.new(0, 60, 1, 0)
+    GlowEffect.Position = UDim2.new(-0.2, 0, 0, 0)
+    GlowEffect.ZIndex = 14
+    
+    local GlowCorner = Instance.new("UICorner")
+    GlowCorner.CornerRadius = UDim.new(0, 12)
+    GlowCorner.Parent = GlowEffect
+    
+    local PercentageLabel = Instance.new("TextLabel")
+    PercentageLabel.Name = "PercentageLabel"
+    PercentageLabel.Parent = CenterContainer
+    PercentageLabel.BackgroundTransparency = 1
+    PercentageLabel.Size = UDim2.new(1, 0, 0, 40)
+    PercentageLabel.Position = UDim2.new(0, 0, 0, 200)
+    PercentageLabel.Text = "0%"
+    PercentageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PercentageLabel.TextScaled = true
+    PercentageLabel.Font = Enum.Font.GothamBold
+    PercentageLabel.ZIndex = 12
+    
+    local StatusLabel = Instance.new("TextLabel")
+    StatusLabel.Name = "StatusLabel"
+    StatusLabel.Parent = CenterContainer
+    StatusLabel.BackgroundTransparency = 1
+    StatusLabel.Size = UDim2.new(1, 0, 0, 30)
+    StatusLabel.Position = UDim2.new(0, 0, 0, 250)
+    StatusLabel.Text = "Preparando..."
+    StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    StatusLabel.TextScaled = true
+    StatusLabel.Font = Enum.Font.Gotham
+    StatusLabel.ZIndex = 12
+    
+    local DotsLabel = Instance.new("TextLabel")
+    DotsLabel.Name = "DotsLabel"
+    DotsLabel.Parent = CenterContainer
+    DotsLabel.BackgroundTransparency = 1
+    DotsLabel.Size = UDim2.new(0, 60, 0, 30)
+    DotsLabel.Position = UDim2.new(1, -60, 0, 250)
+    DotsLabel.Text = ""
+    DotsLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    DotsLabel.TextScaled = true
+    DotsLabel.Font = Enum.Font.Gotham
+    DotsLabel.ZIndex = 12
+    
+    return ScreenGui, ProgressBar, PercentageLabel, StatusLabel, DotsLabel, GlowEffect, MainFrame
+end
+
+local function AnimateDots(dotsLabel)
+    local dots = ""
+    local dotCount = 0
+    
+    spawn(function()
+        while dotsLabel.Parent do
+            dotCount = (dotCount + 1) % 4
+            dots = string.rep(".", dotCount)
+            dotsLabel.Text = dots
+            wait(0.4)
+        end
+    end)
+end
+
+local function StartLoadingSequence()
+    CreateLoadingMusic()
+    
+    local screenGui, progressBar, percentageLabel, statusLabel, dotsLabel, glowEffect, mainFrame = CreateLoadingScreen()
+    
+    AnimateDots(dotsLabel)
+    
+    local particleConnection = RunService.Heartbeat:Connect(function()
+        UpdateParticles(mainFrame)
+    end)
+    table.insert(AnimationConnections, particleConnection)
+    
+    local glowTween = TweenService:Create(
+        glowEffect,
+        TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        {Position = UDim2.new(1.3, 0, 0, 0)}
+    )
+    glowTween:Play()
+    table.insert(AnimationConnections, glowTween)
+    
+    local startTime = tick()
+    local currentElementIndex = 1
+    local lastElementTime = startTime
+    
+    local function updateProgress()
+        local elapsed = tick() - startTime
+        local progress = math.min(elapsed / LoadingConfig.Duration, 1)
+        local percentage = math.floor(progress * 100)
+        
+        local barTween = TweenService:Create(
+            progressBar,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {Size = UDim2.new(progress, 0, 1, 0)}
+        )
+        barTween:Play()
+        
+        local percentTween = TweenService:Create(
+            percentageLabel,
+            TweenInfo.new(0.1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+            {TextColor3 = Color3.fromRGB(255, 255, 255)}
+        )
+        percentTween:Play()
+        
+        percentageLabel.Text = percentage .. "%"
+        
+        local elementTime = LoadingConfig.Duration / #LoadingElements
+        if tick() - lastElementTime >= elementTime and currentElementIndex <= #LoadingElements then
+            statusLabel.Text = LoadingElements[currentElementIndex]
+            
+            local statusTween = TweenService:Create(
+                statusLabel,
+                TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+                {TextTransparency = 0}
+            )
+            statusTween:Play()
+            
+            currentElementIndex = currentElementIndex + 1
+            lastElementTime = tick()
+        end
+        
+        if progress >= 1 then
+            wait(0.8)
+            
+            FadeOutMusic(LoadingConfig.FadeOutTime)
+            
+            for _, connection in pairs(AnimationConnections) do
+                if typeof(connection) == "RBXScriptConnection" then
+                    connection:Disconnect()
+                elseif typeof(connection) == "Tween" then
+                    connection:Cancel()
+                end
+            end
+            
+            for _, particle in pairs(Particles) do
+                if particle.frame then
+                    particle.frame:Destroy()
+                end
+            end
+            
+            local fadeOutTween = TweenService:Create(
+                mainFrame,
+                TweenInfo.new(LoadingConfig.FadeOutTime, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+                {
+                    BackgroundTransparency = 1,
+                    Size = UDim2.new(1.5, 0, 1.5, 0),
+                    Position = UDim2.new(-0.25, 0, -0.25, 0)
+                }
+            )
+            
+            local contentFadeTween = TweenService:Create(
+                mainFrame.CenterContainer,
+                TweenInfo.new(LoadingConfig.FadeOutTime * 0.7, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+                {
+                    Size = UDim2.new(0, 0, 0, 0),
+                    Position = UDim2.new(0.5, 0, 0.5, 0)
+                }
+            )
+            
+            fadeOutTween:Play()
+            contentFadeTween:Play()
+            
+            fadeOutTween.Completed:Connect(function()
+                screenGui:Destroy()
+            end)
+            
+            return
+        end
+        
+        RunService.Heartbeat:Wait()
+        updateProgress()
+    end
+    updateProgress()
+end
+
+StartLoadingSequence()
+
+end)
+
+----------------------------------------------------------------------------------------------------------------
+-----------------------------------------Aba Extra emotes-----------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+
+task.spawn(function()
+
+if _G.SgzxScriptLoaded then
+    return
+end
+_G.SgzxScriptLoaded = true
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Caminhos da interface nativa do jogo
+local catalogContainer = LocalPlayer:WaitForChild("PlayerGui")
+    :WaitForChild("MainGUIHandler")
+    :WaitForChild("MainAnimationsMenu")
+    :WaitForChild("Catalog")
+    :WaitForChild("Container")
+
+local filtersFolder = catalogContainer:WaitForChild("Filters")
+local originalDanceButton = filtersFolder:WaitForChild("Dance")
+local originalScrollingFrame = catalogContainer:WaitForChild("ScrollingFrame")
+local headerFrame = catalogContainer.Parent:WaitForChild("Header")
+
+------------------------------------------------------------------
+-- 1. MODIFICAÇÃO E ADIÇÃO DOS ELEMENTOS DA INTERFACE (UI)
+------------------------------------------------------------------
+
+-- Duplica o botão de filtro "Dance", renomeia e customiza
+local SgzxEmts = originalDanceButton:Clone()
+SgzxEmts.Name = "SgzxEmts"
+
+-- Remove propriedades de imagem do botão personalizado
+if SgzxEmts:IsA("ImageButton") then
+    SgzxEmts.Image = ""
+end
+local iconInside = SgzxEmts:FindFirstChildOfClass("ImageLabel")
+if iconInside then iconInside:Destroy() end
+
+local buttonText = SgzxEmts:FindFirstChildOfClass("TextLabel") or SgzxEmts
+if buttonText:IsA("TextLabel") or buttonText:IsA("TextButton") then
+    buttonText.Text = "Emotes"
+end
+SgzxEmts.Parent = filtersFolder
+
+-- Cria o novo contêiner de rolagem "SgzxEmtsScroll"
+local SgzxEmtsScroll = Instance.new("ScrollingFrame")
+SgzxEmtsScroll.Name = "SgzxEmtsScroll"
+SgzxEmtsScroll.Size = originalScrollingFrame.Size
+SgzxEmtsScroll.Position = originalScrollingFrame.Position
+SgzxEmtsScroll.BackgroundTransparency = 1
+SgzxEmtsScroll.ScrollBarThickness = 6
+SgzxEmtsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+SgzxEmtsScroll.ScrollingDirection = Enum.ScrollingDirection.Y
+SgzxEmtsScroll.Visible = false
+SgzxEmtsScroll.Parent = catalogContainer
+
+-- Cria a grade de layout configurada para 4 slots por fileira
+local Grid = Instance.new("UIGridLayout")
+Grid.Parent = SgzxEmtsScroll
+Grid.CellSize = UDim2.new(0.23, 0, 0, 90)
+Grid.CellPadding = UDim2.new(0.02, 0, 0, 8)
+Grid.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Cria o contêiner esquerdo no Header para os elementos
+local LeftHeaderGroup = Instance.new("Frame")
+LeftHeaderGroup.Name = "SgzxHeaderGroup"
+LeftHeaderGroup.Size = UDim2.new(0.55, 0, 0.8, 0)
+LeftHeaderGroup.Position = UDim2.new(0.02, 0, 0.1, 0)
+LeftHeaderGroup.BackgroundTransparency = 1
+LeftHeaderGroup.Visible = false
+LeftHeaderGroup.Parent = headerFrame
+
+local HeaderLayout = Instance.new("UIListLayout")
+HeaderLayout.Parent = LeftHeaderGroup
+HeaderLayout.FillDirection = Enum.FillDirection.Horizontal
+HeaderLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+HeaderLayout.Padding = UDim.new(0, 10)
+
+-- Elemento de exibição de texto: "Nome do Emote"
+local EmoteNameLabel = Instance.new("TextLabel")
+EmoteNameLabel.Name = "SgzxEmoteNameLabel"
+EmoteNameLabel.Size = UDim2.new(0.3, 0, 0.9, 0)
+EmoteNameLabel.Text = "Nome do Emote"
+EmoteNameLabel.TextScaled = true
+EmoteNameLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+EmoteNameLabel.BackgroundTransparency = 0.5
+EmoteNameLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+Instance.new("UICorner", EmoteNameLabel)
+EmoteNameLabel.Parent = LeftHeaderGroup
+
+-- Text Box de Pesquisa (Fundo Branco Transparente)
+local SearchBar = Instance.new("TextBox")
+SearchBar.Name = "SgzxSearchBar"
+SearchBar.Size = UDim2.new(0.4, 0, 0.9, 0)
+SearchBar.PlaceholderText = "Pesquisar..."
+SearchBar.TextScaled = true
+SearchBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+SearchBar.BackgroundTransparency = 0.5
+SearchBar.TextColor3 = Color3.fromRGB(0, 0, 0)
+Instance.new("UICorner", SearchBar)
+SearchBar.Parent = LeftHeaderGroup
+
+-- Botão de Movimento ON/OFF (Fundo Branco Transparente)
+local Movimento = Instance.new("TextButton")
+Movimento.Name = "SgzxMovimentoBtn"
+Movimento.Size = UDim2.new(0.25, 0, 0.9, 0)
+Movimento.TextScaled = true
+Movimento.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Movimento.BackgroundTransparency = 0.5
+Movimento.TextColor3 = Color3.fromRGB(0, 0, 0)
+Instance.new("UICorner", Movimento)
+local MovimentoAtivo = false
+local function AtualizarMovimento()
+    Movimento.Text = MovimentoAtivo and "Movimento: ON" or "Movimento: OFF"
+end
+AtualizarMovimento()
+Movimento.Parent = LeftHeaderGroup
+
+------------------------------------------------------------------
+-- 2. ALTERNÂNCIA E INTERATIVIDADE DE ABAS
+------------------------------------------------------------------
+
+SgzxEmts.MouseButton1Click:Connect(function()
+    local isNowVisible = not SgzxEmtsScroll.Visible
+    SgzxEmtsScroll.Visible = isNowVisible
+    LeftHeaderGroup.Visible = isNowVisible
+    
+    if isNowVisible then
+        originalScrollingFrame.Visible = false
+    else
+        originalScrollingFrame.Visible = true
+    end
+end)
+
+for _, child in ipairs(filtersFolder:GetChildren()) do
+    if child:IsA("GuiObject") and child.Name ~= "SgzxEmts" then
+        child.MouseButton1Click:Connect(function()
+            SgzxEmtsScroll.Visible = false
+            LeftHeaderGroup.Visible = false
+            originalScrollingFrame.Visible = true
+        end)
+    end
+end
+
+------------------------------------------------------------------
+-- 3. MOTOR DE ANIMAÇÃO E REPRODUÇÃO
+------------------------------------------------------------------
+
+local CurrentTrack = nil
+
+local function PlayEmote(assetId, assetName)
+    if not assetId then return end
+    local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local Humanoid = Character:WaitForChild("Humanoid")
+
+    if CurrentTrack then
+        CurrentTrack:Stop()
+        CurrentTrack = nil
+    end
+
+    EmoteNameLabel.Text = assetName or "Nome do Emote"
+
+    local AnimationId
+    local success, objects = pcall(function()
+        return game:GetObjects("rbxassetid://" .. tostring(assetId))
+    end)
+
+    if success and objects and #objects > 0 then
+        local obj = objects[1]
+        if obj:IsA("Animation") then
+            AnimationId = obj.AnimationId
+        elseif obj:FindFirstChildOfClass("Animation") then
+            AnimationId = obj:FindFirstChildOfClass("Animation").AnimationId
+        else
+            AnimationId = "rbxassetid://" .. assetId
+        end
+    else
+        AnimationId = "rbxassetid://" .. assetId
+    end
+
+    local Animation = Instance.new("Animation")
+    Animation.AnimationId = AnimationId
+
+    local Track = Humanoid:LoadAnimation(Animation)
+    Track.Priority = Enum.AnimationPriority.Action
+    Track.Looped = true
+    Track:Play()
+    CurrentTrack = Track
+end
+
+Movimento.MouseButton1Click:Connect(function()
+    MovimentoAtivo = not MovimentoAtivo
+    AtualizarMovimento()
+end)
+
+RunService.Heartbeat:Connect(function()
+    if MovimentoAtivo or not CurrentTrack then return end
+    local Character = LocalPlayer.Character
+    if not Character then return end
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    if not Humanoid then return end
+
+    if Humanoid.MoveDirection.Magnitude > 0.1 or Humanoid:GetState() == Enum.HumanoidStateType.Jumping or Humanoid:GetState() == Enum.HumanoidStateType.Freefall then
+        CurrentTrack:Stop()
+        CurrentTrack = nil
+        EmoteNameLabel.Text = "Nome do Emote"
+    end
+end)
+
+------------------------------------------------------------------
+-- 4. SISTEMA DE FAVORITOS E ARQUIVOS LOCAL
+------------------------------------------------------------------
+
+local Favorites = {}
+local LoadedEmotes = {}
+local AllEmotesData = {}
+local FAVORITES_FILE = "EmoteFavorites.json"
+
+if writefile and not isfile(FAVORITES_FILE) then writefile(FAVORITES_FILE, "{}") end
+if readfile and isfile(FAVORITES_FILE) then
+    local success, data = pcall(function() return HttpService:JSONDecode(readfile(FAVORITES_FILE)) end)
+    if success and type(data) == "table" then Favorites = data end
+end
+
+local function SaveFavorites()
+    if writefile then
+        writefile(FAVORITES_FILE, HttpService:JSONEncode(Favorites))
+    end
+end
+
+local function RefreshLayout()
+    SgzxEmtsScroll.CanvasSize = UDim2.new(0, 0, 0, Grid.AbsoluteContentSize.Y + 10)
+end
+
+local function ReorderItems()
+    local FavOrder = 0
+    local NormalOrder = 10000
+
+    for _, obj in ipairs(SgzxEmtsScroll:GetChildren()) do
+        if obj:IsA("ImageButton") then
+            if Favorites[obj.Name] then
+                FavOrder = FavOrder + 1
+                obj.LayoutOrder = FavOrder
+            else
+                NormalOrder = NormalOrder + 1
+                obj.LayoutOrder = NormalOrder
+            end
+        end
+    end
+end
+
+local function CreateEmote(asset, isFavorite)
+    local assetIdStr = tostring(asset.id)
+    if LoadedEmotes[assetIdStr] then return SgzxEmtsScroll:FindFirstChild(assetIdStr) end
+    LoadedEmotes[assetIdStr] = true
+
+    local Emote = Instance.new("ImageButton")
+    Emote.Parent = SgzxEmtsScroll
+    Emote.Size = UDim2.fromOffset(90, 90)
+    Emote.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    Emote.BackgroundTransparency = 0.5
+    Emote.Name = assetIdStr
+
+    Emote:SetAttribute("EmoteName", asset.name)
+    Emote.Image = "rbxthumb://type=Asset&id=" .. assetIdStr .. "&w=150&h=150"
+    Emote.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    Instance.new("UICorner", Emote)
+    
+    local Star = Instance.new("TextButton")
+    Star.Parent = Emote
+    Star.Size = UDim2.new(0, 22, 0, 22)
+    Star.Position = UDim2.new(1, -24, 0, 2)
+    Star.BackgroundTransparency = 1
+    Star.Text = isFavorite and "★" or "☆"
+    Star.TextScaled = true
+    Star.TextColor3 = Color3.fromRGB(255, 220, 0)
+
+    Star.MouseButton1Click:Connect(function()
+        if Favorites[assetIdStr] then
+            Favorites[assetIdStr] = nil
+            Star.Text = "☆"
+        else
+            Favorites[assetIdStr] = asset.name
+            Star.Text = "★"
+        end
+        SaveFavorites()
+        ReorderItems()
+    end)
+
+    Emote.MouseButton1Click:Connect(function()
+        PlayEmote(tonumber(assetIdStr), asset.name)
+    end)
+    
+    return Emote
+end
+
+-- Mecanismo de busca assíncrona com anti-travar (Debounce + Frame Distribution)
+local searchToken = 0
+local function UpdateSearch()
+    searchToken = searchToken + 1
+    local currentToken = searchToken
+    
+    local Texto = string.lower(SearchBar.Text)
+    
+    if Texto ~= "" then
+        -- Oculta os slots existentes de forma imediata
+        for _, obj in ipairs(SgzxEmtsScroll:GetChildren()) do
+            if obj:IsA("ImageButton") then
+                obj.Visible = false
+            end
+        end
+        
+        -- Pequena pausa para evitar travamento enquanto o usuário digita rápido (Debounce)
+        task.wait(0.1)
+        if currentToken ~= searchToken then return end
+        
+        local itemsCreatedThisFrame = 0
+        
+        for _, asset in ipairs(AllEmotesData) do
+            if currentToken ~= searchToken then return end
+            
+            local Nome = string.lower(asset.name or "")
+            local Id = tostring(asset.id)
+            
+            if string.find(Nome, Texto, 1, true) or string.find(Id, Texto, 1, true) then
+                local isFav = Favorites[Id] ~= nil
+                local slot = CreateEmote(asset, isFav)
+                if slot then
+                    slot.Visible = true
+                end
+                
+                -- Se criar mais de 15 slots no mesmo frame, distribui para o próximo frame evitando lag/travamento
+                itemsCreatedThisFrame = itemsCreatedThisFrame + 1
+                if itemsCreatedThisFrame >= 15 then
+                    itemsCreatedThisFrame = 0
+                    RunService.Heartbeat:Wait()
+                end
+            end
+        end
+    else
+        -- Se a barra for limpa, restaura os 500 iniciais e favoritos instantaneamente
+        for _, obj in ipairs(SgzxEmtsScroll:GetChildren()) do
+            if obj:IsA("ImageButton") then
+                if obj:GetAttribute("Initial") or Favorites[obj.Name] then
+                    obj.Visible = true
+                else
+                    obj.Visible = false
+                end
+            end
+        end
+    end
+    
+    ReorderItems()
+    RefreshLayout()
+end
+
+SearchBar:GetPropertyChangedSignal("Text"):Connect(function()
+    task.spawn(UpdateSearch)
+end)
+
+------------------------------------------------------------------
+-- 5. CARREGAMENTO INSTANTÂNEO E SELETIVO (ÚLTIMOS 500)
+------------------------------------------------------------------
+
+task.spawn(function()
+    local url = "https://raw.githubusercontent.com/psychoSAGAZ/Anima-es-e-emotes/refs/heads/main/EmoteSniper.json"
+    local success, response = pcall(function() return game:HttpGet(url) end)
+
+    if success and response then
+        local parsed = HttpService:JSONDecode(response)
+        if parsed and parsed.data then
+            AllEmotesData = parsed.data
+            local totalEmotes = #AllEmotesData
+            
+            local startIndex = math.max(1, totalEmotes - 499)
+            
+            -- 1. Carrega favoritos (Instantâneo)
+            for favId, favValue in pairs(Favorites) do
+                local name = "Emote"
+                if type(favValue) == "string" then
+                    name = favValue
+                else
+                    for _, asset in ipairs(AllEmotesData) do
+                        if tostring(asset.id) == tostring(favId) then
+                            name = asset.name
+                            break
+                        end
+                    end
+                end
+                CreateEmote({id = favId, name = name}, true)
+            end
+            
+            -- 2. Carrega os últimos 500 emotes (Instantâneo)
+            for i = startIndex, totalEmotes do
+                local asset = AllEmotesData[i]
+                if asset and not Favorites[tostring(asset.id)] then
+                    local slot = CreateEmote(asset, false)
+                    if slot then
+                        slot:SetAttribute("Initial", true)
+                    end
+                end
+            end
+            
+            ReorderItems()
+            RefreshLayout()
+        end
+    end
+end)
+
+
+
+end)
+
+----------------------------------------------------------------------------------------------------------------
+-----------------------------------------Aba Extra Animaçoes-----------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+
+task.spawn(function()
+
+if shared.ZsgdAnimationLoaded then return end
+shared.ZsgdAnimationLoaded = true
+
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Caminhos das interfaces nativas do jogo
+local catalogMenu = PlayerGui:WaitForChild("NoResetGUIHandler")
+    :WaitForChild("AvatarEditorHolder")
+    :WaitForChild("AvatarEditorMenu")
+    :WaitForChild("Catalog")
+
+local subCategoryTabs = catalogMenu:WaitForChild("SubCategoryTabs")
+local categoryTabs = catalogMenu:WaitForChild("CategoryTabs")
+local walkStyleFolder = subCategoryTabs:WaitForChild("WalkStyle")
+local originalSwimButton = walkStyleFolder:WaitForChild("Swim")
+local catalogContainer = catalogMenu:WaitForChild("Container")
+
+------------------------------------------------------------------
+-- 1. CRIAÇÃO DO BOTÃO ADAPTADO (APENAS VISUAL)
+------------------------------------------------------------------
+
+local ZsgdAnimation = originalSwimButton:Clone()
+ZsgdAnimation.Name = "ZsgdAnimation"
+ZsgdAnimation.Active = false
+ZsgdAnimation.Selectable = false
+
+-- Altera o ID do ícone do botão clonado conforme solicitado com rbxthumb
+local nativeIcon = ZsgdAnimation:FindFirstChild("Icon")
+if nativeIcon and nativeIcon:IsA("ImageLabel") then
+    nativeIcon.Image = "rbxthumb://type=BundleThumbnail&id=2623795&w=150&h=150"
+end
+
+local buttonText = ZsgdAnimation:FindFirstChildOfClass("TextLabel") or ZsgdAnimation
+if buttonText:IsA("TextLabel") or buttonText:IsA("TextButton") then
+    buttonText.Text = "ZsgdAnimation"
+end
+ZsgdAnimation.Parent = walkStyleFolder
+
+-- Botão Invisível por cima para interceptar o clique
+local InvisibleTrigger = Instance.new("TextButton")
+InvisibleTrigger.Name = "ZsgdInvisibleTrigger"
+InvisibleTrigger.Size = UDim2.new(1, 0, 1, 0)
+InvisibleTrigger.Position = UDim2.new(0, 0, 0, 0)
+InvisibleTrigger.BackgroundTransparency = 1
+InvisibleTrigger.Text = ""
+InvisibleTrigger.ZIndex = 10
+InvisibleTrigger.Parent = ZsgdAnimation
+
+------------------------------------------------------------------
+-- 2. CARREGAMENTO E CONFIGURAÇÃO DA LOGICA BASE DO SISTEMA
+------------------------------------------------------------------
+
+local URL = "https://raw.githubusercontent.com/psychoSAGAZ/Anima-es-e-emotes/refs/heads/main/AnimationSniper.json"
+local FILE_NAME = "AnimCategories_Saved.json"
+
+local function FetchAnimations()
+    local success, result = pcall(function() return game:HttpGet(URL) end)
+    if success and result then
+        local decodeSuccess, decoded = pcall(function() return HttpService:JSONDecode(result) end)
+        if decodeSuccess and decoded.data then return decoded.data end
+    end
+    return {}
+end
+
+local animationData = FetchAnimations()
+
+-- Dicionário para forçar a correção das chaves caso venham erradas/traduzidas do JSON
+local translationMap = {
+
+    ["idle"] = "Idle", 
+    ["walk"] = "Walk",
+    ["run"] = "Run",
+    ["jump"] = "Jump",
+    ["fall"] = "Fall",
+    ["climb"] = "Climb",
+    ["swim"] = "Swim"
+}
+
+local AnimToBundleMap = {}
+local AnimToPackNameMap = {}
+for _, pack in ipairs(animationData) do
+    if pack.id and pack.bundledItems then
+        -- Corrige chaves internas do pack.bundledItems se necessário
+        local correctedItems = {}
+        for key, value in pairs(pack.bundledItems) do
+            local lowerKey = tostring(key):lower()
+            local correctedKey = translationMap[lowerKey] or key
+            correctedItems[correctedKey] = value
+            
+            local idStr = tostring(value)
+            AnimToBundleMap[idStr] = tostring(pack.id)
+            AnimToPackNameMap[idStr] = pack.name
+        end
+        pack.bundledItems = correctedItems
+    end
+end
+
+local savedCategories = {}
+local function LoadCategoriesFromFile()
+    if isfile and readfile and isfile(FILE_NAME) then
+        local success, content = pcall(readfile, FILE_NAME)
+        if success then
+            local decodeSuccess, decoded = pcall(function() return HttpService:JSONDecode(content) end)
+            if decodeSuccess then savedCategories = decoded end
+        end
+    end
+end
+local function SaveCategoriesToFile()
+    if writefile then
+        pcall(writefile, FILE_NAME, HttpService:JSONEncode(savedCategories))
+    end
+end
+LoadCategoriesFromFile()
+
+------------------------------------------------------------------
+-- 3. CRIAÇÃO DA GUI ISOLADA (NA MESMA POSIÇÃO DO CONTAINER)
+------------------------------------------------------------------
+
+local CustomScreenGui = Instance.new("ScreenGui")
+CustomScreenGui.Name = "ZsgdAnimationScreenGui"
+CustomScreenGui.ResetOnSpawn = false
+CustomScreenGui.DisplayOrder = 100
+CustomScreenGui.Parent = PlayerGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "ZsgdAnimationMainFrame"
+MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MainFrame.BackgroundTransparency = 0.3
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+MainFrame.Parent = CustomScreenGui
+
+-- Sincronização de posição/tamanho com o Container nativo
+RunService.RenderStepped:Connect(function()
+    if catalogContainer and catalogContainer.Visible then
+        MainFrame.Position = UDim2.new(0, catalogContainer.AbsolutePosition.X, 0, catalogContainer.AbsolutePosition.Y)
+        MainFrame.Size = UDim2.new(0, catalogContainer.AbsoluteSize.X, 0, catalogContainer.AbsoluteSize.Y)
+    end
+end)
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0.5, 0, 0, 24)
+Title.Position = UDim2.new(0, 10, 0, 4)
+Title.BackgroundTransparency = 1
+Title.Text = "Animações"
+Title.TextColor3 = Color3.fromRGB(30, 30, 30)
+Title.TextSize = 13
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = MainFrame
+
+local ToggleCategoryBtn = Instance.new("TextButton")
+ToggleCategoryBtn.Size = UDim2.new(0, 120, 0, 22)
+ToggleCategoryBtn.Position = UDim2.new(1, -130, 0, 5)
+ToggleCategoryBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 130)
+ToggleCategoryBtn.Text = "Categorias / Salvar"
+ToggleCategoryBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleCategoryBtn.Font = Enum.Font.GothamBold
+ToggleCategoryBtn.TextSize = 10
+ToggleCategoryBtn.Parent = MainFrame
+Instance.new("UICorner", ToggleCategoryBtn).CornerRadius = UDim.new(0, 4)
+
+local TopLabel = Instance.new("TextLabel")
+TopLabel.Size = UDim2.new(1, -16, 0, 12)
+TopLabel.Position = UDim2.new(0, 12, 0, 28)
+TopLabel.BackgroundTransparency = 1
+TopLabel.Text = "EQUIPADO NO MOMENTO :"
+TopLabel.TextColor3 = Color3.fromRGB(80, 80, 90)
+TopLabel.Font = Enum.Font.GothamBold
+TopLabel.TextSize = 8
+TopLabel.TextXAlignment = Enum.TextXAlignment.Left
+TopLabel.Parent = MainFrame
+
+local TopFrame = Instance.new("Frame")
+TopFrame.Size = UDim2.new(1, -16, 0, 46)
+TopFrame.Position = UDim2.new(0, 8, 0, 42)
+TopFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 245)
+TopFrame.BackgroundTransparency = 0.4
+TopFrame.Parent = MainFrame
+Instance.new("UICorner", TopFrame).CornerRadius = UDim.new(0, 6)
+
+local ActiveSlots = {}
+local GlobalSubButtons = {} 
+local RealTimePlayerIds = {}
+local subTypes = {"Idle", "Walk", "Run", "Jump", "Fall", "Climb", "Swim"}
+
+local CategoryScrollFrame
+local CategoryNameInput
+
+for i, slotName in ipairs(subTypes) do
+    local SlotFrame = Instance.new("Frame")
+    SlotFrame.Size = UDim2.new(0.13, 0, 0.85, 0)
+    SlotFrame.Position = UDim2.new(0.01 + ((i - 1) * 0.14), 0, 0.07, 0)
+    SlotFrame.BackgroundColor3 = Color3.fromRGB(220, 220, 225)
+    SlotFrame.Parent = TopFrame
+    Instance.new("UICorner", SlotFrame).CornerRadius = UDim.new(0, 4)
+    
+    local SlotImg = Instance.new("ImageLabel")
+    SlotImg.Name = "Image"
+    SlotImg.Size = UDim2.new(0, 20, 0, 20)
+    SlotImg.Position = UDim2.new(0.5, -10, 0, 2)
+    SlotImg.BackgroundTransparency = 1
+    SlotImg.ScaleType = Enum.ScaleType.Fit
+    SlotImg.Parent = SlotFrame
+    
+    local SlotTxt = Instance.new("TextLabel")
+    SlotTxt.Name = "Label"
+    SlotTxt.Size = UDim2.new(1, 0, 0, 14)
+    SlotTxt.Position = UDim2.new(0, 0, 1, -16)
+    SlotTxt.BackgroundTransparency = 1
+    SlotTxt.Text = slotName .. "\n[Nenhum]"
+    SlotTxt.TextColor3 = Color3.fromRGB(100, 100, 110)
+    SlotTxt.Font = Enum.Font.Gotham
+    SlotTxt.TextSize = 7
+    SlotTxt.TextWrapped = true
+    SlotTxt.Parent = SlotFrame
+
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Name = "CloseBtn"
+    CloseBtn.Size = UDim2.new(0, 12, 0, 12)
+    CloseBtn.Position = UDim2.new(1, -14, 0, 2)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    CloseBtn.Text = "X"
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.TextSize = 8
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.Visible = false
+    CloseBtn.Parent = SlotFrame
+    Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(1, 0)
+    
+    CloseBtn.MouseButton1Click:Connect(function() 
+        local targetId = RealTimePlayerIds[slotName]
+        if targetId and targetId ~= 0 then
+            pcall(function()
+                local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+                if remotes and remotes:FindFirstChild("Wear") then remotes.Wear:InvokeServer(tonumber(targetId)) end
+            end)
+        end
+    end)
+    ActiveSlots[slotName] = SlotFrame
+end
+
+local function EquipSubAnimation(assetId)
+    if not assetId or assetId == 0 then return end
+    pcall(function()
+        local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+        if remotes and remotes:FindFirstChild("Wear") then 
+            remotes.Wear:InvokeServer(tonumber(assetId))
+        end
+    end)
+end
+
+------------------------------------------------------------------
+-- SINCRO ADAPTADO: SÓ CONSOME PROCESSAMENTO SE A GUI ESTIVER VISÍVEL
+------------------------------------------------------------------
+task.spawn(function()
+    while true do
+        if MainFrame.Visible then
+            local char = LocalPlayer.Character
+            local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+            
+            if humanoid then
+                local success, desc = pcall(function() return humanoid:GetAppliedDescription() end)
+                if success and desc then
+                    local currentAnims = {
+                        ["Idle"] = desc.IdleAnimation, ["Walk"] = desc.WalkAnimation, ["Run"] = desc.RunAnimation,
+                        ["Jump"] = desc.JumpAnimation, ["Fall"] = desc.FallAnimation, ["Climb"] = desc.ClimbAnimation, ["Swim"] = desc.SwimAnimation
+                    }
+                    
+                    for _, data in pairs(GlobalSubButtons) do
+                        if data.indicator then data.indicator.Visible = false end
+                    end
+
+                    for _, typeName in ipairs(subTypes) do
+                        local currentId = currentAnims[typeName]
+                        local idStr = tostring(currentId)
+                        RealTimePlayerIds[typeName] = currentId
+
+                        local slot = ActiveSlots[typeName]
+                        if slot then
+                            if currentId and currentId ~= 0 and idStr ~= "" then
+                                slot.BackgroundColor3 = Color3.fromRGB(46, 117, 89)
+                                
+                                local bundleId = AnimToBundleMap[idStr]
+                                local slotImg = slot:FindFirstChild("Image")
+                                if slotImg then
+                                    slotImg.Image = bundleId and "rbxthumb://type=BundleThumbnail&id=" .. bundleId .. "&w=150&h=150" or "rbxthumb://type=Asset&id=" .. idStr .. "&w=150&h=150"
+                                end
+                                
+                                local packName = AnimToPackNameMap[idStr] or "Customizado"
+                                slot.Label.Text = typeName .. "\n[" .. packName .. "]"
+                                slot.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+                                slot.CloseBtn.Visible = true
+                                
+                                if GlobalSubButtons[idStr] and GlobalSubButtons[idStr].indicator then
+                                    GlobalSubButtons[idStr].indicator.Visible = true
+                                end
+                            else
+                                slot.BackgroundColor3 = Color3.fromRGB(220, 220, 225)
+                                local slotImg = slot:FindFirstChild("Image")
+                                if slotImg then slotImg.Image = "" end
+                                slot.Label.Text = typeName .. "\n[Nenhum]"
+                                slot.Label.TextColor3 = Color3.fromRGB(100, 100, 110)
+                                slot.CloseBtn.Visible = false
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        task.wait(0.3)
+    end
+end)
+
+------------------------------------------------------------------
+-- 4. ABA DE CATEGORIAS FLUTUANTE
+------------------------------------------------------------------
+
+local CategoryOverlay = Instance.new("Frame")
+CategoryOverlay.Name = "CategoryOverlay"
+CategoryOverlay.Size = UDim2.new(1, -16, 1, -100)
+CategoryOverlay.Position = UDim2.new(0, 8, 0, 94)
+CategoryOverlay.BackgroundColor3 = Color3.fromRGB(245, 245, 250)
+CategoryOverlay.BackgroundTransparency = 0.1
+CategoryOverlay.Visible = false
+CategoryOverlay.ZIndex = 5
+CategoryOverlay.Parent = MainFrame
+Instance.new("UICorner", CategoryOverlay).CornerRadius = UDim.new(0, 6)
+
+CategoryNameInput = Instance.new("TextBox")
+CategoryNameInput.Size = UDim2.new(0.7, 0, 0, 30)
+CategoryNameInput.Position = UDim2.new(0, 10, 0, 10)
+CategoryNameInput.BackgroundColor3 = Color3.fromRGB(225, 225, 230)
+CategoryNameInput.PlaceholderText = "Digite o nome para salvar a categoria..."
+CategoryNameInput.Text = ""
+CategoryNameInput.TextColor3 = Color3.fromRGB(30, 30, 30)
+CategoryNameInput.PlaceholderColor3 = Color3.fromRGB(140, 140, 145)
+CategoryNameInput.Font = Enum.Font.Gotham
+CategoryNameInput.TextSize = 11
+CategoryNameInput.ZIndex = 6
+CategoryNameInput.Parent = CategoryOverlay
+Instance.new("UICorner", CategoryNameInput).CornerRadius = UDim.new(0, 4)
+
+local SaveCategoryBtn = Instance.new("TextButton")
+SaveCategoryBtn.Size = UDim2.new(0.25, 0, 0, 30)
+SaveCategoryBtn.Position = UDim2.new(0.75, 0, 0, 10)
+SaveCategoryBtn.BackgroundColor3 = Color3.fromRGB(46, 117, 89)
+SaveCategoryBtn.Text = "Salvar Atual"
+SaveCategoryBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SaveCategoryBtn.Font = Enum.Font.GothamBold
+SaveCategoryBtn.TextSize = 11
+SaveCategoryBtn.ZIndex = 6
+SaveCategoryBtn.Parent = CategoryOverlay
+Instance.new("UICorner", SaveCategoryBtn).CornerRadius = UDim.new(0, 4)
+
+CategoryScrollFrame = Instance.new("ScrollingFrame")
+CategoryScrollFrame.Size = UDim2.new(1, -20, 1, -60)
+CategoryScrollFrame.Position = UDim2.new(0, 10, 0, 50)
+CategoryScrollFrame.BackgroundTransparency = 1
+CategoryScrollFrame.BorderSizePixel = 0
+CategoryScrollFrame.ScrollBarThickness = 4
+CategoryScrollFrame.ZIndex = 6
+CategoryScrollFrame.Parent = CategoryOverlay
+
+local CatListLayout = Instance.new("UIListLayout")
+CatListLayout.Parent = CategoryScrollFrame
+CatListLayout.Padding = UDim.new(0, 6)
+
+local RefreshCategoryList
+local function AddOrUpdateCategory(catName)
+    if catName == "" then return end
+    local itemsToSave = {}
+    local hasItems = false
+    for _, typeName in ipairs(subTypes) do
+        if RealTimePlayerIds[typeName] and RealTimePlayerIds[typeName] ~= 0 then
+            itemsToSave[typeName] = tostring(RealTimePlayerIds[typeName])
+            hasItems = true
+        end
+    end
+    if not hasItems then return end
+    savedCategories[catName] = itemsToSave
+    SaveCategoriesToFile()
+    RefreshCategoryList()
+    CategoryNameInput.Text = ""
+end
+
+SaveCategoryBtn.MouseButton1Click:Connect(function() AddOrUpdateCategory(CategoryNameInput.Text) end)
+
+function RefreshCategoryList()
+    for _, child in ipairs(CategoryScrollFrame:GetChildren()) do
+        if child:IsA("Frame") then child:Destroy() end
+    end
+    for name, items in pairs(savedCategories) do
+        local ItemFrame = Instance.new("Frame")
+        ItemFrame.Size = UDim2.new(1, -5, 0, 40)
+        ItemFrame.BackgroundColor3 = Color3.fromRGB(230, 230, 235)
+        ItemFrame.ZIndex = 6
+        ItemFrame.Parent = CategoryScrollFrame
+        Instance.new("UICorner", ItemFrame).CornerRadius = UDim.new(0, 4)
+        
+        local NameLbl = Instance.new("TextLabel")
+        NameLbl.Size = UDim2.new(0.5, 0, 1, 0)
+        NameLbl.Position = UDim2.new(0, 10, 0, 0)
+        NameLbl.BackgroundTransparency = 1
+        NameLbl.Text = name
+        NameLbl.TextColor3 = Color3.fromRGB(30, 30, 30)
+        NameLbl.Font = Enum.Font.GothamBold
+        NameLbl.TextSize = 11
+        NameLbl.TextXAlignment = Enum.TextXAlignment.Left
+        NameLbl.ZIndex = 7
+        NameLbl.Parent = ItemFrame
+        
+        local EquipCatBtn = Instance.new("TextButton")
+        EquipCatBtn.Size = UDim2.new(0, 60, 0, 24)
+        EquipCatBtn.Position = UDim2.new(1, -150, 0.5, -12)
+        EquipCatBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 130)
+        EquipCatBtn.Text = "Equipar"
+        EquipCatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        EquipCatBtn.Font = Enum.Font.Gotham
+        EquipCatBtn.TextSize = 10
+        EquipCatBtn.ZIndex = 7
+        EquipCatBtn.Parent = ItemFrame
+        Instance.new("UICorner", EquipCatBtn).CornerRadius = UDim.new(0, 4)
+        
+        EquipCatBtn.MouseButton1Click:Connect(function()
+            task.spawn(function()
+                for _, typeName in ipairs(subTypes) do
+                    local targetId = items[typeName]
+                    if targetId then
+                        if RealTimePlayerIds[typeName] ~= tonumber(targetId) then
+                            EquipSubAnimation(targetId)
+                            task.wait(0.5)
+                        end
+                    else
+                        local activeId = RealTimePlayerIds[typeName]
+                        if activeId and activeId ~= 0 then 
+                            EquipSubAnimation(activeId) 
+                            task.wait(0.5)
+                        end
+                    end
+                end
+                CategoryOverlay.Visible = false
+            end)
+        end)
+        
+        local UpdateCatBtn = Instance.new("TextButton")
+        UpdateCatBtn.Size = UDim2.new(0, 60, 0, 24)
+        UpdateCatBtn.Position = UDim2.new(1, -85, 0.5, -12)
+        UpdateCatBtn.BackgroundColor3 = Color3.fromRGB(140, 110, 60)
+        UpdateCatBtn.Text = "Atualizar"
+        UpdateCatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        UpdateCatBtn.Font = Enum.Font.Gotham
+        UpdateCatBtn.TextSize = 10
+        UpdateCatBtn.ZIndex = 7
+        UpdateCatBtn.Parent = ItemFrame
+        Instance.new("UICorner", UpdateCatBtn).CornerRadius = UDim.new(0, 4)
+        UpdateCatBtn.MouseButton1Click:Connect(function() AddOrUpdateCategory(name) end)
+
+        local DeleteCatBtn = Instance.new("TextButton")
+        DeleteCatBtn.Size = UDim2.new(0, 20, 0, 24)
+        DeleteCatBtn.Position = UDim2.new(1, -22, 0.5, -12)
+        DeleteCatBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+        DeleteCatBtn.Text = "X"
+        DeleteCatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        DeleteCatBtn.Font = Enum.Font.GothamBold
+        DeleteCatBtn.TextSize = 10
+        DeleteCatBtn.ZIndex = 7
+        DeleteCatBtn.Parent = ItemFrame
+        Instance.new("UICorner", DeleteCatBtn).CornerRadius = UDim.new(0, 4)
+        
+        DeleteCatBtn.MouseButton1Click:Connect(function()
+            savedCategories[name] = nil
+            SaveCategoriesToFile()
+            RefreshCategoryList()
+        end)
+    end
+    CategoryScrollFrame.CanvasSize = UDim2.new(0, 0, 0, CatListLayout.AbsoluteContentSize.Y + 10)
+end
+RefreshCategoryList()
+
+ToggleCategoryBtn.MouseButton1Click:Connect(function()
+    CategoryOverlay.Visible = not CategoryOverlay.Visible
+end)
+
+------------------------------------------------------------------
+-- 5. GRADE DINÂMICA COM CARREGAMENTO OTIMIZADO
+------------------------------------------------------------------
+
+local SearchBar = Instance.new("TextBox")
+SearchBar.Size = UDim2.new(1, -16, 0, 24)
+SearchBar.Position = UDim2.new(0, 8, 0, 94)
+SearchBar.BackgroundColor3 = Color3.fromRGB(240, 240, 245)
+SearchBar.BorderSizePixel = 0
+SearchBar.PlaceholderText = "Pesquise por pacotes de animação..."
+SearchBar.Text = ""
+SearchBar.TextColor3 = Color3.fromRGB(30, 30, 30)
+SearchBar.PlaceholderColor3 = Color3.fromRGB(130, 130, 135)
+SearchBar.Font = Enum.Font.Gotham
+SearchBar.TextSize = 10
+SearchBar.Parent = MainFrame
+Instance.new("UICorner", SearchBar).CornerRadius = UDim.new(0, 4)
+
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Size = UDim2.new(1, -16, 1, -130)
+ScrollFrame.Position = UDim2.new(0, 8, 0, 124)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 3
+ScrollFrame.Parent = MainFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = ScrollFrame
+UIListLayout.Padding = UDim.new(0, 5)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local function BuildAnimationRow(pack, layoutIndex)
+    if ScrollFrame:FindFirstChild(pack.name) then return end
+
+    local RowFrame = Instance.new("Frame")
+    RowFrame.Name = pack.name
+    RowFrame.Size = UDim2.new(1, -5, 0, 48)
+    RowFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    RowFrame.BackgroundTransparency = 0.25
+    RowFrame.BorderSizePixel = 0
+    RowFrame.LayoutOrder = layoutIndex
+    RowFrame.Parent = ScrollFrame
+    Instance.new("UICorner", RowFrame).CornerRadius = UDim.new(0, 4)
+
+    local PackImage = Instance.new("ImageButton")
+    PackImage.Name = "PackImage"
+    PackImage.Size = UDim2.new(0, 38, 0, 38)
+    PackImage.Position = UDim2.new(0, 5, 0.5, -19)
+    PackImage.BackgroundColor3 = Color3.fromRGB(235, 235, 240)
+    PackImage.Image = "rbxthumb://type=BundleThumbnail&id=" .. tostring(pack.id) .. "&w=150&h=150"
+    PackImage.Parent = RowFrame
+    Instance.new("UICorner", PackImage).CornerRadius = UDim.new(0, 4)
+    
+    PackImage.MouseButton1Click:Connect(function()
+        task.spawn(function()
+            local items = pack.bundledItems or {}
+            for _, typeName in ipairs(subTypes) do
+                local subAssetId = items[typeName]
+                if subAssetId then
+                    local playerActiveId = RealTimePlayerIds[typeName]
+                    if playerActiveId ~= tonumber(subAssetId) then
+                        EquipSubAnimation(subAssetId)
+                        task.wait(0.5)
+                    end
+                end
+            end
+        end)
+    end)
+
+    local PackLabel = Instance.new("TextLabel")
+    PackLabel.Size = UDim2.new(0, 110, 1, -10)
+    PackLabel.Position = UDim2.new(0, 48, 0, 5)
+    PackLabel.BackgroundTransparency = 1
+    PackLabel.Text = pack.name
+    PackLabel.TextColor3 = Color3.fromRGB(40, 40, 45)
+    PackLabel.Font = Enum.Font.GothamSemibold
+    PackLabel.TextSize = 9
+    PackLabel.TextWrapped = true
+    PackLabel.TextXAlignment = Enum.TextXAlignment.Left
+    PackLabel.Parent = RowFrame
+
+    local items = pack.bundledItems or {}
+    local horizontalIndex = 0
+    
+    for _, typeName in ipairs(subTypes) do
+        local subAssetId = items[typeName]
+        if subAssetId then
+            horizontalIndex = horizontalIndex + 1
+            
+            local SubButton = Instance.new("ImageButton")
+            SubButton.Size = UDim2.new(0, 36, 0, 38)
+            SubButton.Position = UDim2.new(0, 165 + ((horizontalIndex - 1) * 40), 0.5, -19)
+            SubButton.BackgroundColor3 = Color3.fromRGB(235, 235, 240)
+            SubButton.Parent = RowFrame
+            Instance.new("UICorner", SubButton).CornerRadius = UDim.new(0, 4)
+            
+            local SubImg = Instance.new("ImageLabel")
+            SubImg.Size = UDim2.new(0, 24, 0, 24)
+            SubImg.Position = UDim2.new(0.5, -12, 0, 2)
+            SubImg.BackgroundTransparency = 1
+            SubImg.ScaleType = Enum.ScaleType.Fit
+            SubImg.Image = "rbxthumb://type=BundleThumbnail&id=" .. tostring(pack.id) .. "&w=150&h=150"
+            SubImg.Parent = SubButton
+
+            local SubText = Instance.new("TextLabel")
+            SubText.Size = UDim2.new(1, 0, 0, 10)
+            SubText.Position = UDim2.new(0, 0, 1, -11)
+            SubText.BackgroundTransparency = 1
+            SubText.Text = typeName
+            SubText.TextColor3 = Color3.fromRGB(90, 90, 100)
+            SubText.Font = Enum.Font.Gotham
+            SubText.TextSize = 7
+            SubText.Parent = SubButton
+            
+            local ImageIndicator = Instance.new("ImageLabel")
+            ImageIndicator.Size = UDim2.new(0, 14, 0, 14)
+            ImageIndicator.Position = UDim2.new(1, -14, 1, -14)
+            ImageIndicator.BackgroundTransparency = 1
+            ImageIndicator.Image = "rbxassetid://6935798751"
+            ImageIndicator.Visible = false
+            ImageIndicator.ZIndex = 4
+            ImageIndicator.Parent = SubButton
+
+            GlobalSubButtons[tostring(subAssetId)] = {indicator = ImageIndicator}
+
+            SubButton.MouseButton1Click:Connect(function()
+                EquipSubAnimation(subAssetId)
+            end)
+        end
+    end
+end
+
+local function LoadInitialList()
+    for index = 1, math.min(50, #animationData) do
+        local pack = animationData[index]
+        if pack then BuildAnimationRow(pack, index) end
+    end
+end
+
+task.spawn(LoadInitialList)
+
+UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 15)
+end)
+
+local searchUpdateToken = 0
+SearchBar:GetPropertyChangedSignal("Text"):Connect(function()
+    local currentToken = searchUpdateToken + 1
+    searchUpdateToken = currentToken
+    
+    local text = SearchBar.Text:lower()
+    
+    if text == "" then
+        for _, child in ipairs(ScrollFrame:GetChildren()) do
+            if child:IsA("Frame") then child.Visible = false end
+        end
+        for index = 1, math.min(50, #animationData) do
+            local pack = animationData[index]
+            if pack and ScrollFrame:FindFirstChild(pack.name) then
+                ScrollFrame[pack.name].Visible = true
+            end
+        end
+    else
+        task.spawn(function()
+            local yieldsCount = 0
+            for index, pack in ipairs(animationData) do
+                if searchUpdateToken ~= currentToken then return end
+                
+                if pack.name and pack.name:lower():find(text) then
+                    BuildAnimationRow(pack, index)
+                    if ScrollFrame:FindFirstChild(pack.name) then
+                        ScrollFrame[pack.name].Visible = true
+                    end
+                    
+                    yieldsCount = yieldsCount + 1
+                    if yieldsCount % 5 == 0 then
+                        task.wait()
+                    end
+                else
+                    if ScrollFrame:FindFirstChild(pack.name) then
+                        ScrollFrame[pack.name].Visible = false
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+------------------------------------------------------------------
+-- 6. CONTROLE DE ALTERNÂNCIA E CONEXÕES DE FECHAMENTO
+------------------------------------------------------------------
+
+InvisibleTrigger.MouseButton1Click:Connect(function()
+    local isNowVisible = not MainFrame.Visible
+    MainFrame.Visible = isNowVisible
+    CategoryOverlay.Visible = false
+    
+    if catalogContainer then
+        catalogContainer.Visible = not isNowVisible
+    end
+end)
+
+local function HideCustomGui()
+    MainFrame.Visible = false
+    CategoryOverlay.Visible = false
+    if catalogContainer then
+        catalogContainer.Visible = true
+    end
+end
+
+-- Monitoramento das Abas de Estilo de Andar
+for _, child in ipairs(walkStyleFolder:GetChildren()) do
+    if child:IsA("GuiObject") and child.Name ~= "ZsgdAnimation" then
+        if child:IsA("TextButton") or child:IsA("ImageButton") then
+            child.MouseButton1Click:Connect(HideCustomGui)
+        elseif child:FindFirstChildOfClass("TextButton") then
+            child:FindFirstChildOfClass("TextButton").MouseButton1Click:Connect(HideCustomGui)
+        elseif child:FindFirstChildOfClass("ImageButton") then
+            child:FindFirstChildOfClass("ImageButton").MouseButton1Click:Connect(HideCustomGui)
+        end
+    end
+end
+
+-- Monitoramento das Abas de Categorias Superiores
+for _, child in ipairs(categoryTabs:GetChildren()) do
+    if child:IsA("GuiObject") then
+        if child:IsA("TextButton") or child:IsA("ImageButton") then
+            child.MouseButton1Click:Connect(HideCustomGui)
+        elseif child:FindFirstChildOfClass("TextButton") then
+            child:FindFirstChildOfClass("TextButton").MouseButton1Click:Connect(HideCustomGui)
+        elseif child:FindFirstChildOfClass("ImageButton") then
+            child:FindFirstChildOfClass("ImageButton").MouseButton1Click:Connect(HideCustomGui)
+        end
+    end
+end
+
+
+
+
+
+
+end)
+
+----------------------------------------------------------------------------------------------------------------
+-----------------------------------------Aba Extra Emotes e efeitos Vip-----------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+
+task.spawn(function()
+
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Proteção global contra dupla execução do script inteiro
+if _G.MainVIPCheckScriptLoaded then
+    return
+end
+_G.MainVIPCheckScriptLoaded = true
+
+-- IDs das Gamepasses fornecidos
+local gamepass1 = 850049439
+local gamepass2 = 3244029616
+
+-- Função segura para checar se o jogador possui a Gamepass
+local function checkGamepass(userId, gamepassId)
+    local hasPass = false
+    pcall(function()
+        hasPass = MarketplaceService:UserOwnsGamePassAsync(userId, gamepassId)
+    end)
+    return hasPass
+end
+
+-- Se o jogador NÃO tiver NENHUMA das duas passes, executa as funções
+if not (checkGamepass(LocalPlayer.UserId, gamepass1) or checkGamepass(LocalPlayer.UserId, gamepass2)) then
+    
+    --------------------------------------------------------------------
+    -- SCRIPT 1: INJETOR DE EMISSORES (EFEITOS VIP FREE)
+    --------------------------------------------------------------------
+    if not _G.EmmitersScriptLoaded then
+        _G.EmmitersScriptLoaded = true
+
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local emmiterListPath = LocalPlayer:WaitForChild("PlayerGui")
+            :WaitForChild("NoResetGUIHandler")
+            :WaitForChild("AvatarEditorHolder")
+            :WaitForChild("AvatarEditorMenu")
+            :WaitForChild("Catalog")
+            :WaitForChild("Container")
+            :WaitForChild("EmmiterList")
+
+        local ApplyEmmiter = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("ApplyEmmiter")
+        local currentActiveIndicator = nil
+        local activeEffectCode = nil
+
+        local function cleanOldButtons()
+            for _, item in ipairs(emmiterListPath:GetChildren()) do
+                if item:IsA("GuiObject") then
+                    local oldButton = item:FindFirstChild("EquipButtonOverlay")
+                    if oldButton then oldButton:Destroy() end
+                end
+            end
+        end
+
+        local function setupEquipButtons()
+            cleanOldButtons()
+            for _, item in ipairs(emmiterListPath:GetChildren()) do
+                if item:IsA("GuiObject") and item.Name ~= "UIGridLayout" then
+                    local idPart, codePart = string.match(item.Name, "^(%d+)_(.+)$")
+                    if idPart and codePart then
+                        local cleanId = tostring(tonumber(idPart)) 
+                        
+                        local equipButton = Instance.new("TextButton")
+                        equipButton.Name = "EquipButtonOverlay"
+                        equipButton.Size = UDim2.new(1, 0, 1, 0)
+                        equipButton.BackgroundTransparency = 1 
+                        equipButton.Text = ""
+                        equipButton.ZIndex = item.ZIndex + 5 
+                        equipButton.Parent = item
+                        
+                        local indicator = Instance.new("ImageLabel")
+                        indicator.Name = "EquipIndicator"
+                        indicator.Size = UDim2.new(0.6, 0, 0.6, 0) 
+                        indicator.Position = UDim2.new(0.2, 0, 0.2, 0) 
+                        indicator.BackgroundTransparency = 1
+                        indicator.Image = "rbxassetid://6935798751"
+                        indicator.ImageColor3 = Color3.fromRGB(0, 255, 100) 
+                        indicator.Visible = false
+                        indicator.ZIndex = equipButton.ZIndex + 1
+                        indicator.Parent = equipButton
+                        
+                        if activeEffectCode == codePart then
+                            indicator.Visible = true
+                            currentActiveIndicator = indicator
+                        end
+                        
+                        equipButton.MouseButton1Click:Connect(function()
+                            if activeEffectCode == codePart then
+                                pcall(function()
+                                    ApplyEmmiter:InvokeServer(0, "Clear")
+                                end)
+                                indicator.Visible = false
+                                currentActiveIndicator = nil
+                                activeEffectCode = nil
+                            else
+                                local args = { [1] = cleanId, [2] = codePart }
+                                local success = pcall(function()
+                                    ApplyEmmiter:InvokeServer(unpack(args))
+                                end)
+                                if success then
+                                    if currentActiveIndicator then
+                                        currentActiveIndicator.Visible = false
+                                    end
+                                    indicator.Visible = true
+                                    currentActiveIndicator = indicator
+                                    activeEffectCode = codePart
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+
+        setupEquipButtons()
+        emmiterListPath.ChildAdded:Connect(function()
+            task.wait(0.1)
+            setupEquipButtons()
+        end)
+    end
+
+    --------------------------------------------------------------------
+    -- SCRIPT 2: INJETOR OTIMIZADO DE EMOTES (VIP EMOTES BYPASS)
+    --------------------------------------------------------------------
+    if not _G.EmotesScriptLoaded then
+        _G.EmotesScriptLoaded = true
+
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local EmotesController = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Client"):WaitForChild("Emotes"):WaitForChild("EmotesController"))
+        local EmotesConfig = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Shared"):WaitForChild("DB"):WaitForChild("Emotes"):WaitForChild("EmotesConfig"))
+
+        local scrollingFramePath = LocalPlayer:WaitForChild("PlayerGui")
+            :WaitForChild("MainGUIHandler")
+            :WaitForChild("MainAnimationsMenu")
+            :WaitForChild("Catalog")
+            :WaitForChild("Container")
+            :WaitForChild("ScrollingFrame")
+
+        local function handleItem(item)
+            if not item:IsA("GuiObject") or item.Name == "UIGridLayout" then return end
+            
+            if item:FindFirstChild("VipIcon") and not item:FindFirstChild("EmoteButtonOverlay") then
+                local emoteName = item.Name
+                local labelComponent = item:FindFirstChild("Label")
+                
+                if labelComponent and labelComponent:IsA("TextLabel") and tonumber(emoteName) ~= nil then
+                    emoteName = labelComponent.Text
+                end
+
+                local emoteButton = Instance.new("TextButton")
+                emoteButton.Name = "EmoteButtonOverlay"
+                emoteButton.Size = UDim2.new(1, 0, 1, 0)
+                emoteButton.BackgroundTransparency = 1
+                emoteButton.Text = ""
+                emoteButton.ZIndex = item.ZIndex + 10
+                emoteButton.Parent = item
+
+                emoteButton.MouseButton1Click:Connect(function()
+                    local emoteData = EmotesConfig.GetFromName(emoteName)
+                    if emoteData then
+                        pcall(function()
+                            EmotesController.PlayEmote(emoteData, false)
+                        end)
+                    end
+                end)
+            end
+        end
+
+        scrollingFramePath.ChildAdded:Connect(function(child)
+            task.defer(function()
+                handleItem(child)
+            end)
+        end)
+
+        task.spawn(function()
+            local children = scrollingFramePath:GetChildren()
+            for i, child in ipairs(children) do
+                handleItem(child)
+                if i % 10 == 0 then
+                    task.wait()
+                end
+            end
+        end)
+    end
+
+end
+
+
+
+end)
+
