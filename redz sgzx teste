@@ -42,6 +42,7 @@ Save = {
     ClickSoundEnabled = false,
     ClickSoundId = "rbxassetid://18998603679",
     ClickSoundVolume = 0.1,
+    MinimizePos = {0.15, 0.15},
 },
     Settings = {},
     Connection = {},
@@ -160,6 +161,9 @@ if rawget(decoded, "ClickSoundId") and type(decoded.ClickSoundId) == "string" th
 end
 if rawget(decoded, "ClickSoundVolume") then
     MyLibrary.Save.ClickSoundVolume = tonumber(decoded.ClickSoundVolume) or 0.1
+end
+if rawget(decoded, "MinimizePos") and type(decoded.MinimizePos) == "table" and #decoded.MinimizePos == 2 then
+    MyLibrary.Save.MinimizePos = decoded.MinimizePos
 end
     end
 end
@@ -423,7 +427,8 @@ end
 
 local ScreenGui = Create("ScreenGui", CoreGui, {
     Name = "SAGAZx HUB",
-    IgnoreGuiInset = true,  -- ⬅️ ADICIONE ISSO
+    IgnoreGuiInset = true,
+    DisplayOrder = 9999,  -- ⬅️ adicione isso
 }, {
     Create("UIScale", {
         Scale = UIScale,
@@ -1821,10 +1826,14 @@ function Window:Minimize()
     end
 end
 
--- Cria automaticamente o botão de minimizar externo
+-- ═══════════════════════════════════════════════════════
+-- POSIÇÃO DO MINIMIZE EXTERNO (com persistência)
+-- ═══════════════════════════════════════════════════════
+local savedPos = MyLibrary.Save.MinimizePos or {0.15, 0.15}
+
 local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Size = UDim2.fromOffset(35, 35),
-    Position = UDim2.fromScale(0.15, 0.15),
+    Position = UDim2.fromScale(savedPos[1], savedPos[2]),  -- ⬅️ usa a posição salva
     BackgroundTransparency = 0,
     AutoButtonColor = false,
     Image = "",
@@ -1846,7 +1855,6 @@ local function ClampMinimizePos()
     local screenW = viewport.X / scale
     local screenH = viewport.Y / scale
 
-    -- Converte Scale pra Offset
     local posX = btn.Position.X.Offset
     local posY = btn.Position.Y.Offset
     if btn.Position.X.Scale ~= 0 then
@@ -1861,7 +1869,6 @@ local function ClampMinimizePos()
     local maxX = math.max(0, screenW - btnW)
     local maxY = math.max(0, screenH - btnH)
 
-    -- ⚠️ Permite Y=0 (dentro da topbar)
     local clampedX = math.clamp(posX, 0, maxX)
     local clampedY = math.clamp(posY, 0, maxY)
 
@@ -1870,17 +1877,64 @@ local function ClampMinimizePos()
     end
 end
 
--- Aplica clamp quando a posição mudar (durante drag)
+-- ═══════════════════════════════════════════════════════
+-- SALVAR POSIÇÃO quando o drag termina
+-- ═══════════════════════════════════════════════════════
+local function SaveMinimizePos()
+    local btn = MinimizeExternalButton
+    if not btn then return end
+
+    local viewport = workspace.CurrentCamera.ViewportSize
+    local scale = UIScale or 1
+    local screenW = viewport.X / scale
+    local screenH = viewport.Y / scale
+
+    -- Converte Offset pra Scale (normalizado) para funcionar em qualquer resolução
+    local posX = btn.Position.X.Offset
+    local posY = btn.Position.Y.Offset
+    if btn.Position.X.Scale ~= 0 then
+        posX = btn.Position.X.Scale * screenW + posX
+    end
+    if btn.Position.Y.Scale ~= 0 then
+        posY = btn.Position.Y.Scale * screenH + posY
+    end
+
+    local scaleX = posX / screenW
+    local scaleY = posY / screenH
+
+    MyLibrary.Save.MinimizePos = {scaleX, scaleY}
+    SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
+end
+
+-- ═══════════════════════════════════════════════════════
+-- CONEXÕES
+-- ═══════════════════════════════════════════════════════
+
+-- Clamp durante o drag
 MinimizeExternalButton:GetPropertyChangedSignal("Position"):Connect(ClampMinimizePos)
 
--- Aplica clamp quando a tela redimensionar
+-- Clamp quando a tela redimensionar
 workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(ClampMinimizePos)
 
--- Aplica clamp inicial (garante que começa dentro)
+-- ⚠️ Salva a posição APENAS quando o mouse soltar (fim do drag)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        -- Verifica se o mouse está em cima do botão (drag acabou de acontecer)
+        local mousePos = UserInputService:GetMouseLocation()
+        local btnAbsPos = MinimizeExternalButton.AbsolutePosition
+        local btnAbsSize = MinimizeExternalButton.AbsoluteSize
+
+        -- Se o botão foi movido recentemente, salva
+        task.defer(function()
+            SaveMinimizePos()
+        end)
+    end
+end)
+
+-- Aplica clamp inicial
 task.defer(ClampMinimizePos)
 
 MyLibrary.MinimizeExternalButton = MinimizeExternalButton
-
 -- ==================== JANELA SECUNDÁRIA ====================
 local SecondaryFrame = InsertTheme(Create("ImageButton", MainFrame, {
     Size = UDim2.fromOffset(250, 300),
