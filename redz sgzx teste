@@ -645,7 +645,7 @@ local function SaveImageSettings(data)
     SaveJson(JSON_FILE_PATH, data)
 end
 
--- Guarda o último link usado para cada imagem (evita rebaixar a mesma)
+-- Guarda o último link usado para cada imagem
 local LastImageLinks = {}
 
 local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
@@ -664,9 +664,26 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
         end
 
         local fileName = IMAGES_FOLDER .. "/" .. namePrefix .. ".png"
+        local linkMudou = (LastImageLinks[namePrefix] ~= imageInput)
 
-        -- ⚠️ SE O LINK NÃO MUDOU E O ARQUIVO EXISTE, USA O CACHE
-        if LastImageLinks[namePrefix] == imageInput and isfile and isfile(fileName) then
+        -- ⚠️ SE O LINK MUDOU, LIMPA TUDO ANTES
+        if linkMudou then
+            -- 1. Limpa a referência visual primeiro (força o Roblox a "esquecer" a textura)
+            if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
+                objectTarget.Image = ""
+            end
+
+            -- 2. Deleta o arquivo antigo
+            if isfile and isfile(fileName) then
+                pcall(delfile, fileName)
+            end
+
+            -- 3. Espera um frame pra garantir que o file handle foi liberado
+            task.wait()
+        end
+
+        -- Se o link NÃO mudou e o arquivo existe, usa direto
+        if not linkMudou and isfile and isfile(fileName) then
             local assetPath = getAssetFunc(fileName)
             if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
                 objectTarget.Image = assetPath
@@ -674,11 +691,7 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
             return assetPath
         end
 
-        -- ⚠️ SE O LINK MUDOU, DELETA O ARQUIVO ANTIGO E BAIXA NOVO
-        if isfile and isfile(fileName) then
-            pcall(delfile, fileName)
-        end
-
+        -- Baixa o novo arquivo
         local response = requestFunc({
             Url = imageInput,
             Method = "GET",
@@ -687,10 +700,14 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
 
         if response and response.Body then
             writefile(fileName, response.Body)
-            LastImageLinks[namePrefix] = imageInput  -- ⚠️ Marca o link atual
+            LastImageLinks[namePrefix] = imageInput
 
+            -- ⚠️ getcustomasset às vezes retorna cache mesmo após delfile.
+            -- Solução: chamamos e forçamos a atualização via "ContentProvider"
             local assetPath = getAssetFunc(fileName)
             if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
+                objectTarget.Image = ""
+                task.wait()  -- limpa a referência
                 objectTarget.Image = assetPath
             end
             return assetPath
@@ -706,7 +723,6 @@ local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
             formattedId = "rbxassetid://" .. imageInput
         end
 
-        -- Registra o link para não conflitar com o cache de URL
         LastImageLinks[namePrefix] = imageInput
 
         if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
