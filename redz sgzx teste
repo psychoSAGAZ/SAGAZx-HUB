@@ -4306,14 +4306,20 @@ ConfigTab:AddDropdown({
 -- Fim
 
 -- ═══════════════════════════════════════════════════════
--- Aplica as 3 imagens padrão definidas nas constantes DEFAULT_*
--- Aceita tanto ID do Roblox quanto link HTTP/HTTPS
+-- Aplica as imagens SALVAS no JSON (se existirem)
+-- ou as constantes DEFAULT_* se o JSON estiver vazio
 -- ═══════════════════════════════════════════════════════
 task.spawn(function()
-    task.wait()  -- dá 1 frame pro GUI renderizar
-    ProcessAndApplyImage(MyLibrary.HubImageLabel, DEFAULT_HUB_IMAGE, "Hub")
-    ProcessAndApplyImage(MyLibrary.MinimizeExternalButton, DEFAULT_MINIMIZE_IMAGE, "minizebutton")
-    ProcessAndApplyImage(MyLibrary.TopbarImageLabel, DEFAULT_TOP_BAR_IMAGE, "ImageTopbar")
+    task.wait(0.1)  -- dá 1 frame pro GUI renderizar
+
+    -- Prioriza o valor salvo no JSON; se não tiver, usa a constante
+    local hubImg = (CurrentImageSettings.HubImage and CurrentImageSettings.HubImage ~= "" and CurrentImageSettings.HubImage) or DEFAULT_HUB_IMAGE
+    local minImg = (CurrentImageSettings.MinimizeImage and CurrentImageSettings.MinimizeImage ~= "" and CurrentImageSettings.MinimizeImage) or DEFAULT_MINIMIZE_IMAGE
+    local topImg = (CurrentImageSettings.TopbarImage and CurrentImageSettings.TopbarImage ~= "" and CurrentImageSettings.TopbarImage) or DEFAULT_TOP_BAR_IMAGE
+
+    ProcessAndApplyImage(MyLibrary.HubImageLabel, hubImg, "Hub")
+    ProcessAndApplyImage(MyLibrary.MinimizeExternalButton, minImg, "minizebutton")
+    ProcessAndApplyImage(MyLibrary.TopbarImageLabel, topImg, "ImageTopbar")
 end)
 
     function Window:Set(Val1, Val2)
