@@ -8,22 +8,23 @@ local MainGui = nil
 local function UpdateTransparency()
     local Character = LocalPlayer.Character
     if not Character then return end
-    
+
     local transparency = IsInvisible and 0.5 or 0
-    
+
     for _, descendant in pairs(Character:GetDescendants()) do
         if descendant:IsA("BasePart") then
-            -- Não mexemos na HumanoidRootPart para não bugar o movimento
             if descendant.Name ~= "HumanoidRootPart" then
+                -- LocalTransparencyModifier é respeitado mesmo com a nova renderização
+                descendant.LocalTransparencyModifier = transparency
                 descendant.Transparency = transparency
             end
-        elseif descendant:IsA("Decal") then -- Isso esconde rostos e adesivos de roupas!
+        elseif descendant:IsA("Decal") then
             descendant.Transparency = transparency
         end
     end
 end
 
--- Criar a GUI do Botão
+-- Criar a GUI do Botão (arrastável)
 local function CreateButtonGUI()
     local ScreenGui = Instance.new("ScreenGui")
     local ToggleButton = Instance.new("TextButton")
@@ -31,23 +32,65 @@ local function CreateButtonGUI()
 
     ScreenGui.Name = "InvisButtonGui"
     ScreenGui.ResetOnSpawn = false
-    ScreenGui.Enabled = false 
-    
+    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.DisplayOrder = 999
+
     ToggleButton.Size = UDim2.new(0, 80, 0, 30)
-    ToggleButton.Position = UDim2.new(0, 837, 0, -37)
+    ToggleButton.Position = UDim2.new(0, 20, 0, 20) -- canto superior esquerdo
     ToggleButton.Text = "Invisível"
     ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    ToggleButton.AutoButtonColor = false
+    ToggleButton.Active = true
     ToggleButton.Parent = ScreenGui
-    
+
     UICorner.CornerRadius = UDim.new(0, 10)
     UICorner.Parent = ToggleButton
 
-    -- Função de Ativar/Desativar
+    -- ====== Arrastar ======
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    ToggleButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = ToggleButton.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    ToggleButton.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            local delta = input.Position - dragStart
+            ToggleButton.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    -- ====== Clique ======
     ToggleButton.MouseButton1Click:Connect(function()
         IsInvisible = not IsInvisible
-        UpdateTransparency() -- Aplica a transparência na hora
-        ToggleButton.BackgroundColor3 = IsInvisible and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        UpdateTransparency()
+        ToggleButton.BackgroundColor3 = IsInvisible
+            and Color3.fromRGB(0, 255, 0)
+            or Color3.fromRGB(255, 0, 0)
     end)
 
     ScreenGui.Parent = game:GetService("CoreGui")
@@ -56,27 +99,17 @@ end
 
 MainGui = CreateButtonGUI()
 
--- Loop principal (Consertado para trocas de skin)
+-- Loop principal: reaplica transparência sem mexer na CFrame do personagem
 game:GetService("RunService").Heartbeat:Connect(function()
-    if LocalPlayer.Character then
-        -- Se estiver invisível, garante que peças novas (da skin) também fiquem transparentes
-        if IsInvisible then
-            UpdateTransparency()
-            
-            local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-            local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-            if root and hum then
-                local OriginalCFrame = root.CFrame
-                local DownCFrame = OriginalCFrame * CFrame.new(0, -10000, 0)
-                
-                root.CFrame = DownCFrame
-                hum.CameraOffset = (DownCFrame:ToObjectSpace(CFrame.new(OriginalCFrame.Position))).Position
-                
-                game:GetService("RunService").RenderStepped:Wait()
-                
-                root.CFrame = OriginalCFrame
-                hum.CameraOffset = Vector3.new(0, 0, 0)
-            end
-        end
+    if IsInvisible and LocalPlayer.Character then
+        UpdateTransparency()
+    end
+end)
+
+-- Reaplica ao trocar de personagem / respawnar
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    if IsInvisible then
+        UpdateTransparency()
     end
 end)
