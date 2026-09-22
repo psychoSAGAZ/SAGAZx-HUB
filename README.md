@@ -9,9 +9,7 @@ if game.PlaceId ~= TARGET_PLACE_ID then
     return
 end
 
-task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/Ngdykhvhhfchh/refs/heads/main/README.md"))()
-end)
+
 
 -- ====================================================================
 -- 🌍 TRADUTOR SIMPLIFICADO — SAGAZx HUB
