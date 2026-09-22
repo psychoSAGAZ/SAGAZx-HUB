@@ -1,6 +1,7 @@
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
-    ["forro"] = {
+    ["Forro"] = {
+        {name = "iu", id = "ui"},
         {name = "ja que me ensinou (Estourado)", id = "102593134121793"},
         {name = "online metendo", id = "97825347303470"},
         {name = "Titanic", id = "75498888713958"},
@@ -34,7 +35,7 @@ createMusicDropdown("Forro", {
     }
 }, "Option 1")
 
--- Dropdown "Músicas e Memes Aleatórios"
+-- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
         {name = "Buena la vida", id = "76650356472656"},
@@ -297,7 +298,7 @@ createMusicDropdown("Funk", {
 
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
-    ["phonk"] = {
+    ["Phonk"] = {
         {name = "DigitalType", id = "94871427242599"},
         {name = "brigadeiro", id = "121046655523341"},
         {name = "Montagem Bionica ", id = "121046655523341"},
