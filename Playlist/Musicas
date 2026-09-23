@@ -1,6 +1,8 @@
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
     ["Forro"] = {
+        {name = "BRR BRR PATAPIM FORRÓ", id = "108982318953478"},
+        {name = "Set Do Ricon", id = "85602063198755"},
         {name = "ja que me ensinou (Estourado)", id = "102593134121793"},
         {name = "online metendo", id = "97825347303470"},
         {name = "Titanic", id = "75498888713958"},
@@ -37,6 +39,8 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "Shipson Gamer", id = "126897916689327"},
+        {name = "dznmcpalhacinho", id = "94635316453465"},
         {name = "Buena la vida", id = "76650356472656"},
         {name = "Injustiça", id = "124989405084883"},
         {name = "Minha Namorada Não Me Ama Mais", id = "135090308544819"},
@@ -55,6 +59,7 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Vibe Tipo Festa"
 createMusicDropdown("Vibe Tipo Festa", {
     ["Vibe Tipo Festa"] = {
+        {name = "Você beberia ou não", id = "138549056018750"},
         {name = "Koop_Cod", id = "78897336878154"},
         {name = "Bella Ciao", id = "123794300996826"},
         {name = "Bang Bang Bang", id = "90289127130880"},
@@ -172,6 +177,39 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Beco", id = "73607045201707"},
+        {name = "Quem Não Bafora Não...", id = "105021704860122"},
+        {name = "Cada um com seus esquemas", id = "115690181331624"},
+        {name = "O Grave Bater", id = "98146817497066"},
+        {name = "PASSA ALCOOL GEL BY", id = "74660644507056"},
+        {name = "Sobe Balão Desce Princesa", id = "110023885558332"},
+        {name = "Olho Com Juntivite", id = "118584823043753"},
+        {name = "EU APLICO O CHA...", id = "86866545861125"},
+        {name = "Roket Poket", id = "118906056296419"},
+        {name = "SENTADA NERVOSA", id = "100461622411736"},
+        {name = "Eu Comheci Uma Novinha...", id = "100283608203343"},
+        {name = "SEU EX TA NERVOSO D+", id = "92999059792601"},
+        {name = "Fd Gostoso Cmg...", id = "104767744632555"},
+        {name = "Varinha do amoor", id = "87047691839817"},
+        {name = "Choque no seu sistema", id = "128589691105865"},
+        {name = "tak", id = "128417229744862"},
+        {name = "ponto", id = "115908160799460"},
+        {name = "Com a Bunda", id = "138911072832689"},
+        {name = "bonito", id = "95013108971632"},
+        {name = "Tu Vai Subir", id = "80776754225911"},
+        {name = "Catucou", id = "114255201746886"},
+        {name = "Gata", id = "117775249997433"},
+        {name = "Sabor Nenê", id = "114781551480082"},
+        {name = "Titio do funk", id = "108262691010286"},
+        {name = "Eh na Onda do Birinbau", id = "90728144562197"},
+        {name = "Mais Amor Menos Recalque", id = "73476657388728"},
+        {name = "vai voar no tapete magico", id = "105580961743293"},
+        {name = "Oi Como CE Ta?", id = "91138103156778"},
+        {name = "Vou Penetrar", id = "71122088869017"},
+        {name = "paçoca", id = "117443506227589"},
+        {name = "Medley Putaria", id = "115710136865780"},
+        {name = "VEM COMIGO", id = "102838230236387"},
+        {name = "aquece", id = "95336510657094"},
         {name = "Vai Puta sua gostosa", id = "91225667489242"},
         {name = "Novinha", id = "95046137686947"},
         {name = "bala no aco", id = "125427893649267"},
