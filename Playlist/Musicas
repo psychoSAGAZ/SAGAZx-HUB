@@ -63,6 +63,7 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Vibe Tipo Festa"
 createMusicDropdown("Vibe Tipo Festa", {
     ["Vibe Tipo Festa"] = {
+        {name = "Pupsies", id = "86317637164248"},
         {name = "Você beberia ou não", id = "138549056018750"},
         {name = "Koop_Cod", id = "78897336878154"},
         {name = "Bella Ciao", id = "123794300996826"},
@@ -181,6 +182,9 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Ela ta da onda.", id = "85273328669935"},
+        {name = "Hoje é madelinha", id = "125618702364556"},
+        {name = "Joga a bct pros menor do pcc", id = "125516171040480"},
         {name = "Cheio de Fogo na Piroca", id = "127615454743173"},
         {name = "Beco", id = "73607045201707"},
         {name = "Quem Não Bafora Não...", id = "105021704860122"},
