@@ -39,6 +39,10 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "Me Apaixonei na Sua Botada", id = "132901244600372"},
+        {name = "Dentro do Byd", id = "108306423679517"},
+        {name = "So Quero Cu", id = "70776936148269"},
+        {name = "Gemidos Gulosos", id = "135036724516300"},
         {name = "Shipson Gamer", id = "126897916689327"},
         {name = "dznmcpalhacinho", id = "94635316453465"},
         {name = "Buena la vida", id = "76650356472656"},
@@ -177,6 +181,7 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Cheio de Fogo na Piroca", id = "127615454743173"},
         {name = "Beco", id = "73607045201707"},
         {name = "Quem Não Bafora Não...", id = "105021704860122"},
         {name = "Cada um com seus esquemas", id = "115690181331624"},
