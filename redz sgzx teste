@@ -547,34 +547,6 @@ local function ApplyMinimizeBorder(button)
     UpdateMinimizeStroke(stroke)
 end
 
-local function UpdateMinimizeStroke(stroke)
-    if not stroke then return end
-    local colorHex = MyLibrary.Save.MinimizeStrokeColor or "#8A2BE2"
-    stroke.Color = Color3.fromHex(colorHex)
-
-    local transparency = MyLibrary.Save.StrokeTransparency or 0
-    local hub = ScreenGui:FindFirstChild("Hub")
-    if hub and not hub.Visible then
-        transparency = math.min(0.6, transparency + 0.4)
-    end
-    stroke.Transparency = transparency
-end
-
-local function ApplyMinimizeBorder(button)
-    if not button or not button:IsA("GuiObject") then return end
-
-    local stroke = button:FindFirstChild("LibMinimizeBorder")
-    if not stroke then
-        stroke = Instance.new("UIStroke")
-        stroke.Name = "LibMinimizeBorder"
-        stroke.Parent = button
-        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        stroke.Thickness = 3
-    end
-
-    UpdateMinimizeStroke(stroke)
-end
-
 local function GetStr(val)
     if type(val) == "function" then
         return val()
@@ -706,7 +678,6 @@ local function SetThemeImage(key, value)
 
     theme[key] = value
     SaveJson("SAGAZx HUB lib.json", MyLibrary.Save)
-    Connection:FireConnection("ThemeChanged", MyLibrary.Save.Theme)
 end
 
 -- ═══════════════════════════════════════════════════════
@@ -1246,9 +1217,17 @@ end
 function MyLibrary:ApplyThemeImages()
     task.spawn(function()
         task.wait(0.1)
-        local hubImg = GetThemeImage("Image Hub")
-        local minImg = GetThemeImage("Image Minimize")
-        local topImg = GetThemeImage("Image Topbar")
+
+        local function GetSafeThemeImage(key)
+            local v = GetThemeImage(key)
+            if v and v ~= "" then return v end
+            local orig = OriginalThemes[MyLibrary.Save.Theme]
+            return (orig and orig[key]) or ""
+        end
+
+        local hubImg = GetSafeThemeImage("Image Hub")
+        local minImg = GetSafeThemeImage("Image Minimize")
+        local topImg = GetSafeThemeImage("Image Topbar")
 
         if MyLibrary.HubImageLabel and hubImg ~= "" then
             LastImageLinks["Hub"] = nil
@@ -1339,12 +1318,7 @@ function MyLibrary:GetThemeColor(key)
     return nil
 end
 
--- Imagens
-function MyLibrary:GetTopbarImage()
-    return CurrentImageSettings.TopbarImage
-end
 
--- (Hub e Minimize jï¿½ possuem getters)
 
 -- Fonte
 function MyLibrary:GetFont()
@@ -3778,8 +3752,8 @@ ImageTab:AddButton({
     Name = "Resetar Imagem do Hub",
     Callback = function()
         MyLibrary:ResetHubImage()
-        if hubimageTextBox and hubimageTextBox.Set then
-            hubImageTextBox:Set(MyLibrary:GetTopbarImage())
+        if hubImageTextBox and hubImageTextBox.Set then
+            hubImageTextBox:Set(MyLibrary:GetHubImage())
         end
     end
 })
