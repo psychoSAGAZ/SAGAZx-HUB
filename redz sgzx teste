@@ -136,39 +136,39 @@ local function Save(file)
             MyLibrary.Save.GlobalTransparency = tonumber(decoded.GlobalTransparency) or 0
         end
         if rawget(decoded, "HubTransparency") then
-    MyLibrary.Save.HubTransparency = tonumber(decoded.HubTransparency) or 0
-end
-if rawget(decoded, "HubImageTransparency") then
-    MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
-end
-if rawget(decoded, "StrokeColor") and type(decoded.StrokeColor) == "string" then
-    MyLibrary.Save.StrokeColor = decoded.StrokeColor
-end
-if rawget(decoded, "StrokeTransparency") then
-    MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
-end
-if rawget(decoded, "MinimizeStrokeColor") and type(decoded.MinimizeStrokeColor) == "string" then
-    MyLibrary.Save.MinimizeStrokeColor = decoded.MinimizeStrokeColor
-end
-if rawget(decoded, "Font") and type(decoded.Font) == "string" then
-    MyLibrary.Save.Font = decoded.Font
-    MyLibrary.CurrentFont = Enum.Font[decoded.Font] or Enum.Font.LuckiestGuy
-end
-if rawget(decoded, "TopbarImage") and type(decoded.TopbarImage) == "string" then
-    MyLibrary.Save.TopbarImage = decoded.TopbarImage
-end
-if rawget(decoded, "ClickSoundEnabled") then
-    MyLibrary.Save.ClickSoundEnabled = decoded.ClickSoundEnabled == true
-end
-if rawget(decoded, "ClickSoundId") and type(decoded.ClickSoundId) == "string" then
-    MyLibrary.Save.ClickSoundId = decoded.ClickSoundId
-end
-if rawget(decoded, "ClickSoundVolume") then
-    MyLibrary.Save.ClickSoundVolume = tonumber(decoded.ClickSoundVolume) or 0.1
-end
-if rawget(decoded, "MinimizePos") and type(decoded.MinimizePos) == "table" and #decoded.MinimizePos == 2 then
-    MyLibrary.Save.MinimizePos = decoded.MinimizePos
-end
+            MyLibrary.Save.HubTransparency = tonumber(decoded.HubTransparency) or 0
+        end
+        if rawget(decoded, "HubImageTransparency") then
+            MyLibrary.Save.HubImageTransparency = tonumber(decoded.HubImageTransparency) or 0
+        end
+        if rawget(decoded, "StrokeColor") and type(decoded.StrokeColor) == "string" then
+            MyLibrary.Save.StrokeColor = decoded.StrokeColor
+        end
+        if rawget(decoded, "StrokeTransparency") then
+            MyLibrary.Save.StrokeTransparency = tonumber(decoded.StrokeTransparency) or 0
+        end
+        if rawget(decoded, "MinimizeStrokeColor") and type(decoded.MinimizeStrokeColor) == "string" then
+            MyLibrary.Save.MinimizeStrokeColor = decoded.MinimizeStrokeColor
+        end
+        if rawget(decoded, "Font") and type(decoded.Font) == "string" then
+            MyLibrary.Save.Font = decoded.Font
+            MyLibrary.CurrentFont = Enum.Font[decoded.Font] or Enum.Font.LuckiestGuy
+        end
+        if rawget(decoded, "TopbarImage") and type(decoded.TopbarImage) == "string" then
+            MyLibrary.Save.TopbarImage = decoded.TopbarImage
+        end
+        if rawget(decoded, "ClickSoundEnabled") then
+            MyLibrary.Save.ClickSoundEnabled = decoded.ClickSoundEnabled == true
+        end
+        if rawget(decoded, "ClickSoundId") and type(decoded.ClickSoundId) == "string" then
+            MyLibrary.Save.ClickSoundId = decoded.ClickSoundId
+        end
+        if rawget(decoded, "ClickSoundVolume") then
+            MyLibrary.Save.ClickSoundVolume = tonumber(decoded.ClickSoundVolume) or 0.1
+        end
+        if rawget(decoded, "MinimizePos") and type(decoded.MinimizePos) == "table" and #decoded.MinimizePos == 2 then
+            MyLibrary.Save.MinimizePos = decoded.MinimizePos
+        end
     end
 end
 
