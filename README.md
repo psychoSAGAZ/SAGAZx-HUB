@@ -9,7 +9,9 @@ if game.PlaceId ~= TARGET_PLACE_ID then
     return
 end
 
-
+task.spawn(function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/Organize%20Music"))()
+end)
 
 -- ====================================================================
 -- 🌍 TRADUTOR SIMPLIFICADO — SAGAZx HUB
