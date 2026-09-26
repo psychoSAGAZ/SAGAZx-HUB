@@ -63,6 +63,8 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Vibe Tipo Festa"
 createMusicDropdown("Vibe Tipo Festa", {
     ["Vibe Tipo Festa"] = {
+        {name = "hunter 5how", id = "75688616622595"},
+        {name = "Bob Esponja Dançando", id = "71306564835472"},
         {name = "Pupsies", id = "86317637164248"},
         {name = "Você beberia ou não", id = "138549056018750"},
         {name = "Koop_Cod", id = "78897336878154"},
@@ -182,6 +184,7 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Posta nos storyes seminua", id = "108306423679517"},
         {name = "Ela ta da onda.", id = "85273328669935"},
         {name = "Hoje é madelinha", id = "125618702364556"},
         {name = "Joga a bct pros menor do pcc", id = "125516171040480"},
@@ -345,6 +348,9 @@ createMusicDropdown("Funk", {
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
     ["Phonk"] = {
+        {name = "Death (by 2x, vzim30)", id = "110808084193808"},
+        {name = "Beat (By 2x, cynicamane, vzim30)", id = "119434062680713"},
+        {name = "SPACE SONG", id = "102643711527064"},
         {name = "DigitalType", id = "94871427242599"},
         {name = "brigadeiro", id = "121046655523341"},
         {name = "Montagem Bionica ", id = "121046655523341"},
