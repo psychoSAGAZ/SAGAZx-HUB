@@ -1,6 +1,7 @@
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
     ["Forro"] = {
+        {name = "Forró do Estrupo", id = "94635316453465"},
         {name = "BRR BRR PATAPIM FORRÓ", id = "108982318953478"},
         {name = "Set Do Ricon", id = "85602063198755"},
         {name = "ja que me ensinou (Estourado)", id = "102593134121793"},
@@ -39,6 +40,7 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "Ta batendo meia noite [Estourado]", id = "106285676892349"},
         {name = "Me Apaixonei na Sua Botada", id = "132901244600372"},
         {name = "Dentro do Byd", id = "108306423679517"},
         {name = "So Quero Cu", id = "70776936148269"},
@@ -348,6 +350,7 @@ createMusicDropdown("Funk", {
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
     ["Phonk"] = {
+        {name = "Strange world", id = "90696964093718"},
         {name = "Death (by 2x, vzim30)", id = "110808084193808"},
         {name = "Beat (By 2x, cynicamane, vzim30)", id = "119434062680713"},
         {name = "SPACE SONG", id = "102643711527064"},
