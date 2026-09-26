@@ -186,6 +186,8 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Xrc de bala [Estourado]", id = "107174883653819"},
+        {name = "Deixa ela tomar zebrada (Estourado)", id = "80282038249456"},
         {name = "Antares [Estourado]", id = "102853170480978"},
         {name = "surra de piroca [Estourado]", id = "81730477878065"},
         {name = "Berimbau [Estourado]", id = "80937607674721"},
