@@ -40,6 +40,7 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "Assistindo porno [Estourado]", id = "94214367115154"},
         {name = "Ta batendo meia noite [Estourado]", id = "106285676892349"},
         {name = "Me Apaixonei na Sua Botada", id = "132901244600372"},
         {name = "Dentro do Byd", id = "108306423679517"},
@@ -186,6 +187,12 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Antares [Estourado]", id = "102853170480978"},
+        {name = "surra de piroca [Estourado]", id = "81730477878065"},
+        {name = "Berimbau [Estourado]", id = "80937607674721"},
+        {name = "ondalolo", id = "120892610283928"},
+        {name = "RLK", id = "116417585885956"},
+        {name = "Sexo anal", id = "100109274854032"},
         {name = "Posta nos storyes seminua", id = "108306423679517"},
         {name = "Ela ta da onda.", id = "85273328669935"},
         {name = "Hoje é madelinha", id = "125618702364556"},
