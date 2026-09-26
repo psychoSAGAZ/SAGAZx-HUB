@@ -1,7 +1,6 @@
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
     ["Forro"] = {
-        {name = "Forró do Estrupo", id = "94635316453465"},
         {name = "BRR BRR PATAPIM FORRÓ", id = "108982318953478"},
         {name = "Set Do Ricon", id = "85602063198755"},
         {name = "ja que me ensinou (Estourado)", id = "102593134121793"},
