@@ -21,6 +21,10 @@ local MyLibrary = {
 			["Color Theme"] = Color3.fromRGB(255, 0, 0),
 			["Color Text"] = Color3.fromRGB(238, 255, 63),
 			["Color Dark Text"] = Color3.fromRGB(0, 255, 109)
+			            -- 🖼️ Imagens padrão do tema
+            ["Default Hub Image"]      = "https://cdn.discordapp.com/attachments/1548142290323640411/1549935068917661796/file_000000001d70820e9b5e7b24883b432b.png?ex=6ab90744&is=6ab7b5c4&hm=c11760294f4ff5639ca89a863f2ee4c100ccc9632d2f752bb4e06b6c4cff94b9&",
+            ["Default Minimize Image"] = "https://cdn.discordapp.com/attachments/1548142290323640411/1551719479921348659/file_00000000d864820ea7af9197cb2581ba.png?ex=6ab8eda1&is=6ab79c21&hm=2c52a35546651a12df8dc9cb4e41d15bc105498b4a6fa778129832da08bc1e2a&",
+            ["Default Topbar Image"]   = "https://cdn.discordapp.com/attachments/1548142290323640411/1549938098371297450/file_0000000064cc820e9c9e1c5fa32089df.png?ex=6ab90a17&is=6ab7b897&hm=49865622a075d9a394b18f07ed2a939c6a918e355aa465b599d7160991444c4f&"
 		}
 },
     Info = {
@@ -611,9 +615,21 @@ local function SaveJson(FileName, save)
     end
 end
 
-local DEFAULT_HUB_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1549935068917661796/file_000000001d70820e9b5e7b24883b432b.png?ex=6ab26fc4&is=6ab11e44&hm=ea676555fed2b1d27969f937bdafc40d8d58d1c5326388a1b3981605bd3cb1ae&"
-local DEFAULT_MINIMIZE_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1551719479921348659/file_00000000d864820ea7af9197cb2581ba.png?ex=6ab2fee1&is=6ab1ad61&hm=e21aa1ee63658224051ee73621871d5b91e1e2fa103486fb56dff08a028f3bbb&"
-local DEFAULT_TOP_BAR_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1549938098371297450/file_0000000064cc820e9c9e1c5fa32089df.png?ex=6ab27297&is=6ab12117&hm=c6fef53d20a609b37e1329a4d972e42526e9e950da10d6babdf8b90cf09d5962&"
+-- ✅ NOVO: funções que leem do tema atual
+local function GetDefaultHubImage()
+    local theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+    return (theme and theme["Default Hub Image"]) or ""
+end
+
+local function GetDefaultMinimizeImage()
+    local theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+    return (theme and theme["Default Minimize Image"]) or ""
+end
+
+local function GetDefaultTopbarImage()
+    local theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+    return (theme and theme["Default Topbar Image"]) or ""
+end
 
 local IMAGES_FOLDER = LibFolder .. "/imagens"
 local JSON_FILE_PATH = IMAGES_FOLDER .. "/imagens.json"
@@ -629,19 +645,23 @@ local getAssetFunc = getcustomasset or getsynasset
 
 local function LoadImageSettings()
     local defaultData = {
-    HubImage = DEFAULT_HUB_IMAGE,
-    MinimizeImage = DEFAULT_MINIMIZE_IMAGE,
-    TopbarImage = DEFAULT_TOP_BAR_IMAGE
-}
+        HubImage      = GetDefaultHubImage(),
+        MinimizeImage = GetDefaultMinimizeImage(),
+        TopbarImage   = GetDefaultTopbarImage()
+    }
     if isfile and isfile(JSON_FILE_PATH) then
         local ok, decoded = pcall(function()
             return HttpService:JSONDecode(readfile(JSON_FILE_PATH))
         end)
         if ok and type(decoded) == "table" then
+            -- Se o JSON estiver vazio em algum campo, cai no default do tema
+            decoded.HubImage      = (decoded.HubImage      ~= "" and decoded.HubImage)      or defaultData.HubImage
+            decoded.MinimizeImage = (decoded.MinimizeImage ~= "" and decoded.MinimizeImage) or defaultData.MinimizeImage
+            decoded.TopbarImage   = (decoded.TopbarImage   ~= "" and decoded.TopbarImage)   or defaultData.TopbarImage
             return decoded
         end
     else
-        SaveJson(JSON_FILE_PATH, defaultData) -- usa a funÃ§Ã£o existente
+        SaveJson(JSON_FILE_PATH, defaultData)
     end
     return defaultData
 end
@@ -1078,12 +1098,6 @@ function MyLibrary:SetTopbarImage(imageInput)
     SaveImageSettings(CurrentImageSettings)
 end
 
-function MyLibrary:ResetTopbarImage()
-    local imageLabel = MyLibrary.TopbarImageLabel
-    if not imageLabel then return end
-    LastImageLinks["ImageTopbar"] = nil  -- ⚠️ força re-download
-    ProcessAndApplyImage(imageLabel, DEFAULT_TOP_BAR_IMAGE, "ImageTopbar")
-end
 
 function MyLibrary:SetHubImageTransparency(value)
     value = tonumber(value)
@@ -1127,15 +1141,41 @@ end
 function MyLibrary:ResetHubImage()
     local imageLabel = MyLibrary.HubImageLabel
     if not imageLabel then return end
-    LastImageLinks["Hub"] = nil  -- ⚠️ força re-download se for link HTTP
-    ProcessAndApplyImage(imageLabel, DEFAULT_HUB_IMAGE, "Hub")
+    local defaultImg = GetDefaultHubImage()
+    if defaultImg == "" then return end
+
+    LastImageLinks["Hub"] = nil
+    ProcessAndApplyImage(imageLabel, defaultImg, "Hub")
+
+    -- Atualiza o JSON de imagens
+    CurrentImageSettings.HubImage = defaultImg
+    SaveImageSettings(CurrentImageSettings)
 end
 
 function MyLibrary:ResetMinimizeImage()
-    local minimizeBtn = ScreenGui:FindFirstChild("MinimizeExternalButton")
+    local minimizeBtn = MyLibrary.MinimizeExternalButton
     if not minimizeBtn then return end
-    LastImageLinks["minizebutton"] = nil  -- ⚠️ força re-download
-    ProcessAndApplyImage(minimizeBtn, DEFAULT_MINIMIZE_IMAGE, "minizebutton")
+    local defaultImg = GetDefaultMinimizeImage()
+    if defaultImg == "" then return end
+
+    LastImageLinks["minizebutton"] = nil
+    ProcessAndApplyImage(minimizeBtn, defaultImg, "minizebutton")
+
+    CurrentImageSettings.MinimizeImage = defaultImg
+    SaveImageSettings(CurrentImageSettings)
+end
+
+function MyLibrary:ResetTopbarImage()
+    local imageLabel = MyLibrary.TopbarImageLabel
+    if not imageLabel then return end
+    local defaultImg = GetDefaultTopbarImage()
+    if defaultImg == "" then return end
+
+    LastImageLinks["ImageTopbar"] = nil
+    ProcessAndApplyImage(imageLabel, defaultImg, "ImageTopbar")
+
+    CurrentImageSettings.TopbarImage = defaultImg
+    SaveImageSettings(CurrentImageSettings)
 end
 
 function MyLibrary:GetHubImage()
@@ -4432,12 +4472,15 @@ ConfigTab:AddDropdown({
 -- ou as constantes DEFAULT_* se o JSON estiver vazio
 -- ═══════════════════════════════════════════════════════
 task.spawn(function()
-    task.wait(0.1)  -- dá 1 frame pro GUI renderizar
+    task.wait(0.1)
 
-    -- Prioriza o valor salvo no JSON; se não tiver, usa a constante
-    local hubImg = (CurrentImageSettings.HubImage and CurrentImageSettings.HubImage ~= "" and CurrentImageSettings.HubImage) or DEFAULT_HUB_IMAGE
-    local minImg = (CurrentImageSettings.MinimizeImage and CurrentImageSettings.MinimizeImage ~= "" and CurrentImageSettings.MinimizeImage) or DEFAULT_MINIMIZE_IMAGE
-    local topImg = (CurrentImageSettings.TopbarImage and CurrentImageSettings.TopbarImage ~= "" and CurrentImageSettings.TopbarImage) or DEFAULT_TOP_BAR_IMAGE
+    -- ✅ Pega do JSON salvo, senão do tema atual
+    local hubImg = (CurrentImageSettings.HubImage and CurrentImageSettings.HubImage ~= "" 
+                    and CurrentImageSettings.HubImage) or GetDefaultHubImage()
+    local minImg = (CurrentImageSettings.MinimizeImage and CurrentImageSettings.MinimizeImage ~= "" 
+                    and CurrentImageSettings.MinimizeImage) or GetDefaultMinimizeImage()
+    local topImg = (CurrentImageSettings.TopbarImage and CurrentImageSettings.TopbarImage ~= "" 
+                    and CurrentImageSettings.TopbarImage) or GetDefaultTopbarImage()
 
     ProcessAndApplyImage(MyLibrary.HubImageLabel, hubImg, "Hub")
     ProcessAndApplyImage(MyLibrary.MinimizeExternalButton, minImg, "minizebutton")
