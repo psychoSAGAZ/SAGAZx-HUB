@@ -1,6 +1,7 @@
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
     ["Forro"] = {
+        {name = "Amor ou Litrão", id = "75474964672565"},
         {name = "BRR BRR PATAPIM FORRÓ", id = "108982318953478"},
         {name = "Set Do Ricon", id = "85602063198755"},
         {name = "ja que me ensinou (Estourado)", id = "102593134121793"},
@@ -39,6 +40,7 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "dinheros vo lucra icy X k2", id = "101510849415517"},
         {name = "Estilo não é marra", id = "104028647177710"},
         {name = "Assistindo porno [Estourado]", id = "94214367115154"},
         {name = "Ta batendo meia noite [Estourado]", id = "106285676892349"},
@@ -66,6 +68,8 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Vibe Tipo Festa"
 createMusicDropdown("Vibe Tipo Festa", {
     ["Vibe Tipo Festa"] = {
+        {name = "Cry Now", id = "74347230850239"},
+        {name = "Do May dow", id = "128852849945717"},
         {name = "hunter 5how", id = "75688616622595"},
         {name = "Bob Esponja Dançando", id = "71306564835472"},
         {name = "Pupsies", id = "86317637164248"},
@@ -187,6 +191,9 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "lampada da sorte", id = "71393805905055"},
+        {name = "Nigger", id = "96037807724498"},
+        {name = "Passa na radio joga", id = "111425053457342"},
         {name = "Só socadão", id = "132706497428896"},
         {name = "A novinha falou [Estourado]", id = "114781551480082"},
         {name = "Eletrofunk rlk", id = "113339486428432"},
