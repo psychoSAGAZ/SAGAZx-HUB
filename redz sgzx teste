@@ -1,4 +1,4 @@
-local MarketplaceService = game:GetService("MarketplaceService")
+kklocal MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
@@ -26,7 +26,7 @@ local MyLibrary = {
     Info = {
         Version = "1.1.0"
     },
-Save = {
+Savegg = {
     UISize = {430, 314},
     TabSize = 135,
     Theme = "Customize",
