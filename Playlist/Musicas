@@ -191,8 +191,6 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
-        {name = "lampada da sorte", id = "71393805905055"},
-        {name = "Nigger", id = "96037807724498"},
         {name = "Passa na radio joga", id = "111425053457342"},
         {name = "Só socadão", id = "132706497428896"},
         {name = "A novinha falou [Estourado]", id = "114781551480082"},
