@@ -187,6 +187,10 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Só socadão", id = "132706497428896"},
+        {name = "A novinha falou [Estourado]", id = "114781551480082"},
+        {name = "Eletrofunk rlk", id = "113339486428432"},
+        {name = "Me desculpa pai", id = "129029386696464"},
         {name = "Abravanel", id = "93127195178574"},
         {name = "Putinha", id = "118878857735942"},
         {name = "BIG RUSH", id = "123247961603489"},
@@ -260,7 +264,6 @@ createMusicDropdown("Funk", {
         {name = "Tu Vai Subir", id = "80776754225911"},
         {name = "Catucou", id = "114255201746886"},
         {name = "Gata", id = "117775249997433"},
-        {name = "Sabor Nenê", id = "114781551480082"},
         {name = "Titio do funk", id = "108262691010286"},
         {name = "Eh na Onda do Birinbau", id = "90728144562197"},
         {name = "Mais Amor Menos Recalque", id = "73476657388728"},
@@ -270,7 +273,7 @@ createMusicDropdown("Funk", {
         {name = "paçoca", id = "117443506227589"},
         {name = "Medley Putaria", id = "115710136865780"},
         {name = "VEM COMIGO", id = "102838230236387"},
-        {name = "aquece", id = "95336510657094"},
+        {name = "aquece meu cacete", id = "95336510657094"},
         {name = "Vai Puta sua gostosa", id = "91225667489242"},
         {name = "Novinha", id = "95046137686947"},
         {name = "bala no aco", id = "125427893649267"},
