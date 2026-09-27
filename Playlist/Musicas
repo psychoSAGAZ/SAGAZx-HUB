@@ -191,6 +191,8 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "lampada da sorte", id = "71393805905055"},
+        {name = "Nigger", id = "96037807724498"},
         {name = "Passa na radio joga", id = "111425053457342"},
         {name = "Só socadão", id = "132706497428896"},
         {name = "A novinha falou [Estourado]", id = "114781551480082"},
@@ -450,9 +452,5 @@ createMusicDropdown("Phonk", {
 -- Dropdown "Rap"
 createMusicDropdown("Rap", {
     ["Rap"] = {
-        {name = "vazio", id = "74961647372118"},
-        {name = "robins", id = "100840031560163"},
-        {name = "Nigguer", id = "96037807724498"},
-        {name = "lampada da sorte", id = "71393805905055"}
     }
 }, "Option 1")
