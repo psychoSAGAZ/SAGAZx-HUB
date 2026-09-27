@@ -186,6 +186,8 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Ah-Ah", id = "93965785952881"},
+        {name = "polenta", id = "138981629726601"},
         {name = "Xrc de bala [Estourado]", id = "107174883653819"},
         {name = "Deixa ela tomar zebrada (Estourado)", id = "80282038249456"},
         {name = "Antares [Estourado]", id = "102853170480978"},
@@ -358,6 +360,7 @@ createMusicDropdown("Funk", {
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
     ["Phonk"] = {
+        {name = "Tokio Drift", id = "125968616299811"},
         {name = "Strange world", id = "90696964093718"},
         {name = "Death (by 2x, vzim30)", id = "110808084193808"},
         {name = "Beat (By 2x, cynicamane, vzim30)", id = "119434062680713"},
