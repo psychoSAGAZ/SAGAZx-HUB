@@ -1,4 +1,4 @@
-kklocal MarketplaceService = game:GetService("MarketplaceService")
+local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
@@ -20,13 +20,16 @@ local MyLibrary = {
 			["Color Stroke"] = Color3.fromRGB(84, 0, 0),
 			["Color Theme"] = Color3.fromRGB(255, 0, 0),
 			["Color Text"] = Color3.fromRGB(238, 255, 63),
-			["Color Dark Text"] = Color3.fromRGB(0, 255, 109)
+			["Color Dark Text"] = Color3.fromRGB(0, 255, 109),
+			["Image Hub"]      = "rbxassetid://0",
+            ["Image Minimize"] = "rbxassetid://0",
+            ["Image Topbar"]   = "rbxassetid://0"
 		}
 },
     Info = {
         Version = "1.1.0"
     },
-Savegg = {
+Save = {
     UISize = {430, 314},
     TabSize = 135,
     Theme = "Customize",
@@ -271,6 +274,8 @@ local function SerializeThemeValue(v)
             table.insert(kps, { Time = kp.Time, C = Color3ToHex(kp.Value) })
         end
         return { T = "ColorSequence", K = kps }
+    elseif type(v) == "string" then
+        return { T = "String", V = v }
     end
 end
 
@@ -284,6 +289,8 @@ local function DeserializeThemeValue(data)
             table.insert(kps, ColorSequenceKeypoint.new(kp.Time, HexToColor3(kp.C)))
         end
         return ColorSequence.new(kps)
+    elseif data.T == "String" then
+        return data.V
     end
 end
 
@@ -611,121 +618,29 @@ local function SaveJson(FileName, save)
     end
 end
 
-local DEFAULT_HUB_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1549935068917661796/file_000000001d70820e9b5e7b24883b432b.png?ex=6ab26fc4&is=6ab11e44&hm=ea676555fed2b1d27969f937bdafc40d8d58d1c5326388a1b3981605bd3cb1ae&"
-local DEFAULT_MINIMIZE_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1551719479921348659/file_00000000d864820ea7af9197cb2581ba.png?ex=6ab2fee1&is=6ab1ad61&hm=e21aa1ee63658224051ee73621871d5b91e1e2fa103486fb56dff08a028f3bbb&"
-local DEFAULT_TOP_BAR_IMAGE = "https://cdn.discordapp.com/attachments/1548142290323640411/1549938098371297450/file_0000000064cc820e9c9e1c5fa32089df.png?ex=6ab27297&is=6ab12117&hm=c6fef53d20a609b37e1329a4d972e42526e9e950da10d6babdf8b90cf09d5962&"
-
-local IMAGES_FOLDER = LibFolder .. "/imagens"
-local JSON_FILE_PATH = IMAGES_FOLDER .. "/imagens.json"
-
-pcall(function()
-    if makefolder and not isfolder(IMAGES_FOLDER) then
-        makefolder(IMAGES_FOLDER)
+-- ==================== IMAGENS DO TEMA ====================
+-- Aplica um valor de imagem (ID, rbxassetid:// ou link) diretamente.
+-- Links HTTP são aplicados como estão (Roblox não renderiza por padrão,
+-- mas mantém compatibilidade pra quem usa executor com hook de http).
+local function ApplyThemeImage(imageObject, imageValue)
+    if not imageObject or not (imageObject:IsA("ImageLabel") or imageObject:IsA("ImageButton")) then
+        return
     end
-end)
 
-local requestFunc = request or http_request or (syn and syn.request)
-local getAssetFunc = getcustomasset or getsynasset
+    if type(imageValue) ~= "string" or imageValue == "" then
+        imageObject.Image = ""
+        return
+    end
 
-local function LoadImageSettings()
-    local defaultData = {
-    HubImage = DEFAULT_HUB_IMAGE,
-    MinimizeImage = DEFAULT_MINIMIZE_IMAGE,
-    TopbarImage = DEFAULT_TOP_BAR_IMAGE
-}
-    if isfile and isfile(JSON_FILE_PATH) then
-        local ok, decoded = pcall(function()
-            return HttpService:JSONDecode(readfile(JSON_FILE_PATH))
-        end)
-        if ok and type(decoded) == "table" then
-            return decoded
-        end
+    if imageValue:find("rbxassetid://") or imageValue:find("rbxasset://") then
+        imageObject.Image = imageValue
+    elseif tonumber(imageValue) then
+        imageObject.Image = "rbxassetid://" .. imageValue
     else
-        SaveJson(JSON_FILE_PATH, defaultData) -- usa a funÃ§Ã£o existente
-    end
-    return defaultData
-end
-
-local function SaveImageSettings(data)
-    SaveJson(JSON_FILE_PATH, data)
-end
-
--- Guarda o último link usado para cada imagem
-local LastImageLinks = {}
-
-local LastImageLinks = {}
-
-local function ProcessAndApplyImage(objectTarget, imageInput, namePrefix)
-    if not objectTarget or type(imageInput) ~= "string" or imageInput == "" then
-        if objectTarget and (objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton")) then
-            objectTarget.Image = ""
-        end
-        return ""
-    end
-
-    if imageInput:find("https://") or imageInput:find("http://") then
-        if not requestFunc or not getAssetFunc then
-            warn("Executor não suporta request/getcustomasset.")
-            return imageInput
-        end
-
-        -- ⚠️ USA NOME ÚNICO POR LINK (hash) para contornar cache do executor
-        local linkHash = 0
-        for i = 1, #imageInput do
-            linkHash = (linkHash * 31 + string.byte(imageInput, i)) % 2147483647
-        end
-        local fileName = IMAGES_FOLDER .. "/" .. namePrefix .. "_" .. tostring(linkHash) .. ".png"
-
-        -- 1. Se o arquivo já existe, usa direto
-        if isfile and isfile(fileName) then
-            local assetPath = getAssetFunc(fileName)
-            if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
-                objectTarget.Image = assetPath
-            end
-            LastImageLinks[namePrefix] = imageInput
-            return assetPath
-        end
-
-        -- 2. Limpa referência visual e baixa novo
-        if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
-            objectTarget.Image = ""
-        end
-
-        local response = requestFunc({
-            Url = imageInput,
-            Method = "GET",
-            Headers = {["User-Agent"] = "Mozilla/5.0"}
-        })
-
-        if response and response.Body then
-            writefile(fileName, response.Body)
-            LastImageLinks[namePrefix] = imageInput
-
-            local assetPath = getAssetFunc(fileName)
-            if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
-                objectTarget.Image = ""
-                task.wait()
-                objectTarget.Image = assetPath
-            end
-            return assetPath
-        else
-            warn("Falha ao baixar imagem: " .. tostring(imageInput))
-            return imageInput
-        end
-    else
-        local formattedId = imageInput
-        if not imageInput:find("rbxassetid://") and not imageInput:find("rbxasset://") then
-            formattedId = "rbxassetid://" .. imageInput
-        end
-        LastImageLinks[namePrefix] = imageInput
-        if objectTarget:IsA("ImageLabel") or objectTarget:IsA("ImageButton") then
-            objectTarget.Image = formattedId
-        end
-        return formattedId
+        -- link http/https — aplica direto
+        imageObject.Image = imageValue
     end
 end
-
-local CurrentImageSettings = LoadImageSettings()
 
 local function ApplyCustomColorsToTheme(targetTheme)
     for key, data in pairs(MyLibrary.Save.CustomColors or {}) do
@@ -964,6 +879,11 @@ function MyLibrary:SetThemeColor(key, value)
                 Val.Instance[GetColor(Val.Instance)] = currentTheme["Color Dark Text"]
             elseif Val.Type == "ScrollBar" then
                 Val.Instance[GetColor(Val.Instance)] = currentTheme["Color Theme"]
+                elseif Val.Type == "Image" then
+    local imgKey = Val.Instance:GetAttribute("ThemeImageKey")
+    if imgKey and currentTheme[imgKey] ~= nil then
+        ApplyThemeImage(Val.Instance, currentTheme[imgKey])
+    end
             end
         end)
     end
@@ -995,6 +915,14 @@ function MyLibrary:SetTheme(NewTheme)
                 Val.Instance[GetColor(Val.Instance)] = Theme["Color Dark Text"]
             elseif Val.Type == "ScrollBar" then
                 Val.Instance[GetColor(Val.Instance)] = Theme["Color Theme"]
+
+            -- ✅ COLA AQUI ⬇️ (antes do "end" que fecha o if/elseif)
+            elseif Val.Type == "Image" then
+                local imgKey = Val.Instance:GetAttribute("ThemeImageKey")
+                if imgKey and Theme[imgKey] ~= nil then
+                    ApplyThemeImage(Val.Instance, Theme[imgKey])
+                end
+            -- ✅ FIM DA COLA ⬆️
             end
         end)
         if not ok then
@@ -1069,22 +997,6 @@ function MyLibrary:SetHubTransparency(value)
     end
 end
 
-function MyLibrary:SetTopbarImage(imageInput)
-    local imageLabel = MyLibrary.TopbarImageLabel
-    if not imageLabel then warn("TopbarImageLabel nï¿½o encontrado.") return end
-    local result = ProcessAndApplyImage(imageLabel, imageInput, "ImageTopbar")
-    -- Salve sempre, independente do resultado
-    CurrentImageSettings.TopbarImage = imageInput
-    SaveImageSettings(CurrentImageSettings)
-end
-
-function MyLibrary:ResetTopbarImage()
-    local imageLabel = MyLibrary.TopbarImageLabel
-    if not imageLabel then return end
-    LastImageLinks["ImageTopbar"] = nil  -- ⚠️ força re-download
-    ProcessAndApplyImage(imageLabel, DEFAULT_TOP_BAR_IMAGE, "ImageTopbar")
-end
-
 function MyLibrary:SetHubImageTransparency(value)
     value = tonumber(value)
     if not value then return end
@@ -1097,53 +1009,6 @@ function MyLibrary:SetHubImageTransparency(value)
     if imageLabel then
         imageLabel.ImageTransparency = value
     end
-end
-
-function MyLibrary:SetHubImage(imageInput)
-    local imageLabel = MyLibrary.HubImageLabel
-    if not imageLabel then warn("HubImageLabel nÃ£o encontrado.") return end
-    local result = ProcessAndApplyImage(imageLabel, imageInput, "Hub")
-    if result ~= "" then
-        CurrentImageSettings.HubImage = imageInput
-        SaveImageSettings(CurrentImageSettings)
-    end
-end
-
-
-
-function MyLibrary:SetMinimizeImage(imageInput)
-    local minimizeBtn = ScreenGui:FindFirstChild("MinimizeExternalButton")
-    if not minimizeBtn then
-        warn("MinimizeExternalButton nÃ£o encontrado.")
-        return
-    end
-    local result = ProcessAndApplyImage(minimizeBtn, imageInput, "minizebutton")
-    if result ~= "" then
-        CurrentImageSettings.MinimizeImage = imageInput
-        SaveImageSettings(CurrentImageSettings)
-    end
-end
-
-function MyLibrary:ResetHubImage()
-    local imageLabel = MyLibrary.HubImageLabel
-    if not imageLabel then return end
-    LastImageLinks["Hub"] = nil  -- ⚠️ força re-download se for link HTTP
-    ProcessAndApplyImage(imageLabel, DEFAULT_HUB_IMAGE, "Hub")
-end
-
-function MyLibrary:ResetMinimizeImage()
-    local minimizeBtn = ScreenGui:FindFirstChild("MinimizeExternalButton")
-    if not minimizeBtn then return end
-    LastImageLinks["minizebutton"] = nil  -- ⚠️ força re-download
-    ProcessAndApplyImage(minimizeBtn, DEFAULT_MINIMIZE_IMAGE, "minizebutton")
-end
-
-function MyLibrary:GetHubImage()
-    return CurrentImageSettings.HubImage
-end
-
-function MyLibrary:GetMinimizeImage()
-    return CurrentImageSettings.MinimizeImage
 end
 
 function MyLibrary:SetStrokeColor(colorInput)
@@ -1212,12 +1077,7 @@ function MyLibrary:GetThemeColor(key)
     return nil
 end
 
--- Imagens
-function MyLibrary:GetTopbarImage()
-    return CurrentImageSettings.TopbarImage
-end
 
--- (Hub e Minimize jï¿½ possuem getters)
 
 -- Fonte
 function MyLibrary:GetFont()
@@ -1574,17 +1434,16 @@ end
 
 local MainCorner = Make("Corner", MainFrame)
 
-local HubImageLabel = Create("ImageLabel", MainFrame, {
+-- HUB IMAGE
+local HubImageLabel = InsertTheme(Create("ImageLabel", MainFrame, {
     Size = UDim2.fromScale(1, 1),
     BackgroundTransparency = 1,
     Image = "",
     ImageTransparency = MyLibrary.Save.HubImageTransparency or 0,
     Name = "HubImage"
-})
-
--- Aplica o mesmo canto arredondado do Hub
-Make("Corner", HubImageLabel, UDim.new(0, 7))  -- ou o mesmo raio usado no MainFrame
-
+}), "Image")
+HubImageLabel:SetAttribute("ThemeImageKey", "Image Hub")  -- 🔑
+Make("Corner", HubImageLabel, UDim.new(0, 7))
 MyLibrary.HubImageLabel = HubImageLabel
 ApplyBorder(HubImageLabel)
 
@@ -1597,14 +1456,14 @@ ApplyBorder(HubImageLabel)
         Name = "Top Bar"
     })
 
--- Imagem da TopBar
-local TopbarImageLabel = Create("ImageLabel", TopBar, {
-    Size = UDim2.new(0, 26, 0, 26),   --  tamanho 26x26
-    Position = UDim2.new(0, 5, 0, 6), --  posiï¿½ï¿½o ajustada
+local TopbarImageLabel = InsertTheme(Create("ImageLabel", TopBar, {
+    Size = UDim2.new(0, 26, 0, 26),
+    Position = UDim2.new(0, 5, 0, 6),
     BackgroundTransparency = 1,
     Image = "",
     Name = "TopbarImage"
-})
+}), "Image")
+TopbarImageLabel:SetAttribute("ThemeImageKey", "Image Topbar")  -- 🔑
 Make("Corner", TopbarImageLabel, UDim.new(0, 5))
 MyLibrary.TopbarImageLabel = TopbarImageLabel
 
@@ -1831,6 +1690,7 @@ end
 -- ═══════════════════════════════════════════════════════
 local savedPos = MyLibrary.Save.MinimizePos or {0.15, 0.15}
 
+-- MINIMIZE EXTERNAL BUTTON
 local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Size = UDim2.fromOffset(35, 35),
     Position = UDim2.fromScale(savedPos[1], savedPos[2]),
@@ -1839,9 +1699,12 @@ local MinimizeExternalButton = MakeDrag(Create("ImageButton", ScreenGui, {
     Image = "",
     Name = "MinimizeExternalButton"
 }))
+InsertTheme(MinimizeExternalButton, "Image")                    -- 🔑
+MinimizeExternalButton:SetAttribute("ThemeImageKey", "Image Minimize")  -- 🔑
 Make("Corner", MinimizeExternalButton, UDim.new(0, 8))
 ApplyMinimizeBorder(MinimizeExternalButton)
 MinimizeExternalButton.Activated:Connect(Window.Minimize)
+MyLibrary.MinimizeExternalButton
 
 -- ═══════════════════════════════════════════════════════
 -- CLAMP: mantém o botão sempre dentro da tela
@@ -3601,62 +3464,56 @@ CoresTab:AddColorPicker({
 
 
 -- Hub
+-- ==================== IMAGENS ====================
+
 local hubImageTextBox = ImageTab:AddTextBox({
     Name = "Imagem do Hub",
-    Default = MyLibrary:GetHubImage() or "",
+    Default = MyLibrary:GetThemeColor("Image Hub") or "",
     PlaceholderText = "ID ou link...",
     Callback = function(text)
-        MyLibrary:SetHubImage(text)
+        MyLibrary:SetThemeColor("Image Hub", text)
     end
 })
 
 ImageTab:AddButton({
     Name = "Resetar Imagem do Hub",
     Callback = function()
-        MyLibrary:ResetHubImage()
-        if topbarImageTextBox and topbarImageTextBox.Set then
-            hubImageTextBox:Set(MyLibrary:GetTopbarImage())
-        end
+        MyLibrary:SetThemeColor("Image Hub", nil)
+        hubImageTextBox:Set(MyLibrary:GetThemeColor("Image Hub") or "")
     end
 })
 
--- Minimize
 local minimizeImageTextBox = ImageTab:AddTextBox({
     Name = "Imagem do Minimize",
-    Default = MyLibrary:GetMinimizeImage() or "",
+    Default = MyLibrary:GetThemeColor("Image Minimize") or "",
     PlaceholderText = "ID ou link...",
     Callback = function(text)
-        MyLibrary:SetMinimizeImage(text)
+        MyLibrary:SetThemeColor("Image Minimize", text)
     end
 })
 
 ImageTab:AddButton({
     Name = "Resetar Imagem do Minimize",
     Callback = function()
-        MyLibrary:ResetMinimizeImage()
-        if minimizeImageTextBox and minimizeImageTextBox.Set then
-            minimizeImageTextBox:Set(MyLibrary:GetMinimizeImage())
-        end
+        MyLibrary:SetThemeColor("Image Minimize", nil)
+        minimizeImageTextBox:Set(MyLibrary:GetThemeColor("Image Minimize") or "")
     end
 })
 
--- TopBar
 local topbarImageTextBox = ImageTab:AddTextBox({
     Name = "Imagem da TopBar",
-    Default = MyLibrary:GetTopbarImage() or "",
+    Default = MyLibrary:GetThemeColor("Image Topbar") or "",
     PlaceholderText = "ID ou link...",
     Callback = function(text)
-        MyLibrary:SetTopbarImage(text)
+        MyLibrary:SetThemeColor("Image Topbar", text)
     end
 })
 
 ImageTab:AddButton({
     Name = "Resetar Imagem da TopBar",
     Callback = function()
-        MyLibrary:ResetTopbarImage()
-        if topbarImageTextBox and topbarImageTextBox.Set then
-            topbarImageTextBox:Set(MyLibrary:GetTopbarImage())
-        end
+        MyLibrary:SetThemeColor("Image Topbar", nil)
+        topbarImageTextBox:Set(MyLibrary:GetThemeColor("Image Topbar") or "")
     end
 })
 
@@ -4427,21 +4284,17 @@ ConfigTab:AddDropdown({
 
 -- Fim
 
--- ═══════════════════════════════════════════════════════
--- Aplica as imagens SALVAS no JSON (se existirem)
--- ou as constantes DEFAULT_* se o JSON estiver vazio
--- ═══════════════════════════════════════════════════════
 task.spawn(function()
-    task.wait(0.1)  -- dá 1 frame pro GUI renderizar
-
-    -- Prioriza o valor salvo no JSON; se não tiver, usa a constante
-    local hubImg = (CurrentImageSettings.HubImage and CurrentImageSettings.HubImage ~= "" and CurrentImageSettings.HubImage) or DEFAULT_HUB_IMAGE
-    local minImg = (CurrentImageSettings.MinimizeImage and CurrentImageSettings.MinimizeImage ~= "" and CurrentImageSettings.MinimizeImage) or DEFAULT_MINIMIZE_IMAGE
-    local topImg = (CurrentImageSettings.TopbarImage and CurrentImageSettings.TopbarImage ~= "" and CurrentImageSettings.TopbarImage) or DEFAULT_TOP_BAR_IMAGE
-
-    ProcessAndApplyImage(MyLibrary.HubImageLabel, hubImg, "Hub")
-    ProcessAndApplyImage(MyLibrary.MinimizeExternalButton, minImg, "minizebutton")
-    ProcessAndApplyImage(MyLibrary.TopbarImageLabel, topImg, "ImageTopbar")
+    task.wait(0.1)
+    local theme = MyLibrary.Themes[MyLibrary.Save.Theme]
+    for _, Val in ipairs(MyLibrary.Instances) do
+        if Val.Type == "Image" then
+            local imgKey = Val.Instance:GetAttribute("ThemeImageKey")
+            if imgKey and theme[imgKey] then
+                ApplyThemeImage(Val.Instance, theme[imgKey])
+            end
+        end
+    end
 end)
 
     function Window:Set(Val1, Val2)
