@@ -542,6 +542,11 @@ createMusicDropdown("Phonk", {
 -- Dropdown "Rap"
 createMusicDropdown("Rap", {
     ["Rap"] = {
+        {name = "jogo da vida", id = "92403543810906"},
+        {name = "video game", id = "112485922236528"},
+        {name = "feliz e sempre", id = "140290669622809"},
+        {name = "cidadegrande", id = "82533576915716"},
+        {name = "carrolindo", id = "133029122379275"},
         {name = "meds", id = "106919797884300"},
         {name = "myway", id = "97076200765290"},
         {name = "cristal", id = "122804427482332"},
@@ -1115,6 +1120,11 @@ createMusicDropdown("Phonk", {
 -- Dropdown "Rap"
 createMusicDropdown("Rap", {
     ["Rap"] = {
+        {name = "jogo da vida", id = "92403543810906"},
+        {name = "video game", id = "112485922236528"},
+        {name = "feliz e sempre", id = "140290669622809"},
+        {name = "cidadegrande", id = "82533576915716"},
+        {name = "carrolindo", id = "133029122379275"},
         {name = "meds", id = "106919797884300"},
         {name = "myway", id = "97076200765290"},
         {name = "cristal", id = "122804427482332"},
