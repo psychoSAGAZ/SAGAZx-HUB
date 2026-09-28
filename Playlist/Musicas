@@ -511,9 +511,14 @@ createMusicDropdown("Phonk", {
 -- Dropdown "Rap"
 createMusicDropdown("Rap", {
     ["Rap"] = {
+        {name = "fake amor", id = "72768756282836"},
+        {name = "Dart", id = "129061055644258"},
+        {name = "Rolws", id = "100840031560163"},
+        {name = "robinho x clxyal x insect", id = "96037807724498"},
+        {name = "net", id = "74347230850239"},
+        {name = "amor cruel", id = "83935596166244"},
         {name = "xarope", id = "84255167497110"},
         {name = "Amor Hospitalar", id = "96259351729049"},
-        {name = "Neguin.", id = "96037807724498"},
         {name = "lampada da sorte", id = "71393805905055"}
     }
 }, "Option 1")
