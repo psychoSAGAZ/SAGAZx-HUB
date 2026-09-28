@@ -40,6 +40,12 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "KIRKY FUNK", id = "113458227429706"},
+        {name = "Hino do Bigodinho", id = "108267211827921"},
+        {name = "Forró do Estrupo", id = "94635316453465"},
+        {name = "Phonk Sonic E.X.E.", id = "131415306381990"},
+        {name = "THE LARTE0", id = "106711954990826"},
+        {name = "VERITY HARDTEKK - Sped Up", id = "85125256349722"},
         {name = "dinheros vo lucra icy X k2", id = "101510849415517"},
         {name = "Estilo não é marra", id = "104028647177710"},
         {name = "Assistindo porno [Estourado]", id = "94214367115154"},
@@ -49,7 +55,6 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
         {name = "So Quero Cu", id = "70776936148269"},
         {name = "Gemidos Gulosos", id = "135036724516300"},
         {name = "Shipson Gamer", id = "126897916689327"},
-        {name = "dznmcpalhacinho", id = "94635316453465"},
         {name = "Buena la vida", id = "76650356472656"},
         {name = "Injustiça", id = "124989405084883"},
         {name = "Minha Namorada Não Me Ama Mais", id = "135090308544819"},
@@ -199,6 +204,9 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Piranha vai passa mal", id = "129902784040741"},
+        {name = "Não manda toma no uc", id = "137188221417776"},
+        {name = "sequencia de papapey by draax", id = "127060465281063"},
         {name = "MTG DO ZUM ZUM ZUM", id = "80944345708761"},
         {name = "ENTRE CLXYAL", id = "110274202819990"},
         {name = "De Vagarin", id = "126682676484892"},
@@ -350,7 +358,6 @@ createMusicDropdown("Funk", {
         {name = "Tapete Mágico", id = "122488679897031"},
         {name = "Assombra Matrix", id = "84806858575292"},
         {name = "lei dos 3(Estourado)", id = "118279338474223"},
-        {name = "(Conteúdo Explícito)", id = "129902784040741"},
         {name = "ela e do tipo(estorado)", id = "108808025565103"},
         {name = "Sacanagem (Estorado)", id = "124054822886984"},
         {name = "maria mariah(Estourado)", id = "110104902087908"},
@@ -434,6 +441,10 @@ createMusicDropdown("Funk", {
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
     ["Phonk"] = {
+        {name = "KIRKY FUNK", id = "113458227429706"},
+        {name = "Lança perfume", id = "131415306381990"},
+        {name = "THE LARTE0", id = "106711954990826"},
+        {name = "VERITY HARDTEKK - Sped Up", id = "85125256349722"},
         {name = "LUE VIDIA3", id = "80028794437152"},
         {name = "CHROMA", id = "112332712969414"},
         {name = "LIMINAL FUNK", id = "110123568463834"},
@@ -542,6 +553,7 @@ createMusicDropdown("Phonk", {
 -- Dropdown "Rap"
 createMusicDropdown("Rap", {
     ["Rap"] = {
+        {name = "outer space", id = "89902169445636"},
         {name = "jogo da vida", id = "92403543810906"},
         {name = "video game", id = "112485922236528"},
         {name = "feliz e sempre", id = "140290669622809"},
@@ -618,6 +630,12 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "KIRKY FUNK", id = "113458227429706"},
+        {name = "Hino do Bigodinho", id = "108267211827921"},
+        {name = "Forró do Estrupo", id = "94635316453465"},
+        {name = "Phonk Sonic E.X.E.", id = "131415306381990"},
+        {name = "THE LARTE0", id = "106711954990826"},
+        {name = "VERITY HARDTEKK - Sped Up", id = "85125256349722"},
         {name = "dinheros vo lucra icy X k2", id = "101510849415517"},
         {name = "Estilo não é marra", id = "104028647177710"},
         {name = "Assistindo porno [Estourado]", id = "94214367115154"},
@@ -627,7 +645,6 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
         {name = "So Quero Cu", id = "70776936148269"},
         {name = "Gemidos Gulosos", id = "135036724516300"},
         {name = "Shipson Gamer", id = "126897916689327"},
-        {name = "dznmcpalhacinho", id = "94635316453465"},
         {name = "Buena la vida", id = "76650356472656"},
         {name = "Injustiça", id = "124989405084883"},
         {name = "Minha Namorada Não Me Ama Mais", id = "135090308544819"},
@@ -777,6 +794,9 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Piranha vai passa mal", id = "129902784040741"},
+        {name = "Não manda toma no uc", id = "137188221417776"},
+        {name = "sequencia de papapey by draax", id = "127060465281063"},
         {name = "MTG DO ZUM ZUM ZUM", id = "80944345708761"},
         {name = "ENTRE CLXYAL", id = "110274202819990"},
         {name = "De Vagarin", id = "126682676484892"},
@@ -928,7 +948,6 @@ createMusicDropdown("Funk", {
         {name = "Tapete Mágico", id = "122488679897031"},
         {name = "Assombra Matrix", id = "84806858575292"},
         {name = "lei dos 3(Estourado)", id = "118279338474223"},
-        {name = "(Conteúdo Explícito)", id = "129902784040741"},
         {name = "ela e do tipo(estorado)", id = "108808025565103"},
         {name = "Sacanagem (Estorado)", id = "124054822886984"},
         {name = "maria mariah(Estourado)", id = "110104902087908"},
@@ -1012,6 +1031,10 @@ createMusicDropdown("Funk", {
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
     ["Phonk"] = {
+        {name = "KIRKY FUNK", id = "113458227429706"},
+        {name = "Lança perfume", id = "131415306381990"},
+        {name = "THE LARTE0", id = "106711954990826"},
+        {name = "VERITY HARDTEKK - Sped Up", id = "85125256349722"},
         {name = "LUE VIDIA3", id = "80028794437152"},
         {name = "CHROMA", id = "112332712969414"},
         {name = "LIMINAL FUNK", id = "110123568463834"},
@@ -1120,6 +1143,7 @@ createMusicDropdown("Phonk", {
 -- Dropdown "Rap"
 createMusicDropdown("Rap", {
     ["Rap"] = {
+        {name = "outer space", id = "89902169445636"},
         {name = "jogo da vida", id = "92403543810906"},
         {name = "video game", id = "112485922236528"},
         {name = "feliz e sempre", id = "140290669622809"},
