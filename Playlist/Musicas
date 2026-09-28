@@ -542,6 +542,14 @@ createMusicDropdown("Phonk", {
 -- Dropdown "Rap"
 createMusicDropdown("Rap", {
     ["Rap"] = {
+        {name = "meds", id = "106919797884300"},
+        {name = "myway", id = "97076200765290"},
+        {name = "cristal", id = "122804427482332"},
+        {name = "parafal", id = "95767131536863"},
+        {name = "hylander", id = "88307287482579"},
+        {name = "acontece", id = "122910138671900"},
+        {name = "chicago", id = "72565881952543"},
+        {name = "praia", id = "129787180541266"},
         {name = "KASHROB", id = "71769226351576"},
         {name = "yahamuk", id = "97895636894075"},
         {name = "yak", id = "113113973159525"},
@@ -1107,6 +1115,14 @@ createMusicDropdown("Phonk", {
 -- Dropdown "Rap"
 createMusicDropdown("Rap", {
     ["Rap"] = {
+        {name = "meds", id = "106919797884300"},
+        {name = "myway", id = "97076200765290"},
+        {name = "cristal", id = "122804427482332"},
+        {name = "parafal", id = "95767131536863"},
+        {name = "hylander", id = "88307287482579"},
+        {name = "acontece", id = "122910138671900"},
+        {name = "chicago", id = "72565881952543"},
+        {name = "praia", id = "129787180541266"},
         {name = "KASHROB", id = "71769226351576"},
         {name = "yahamuk", id = "97895636894075"},
         {name = "yak", id = "113113973159525"},
