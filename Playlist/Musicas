@@ -68,6 +68,7 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Vibe Tipo Festa"
 createMusicDropdown("Vibe Tipo Festa", {
     ["Vibe Tipo Festa"] = {
+        {name = "Rayy", id = "86175258056702"},
         {name = "ColdBreeze", id = "126206693670052"},
         {name = "Set Fire To The Rain", id = "116422857441417"},
         {name = "sina de ofelia", id = "126859209038449"},
@@ -198,6 +199,8 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "MTG DO ZUM ZUM ZUM", id = "80944345708761"},
+        {name = "ENTRE CLXYAL", id = "110274202819990"},
         {name = "De Vagarin", id = "126682676484892"},
         {name = "Ritmada Vem me socando", id = "114436245577405"},
         {name = "BALANCA O GUARDA CHUVA", id = "126988068303069"},
@@ -431,6 +434,34 @@ createMusicDropdown("Funk", {
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
     ["Phonk"] = {
+        {name = "LUE VIDIA3", id = "80028794437152"},
+        {name = "CHROMA", id = "112332712969414"},
+        {name = "LIMINAL FUNK", id = "110123568463834"},
+        {name = "LAVAKA 2BE", id = "100472207006460"},
+        {name = "labubu dembow", id = "73241684077534"},
+        {name = "MONTAGEM LA LA LA", id = "107314654399868"},
+        {name = "MONTAGEM KOBALT", id = "79381341943021"},
+        {name = "KYTH CHILL2", id = "90521568613709"},
+        {name = "☣JUMPSTYLE☣IST", id = "76578817848504"},
+        {name = "JumpDance", id = "104056297728688"},
+        {name = "MONTAGEM JAPANESE", id = "77919285329957"},
+        {name = "MONTAGEM HIPNOTIZA (slowed)", id = "117668905142866"},
+        {name = "MONTAGEM HIPNOTIZA", id = "132015050363205"},
+        {name = "HighwayCity", id = "115475649131115"},
+        {name = "MONTAGEM GUT GENUG", id = "81874578551027"},
+        {name = "My Gatito", id = "123619990717774"},
+        {name = "GEM KIRU", id = "111046505458100"},
+        {name = "G3N0S", id = "130193530753120"},
+        {name = "Você Na Mira", id = "133900373762715"},
+        {name = "FUSION (original)", id = "89180400948567"},
+        {name = "FUNK DO MIRRORS", id = "73295033713326"},
+        {name = "MONTAGEM FOGUETAO", id = "72718246176844"},
+        {name = "FUNK FESTA", id = "103409297553965"},
+        {name = "F-D-1 (Slowed)", id = "124958445624871"},
+        {name = "Star", id = "72052647351299"},
+        {name = "EMAPLAY NES5", id = "137973644565139"},
+        {name = "MONTAGEM EKZiT", id = "89957586190300"},
+        {name = "MONTAGEM DOKI", id = "132886176334686"},
         {name = "DiscoWave", id = "140280931081486"},
         {name = "crypt☠dust.mid", id = "138397903891342"},
         {name = "MONTAGEM CRISTAL NOTURNO", id = "103695219371872"},
