@@ -204,6 +204,7 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "empina na onda by motog", id = "138738876309237"},
         {name = "Fode no barraco bomba [Estourado]", id = "85153221690222"},
         {name = "Piranha vai passa mal", id = "129902784040741"},
         {name = "Não manda toma no uc", id = "137188221417776"},
