@@ -553,6 +553,7 @@ createMusicDropdown("Phonk", {
 -- Dropdown "Rap"
 createMusicDropdown("Rap", {
     ["Rap"] = {
+        {name = "L7", id = "129902784040741"},
         {name = "outer space", id = "89902169445636"},
         {name = "jogo da vida", id = "92403543810906"},
         {name = "video game", id = "112485922236528"},
