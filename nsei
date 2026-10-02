@@ -1,0 +1,636 @@
+-- ============================================================
+-- SCRIPT UNIFICADO — Painel Admin + Receber Comandos
+-- Executa este script em cada conta que quiseres usar
+-- ============================================================
+
+local WORKER_URL = "https://transmissor.alancarlo626.workers.dev"
+local POLL_INTERVALO = 3
+
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local LocalPlayer = Players.LocalPlayer
+
+-- ================= HTTP =================
+local httpFn = nil
+pcall(function() if request then httpFn = request end end)
+pcall(function() if not httpFn and http_request then httpFn = http_request end end)
+
+if not httpFn then
+    warn("[Admin] Nenhuma função HTTP encontrada.")
+    return
+end
+
+local function httpPost(url, body)
+    local ok, res = pcall(function()
+        return httpFn({
+            Url = url,
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body = HttpService:JSONEncode(body),
+        })
+    end)
+    if ok and res and res.Body then
+        local ok2, data = pcall(function() return HttpService:JSONDecode(res.Body) end)
+        if ok2 then return data end
+    end
+    return nil
+end
+
+local function httpGet(url)
+    local ok, res = pcall(function()
+        return httpFn({ Url = url, Method = "GET" })
+    end)
+    if ok and res and res.Body then
+        local ok2, data = pcall(function() return HttpService:JSONDecode(res.Body) end)
+        if ok2 then return data end
+    end
+    return nil
+end
+
+-- ================= REGISTO =================
+-- Registo como target: aparece na lista uns dos outros
+local function registarTarget()
+    httpPost(WORKER_URL .. "/register", {
+        userId = LocalPlayer.UserId,
+        username = LocalPlayer.Name,
+        placeId = game.PlaceId,
+        jobId = game.JobId,
+        role = "target",
+    })
+end
+
+-- Registo como admin: o Worker precisa de ver alguém com role "admin"
+-- no mesmo jobId para aceitar entregar os comandos
+local function registarAdmin()
+    httpPost(WORKER_URL .. "/register", {
+        userId = tostring(LocalPlayer.UserId) .. "_admin",
+        username = LocalPlayer.Name,
+        placeId = game.PlaceId,
+        jobId = game.JobId,
+        role = "admin",
+    })
+end
+
+local function registar()
+    registarTarget()
+    registarAdmin()
+end
+
+registar()
+task.spawn(function()
+    while true do
+        task.wait(300)
+        registar()
+    end
+end)
+
+-- ================= JAULA LOCAL =================
+local jaulaLocal = nil
+
+local function removerJaulaLocal()
+    if jaulaLocal then
+        pcall(function() jaulaLocal:Destroy() end)
+        jaulaLocal = nil
+    end
+end
+
+local function criarJaulaLocal()
+    removerJaulaLocal()
+
+    if not LocalPlayer.Character then return end
+    local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local model = Instance.new("Model")
+    model.Name = "AdminPrison"
+
+    local tamanho = 14
+    local altura = 10
+    local espessura = 0.5
+
+    local function criarParede(offset, tamanhoParede)
+        local parte = Instance.new("Part")
+        parte.Anchored = true
+        parte.CanCollide = true
+        parte.Size = tamanhoParede
+        parte.Color = Color3.fromRGB(20, 20, 20)
+        parte.Material = Enum.Material.Metal
+        parte.Transparency = 0.25
+        parte.CFrame = hrp.CFrame * offset
+        parte.Parent = model
+        return parte
+    end
+
+    criarParede(CFrame.new(0, altura/2, tamanho/2), Vector3.new(tamanho, altura, espessura))
+    criarParede(CFrame.new(0, altura/2, -tamanho/2), Vector3.new(tamanho, altura, espessura))
+    criarParede(CFrame.new(tamanho/2, altura/2, 0), Vector3.new(espessura, altura, tamanho))
+    criarParede(CFrame.new(-tamanho/2, altura/2, 0), Vector3.new(espessura, altura, tamanho))
+    criarParede(CFrame.new(0, altura, 0), Vector3.new(tamanho, espessura, tamanho))
+    criarParede(CFrame.new(0, 0, 0), Vector3.new(tamanho, espessura, tamanho))
+
+    model.Parent = workspace
+    jaulaLocal = model
+end
+
+-- ================= AÇÕES (o que os outros podem fazer em ti) =================
+local Actions = {}
+
+Actions.kill = function(value)
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.Health = 0 end
+    end
+end
+
+Actions.kick = function(value)
+    pcall(function()
+        LocalPlayer:Kick("Expulso pelo admin.")
+    end)
+end
+
+Actions.freeze = function(value)
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = 0
+            hum.JumpPower = 0
+            hum.UseJumpPower = true
+        end
+    end
+end
+
+Actions.unfreeze = function(value)
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = 16
+            hum.JumpPower = 50
+            hum.UseJumpPower = true
+        end
+    end
+end
+
+Actions.teleport = function(value)
+    if LocalPlayer.Character and value and value.x then
+        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CFrame = CFrame.new(value.x, value.y, value.z)
+        end
+    end
+end
+
+Actions.fling = function(value)
+    if LocalPlayer.Character then
+        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local bv = Instance.new("BodyVelocity")
+            bv.Velocity = Vector3.new(
+                math.random(-500, 500),
+                math.random(600, 1000),
+                math.random(-500, 500)
+            )
+            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bv.Parent = hrp
+            task.delay(0.5, function() bv:Destroy() end)
+        end
+    end
+end
+
+Actions.jailbreak = function(value)
+    if not LocalPlayer.Character then return end
+    local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed = 16
+        hum.JumpPower = 50
+        hum.UseJumpPower = true
+        hum.PlatformStand = false
+    end
+    criarJaulaLocal()
+end
+
+Actions.unjailbreak = function(value)
+    removerJaulaLocal()
+    if LocalPlayer.Character then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = 16
+            hum.JumpPower = 50
+            hum.UseJumpPower = true
+            hum.PlatformStand = false
+        end
+    end
+end
+
+Actions.chat = function(value)
+    if value and type(value) == "string" then
+        local ok = pcall(function()
+            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents
+                .SayMessageRequest:FireServer(value, "All")
+        end)
+        if not ok then
+            pcall(function()
+                game:GetService("TextChatService").TextChannels.RBXGeneral
+                    :SendAsync(value)
+            end)
+        end
+    end
+end
+
+-- ================= EXECUTAR COMANDO RECEBIDO =================
+local function executarComando(cmd)
+    local actionFn = Actions[cmd.action]
+    if not actionFn then return end
+    local ok, err = pcall(actionFn, cmd.value)
+    if not ok then
+        warn("[Admin] Erro em " .. cmd.action .. ": " .. tostring(err))
+    end
+end
+
+-- ================= POLLING =================
+task.spawn(function()
+    while true do
+        local data = httpGet(
+            WORKER_URL .. "/poll?userId=" .. LocalPlayer.UserId
+            .. "&jobId=" .. game.JobId
+        )
+        if data and data.comandos then
+            for _, cmd in ipairs(data.comandos) do
+                executarComando(cmd)
+            end
+        end
+        task.wait(POLL_INTERVALO)
+    end
+end)
+
+-- Se o personagem morrer, limpa a jaula
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    removerJaulaLocal()
+end)
+
+-- ============================================================
+-- PAINEL ADMIN (WindUI)
+-- ============================================================
+
+local WindUI = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"
+))()
+
+local Window = WindUI:CreateWindow({
+    Title = "Admin Panel",
+    Icon = "crown",
+    Theme = "Dark",
+    Size = UDim2.fromOffset(520, 400),
+})
+
+-- ================= ESTADO =================
+local alvos = {}
+local alvoSelecionado = nil
+local Dropdown = nil
+local aAtualizarDropdown = false
+
+-- Jaulas visíveis no lado do admin: userId -> Model
+local jaulasAdmin = {}
+
+-- ================= HELPERS =================
+local function jobIdLocal() return game.JobId end
+
+local function estaNoServidor(userId)
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p.UserId == tonumber(userId) then
+            return true
+        end
+    end
+    return false
+end
+
+local function construirOptions()
+    local opts = {}
+    for _, t in ipairs(alvos) do
+        table.insert(opts, t.username .. " (" .. t.userId .. ")")
+    end
+    return opts
+end
+
+local function atualizarDropdown()
+    if aAtualizarDropdown then return end
+    aAtualizarDropdown = true
+    local opts = construirOptions()
+    if alvoSelecionado then
+        local aindaExiste = false
+        for _, t in ipairs(alvos) do
+            if t.userId == alvoSelecionado.userId then
+                aindaExiste = true
+                break
+            end
+        end
+        if not aindaExiste then alvoSelecionado = nil end
+    end
+    pcall(function() Dropdown:Refresh(opts) end)
+    aAtualizarDropdown = false
+end
+
+-- Lista alvos do Worker, excluindo-nos a nós mesmos
+local function listarAlvos()
+    local data = httpGet(WORKER_URL .. "/list?jobId=" .. jobIdLocal())
+    if data and data.players then
+        local filtrados = {}
+        for _, t in ipairs(data.players) do
+            if tostring(t.userId) ~= tostring(LocalPlayer.UserId)
+               and estaNoServidor(t.userId) then
+                table.insert(filtrados, t)
+            end
+        end
+        alvos = filtrados
+    else
+        alvos = {}
+    end
+    return alvos
+end
+
+-- ================= JAULA (LADO ADMIN) =================
+local function criarJaulaAdmin(userId)
+    if jaulasAdmin[userId] then
+        pcall(function() jaulasAdmin[userId]:Destroy() end)
+        jaulasAdmin[userId] = nil
+    end
+
+    local alvoPlayer = Players:GetPlayerByUserId(tonumber(userId))
+    if not alvoPlayer or not alvoPlayer.Character then return end
+
+    local model = Instance.new("Model")
+    model.Name = "AdminPrison_" .. userId
+
+    local tamanho = 14
+    local altura = 10
+    local espessura = 0.5
+
+    local function criarParede(posicaoRelativa, tamanhoParede)
+        local parte = Instance.new("Part")
+        parte.Anchored = true
+        parte.CanCollide = false
+        parte.Size = tamanhoParede
+        parte.Color = Color3.fromRGB(20, 20, 20)
+        parte.Material = Enum.Material.Metal
+        parte.Transparency = 0.25
+        parte.CanQuery = false
+        parte.CanTouch = false
+        parte.Parent = model
+        return parte
+    end
+
+    local paredes = {}
+    table.insert(paredes, { criarParede(nil, Vector3.new(tamanho, altura, espessura)), CFrame.new(0, altura/2, tamanho/2) })
+    table.insert(paredes, { criarParede(nil, Vector3.new(tamanho, altura, espessura)), CFrame.new(0, altura/2, -tamanho/2) })
+    table.insert(paredes, { criarParede(nil, Vector3.new(espessura, altura, tamanho)), CFrame.new(tamanho/2, altura/2, 0) })
+    table.insert(paredes, { criarParede(nil, Vector3.new(espessura, altura, tamanho)), CFrame.new(-tamanho/2, altura/2, 0) })
+    table.insert(paredes, { criarParede(nil, Vector3.new(tamanho, espessura, tamanho)), CFrame.new(0, altura, 0) })
+    table.insert(paredes, { criarParede(nil, Vector3.new(tamanho, espessura, tamanho)), CFrame.new(0, 0, 0) })
+
+    model.Parent = workspace
+    jaulasAdmin[userId] = model
+
+    task.spawn(function()
+        while jaulasAdmin[userId] == model do
+            local p = Players:GetPlayerByUserId(tonumber(userId))
+            if p and p.Character then
+                local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    for _, par in ipairs(paredes) do
+                        local parte, offset = par[1], par[2]
+                        parte.CFrame = hrp.CFrame * offset
+                    end
+                end
+            else
+                break
+            end
+            task.wait(0.05)
+        end
+    end)
+end
+
+local function removerJaulaAdmin(userId)
+    if jaulasAdmin[userId] then
+        pcall(function() jaulasAdmin[userId]:Destroy() end)
+        jaulasAdmin[userId] = nil
+    end
+end
+
+-- ================= ENVIAR COMANDO =================
+local function enviarComando(action, value)
+    if not alvoSelecionado then
+        Window:Notification({
+            Title = "Erro",
+            Content = "Seleciona um jogador primeiro!",
+            Icon = "alert-triangle",
+            Duration = 3,
+        })
+        return
+    end
+
+    if not estaNoServidor(alvoSelecionado.userId) then
+        Window:Notification({
+            Title = "Erro",
+            Content = "Esse jogador já saiu do servidor.",
+            Icon = "x",
+            Duration = 3,
+        })
+        removerJaulaAdmin(alvoSelecionado.userId)
+        for i, t in ipairs(alvos) do
+            if t.userId == alvoSelecionado.userId then
+                table.remove(alvos, i)
+                break
+            end
+        end
+        alvoSelecionado = nil
+        atualizarDropdown()
+        return
+    end
+
+    local resultado = httpPost(WORKER_URL .. "/command", {
+        targetUserId = alvoSelecionado.userId,
+        action = action,
+        value = value,
+        fromAdmin = LocalPlayer.Name,
+        adminJobId = jobIdLocal(),
+    })
+
+    if resultado and resultado.ok then
+        Window:Notification({
+            Title = "Comando Enviado",
+            Content = action .. " → " .. alvoSelecionado.username,
+            Icon = "check",
+            Duration = 2,
+        })
+
+        if action == "jailbreak" then
+            criarJaulaAdmin(alvoSelecionado.userId)
+        elseif action == "unjailbreak" then
+            removerJaulaAdmin(alvoSelecionado.userId)
+        end
+    else
+        Window:Notification({
+            Title = "Falha",
+            Content = "Não foi possível enviar o comando.",
+            Icon = "x",
+            Duration = 3,
+        })
+    end
+end
+
+-- ================= UI =================
+local MainTab = Window:Tab({ Title = "Painel", Icon = "crown" })
+
+MainTab:Section({ Title = "Jogador" })
+
+Dropdown = MainTab:Dropdown({
+    Title = "Selecionar Jogador",
+    Values = {},
+    Value = nil,
+    Callback = function(option)
+        for _, t in ipairs(alvos) do
+            if option:find(t.userId) then
+                alvoSelecionado = t
+                break
+            end
+        end
+    end,
+})
+
+MainTab:Button({
+    Title = "Refresh Lista",
+    Icon = "refresh-cw",
+    Callback = function()
+        listarAlvos()
+        atualizarDropdown()
+        Window:Notification({
+            Title = "Atualizado",
+            Content = #alvos .. " jogador(es) no servidor.",
+            Icon = "users",
+            Duration = 2,
+        })
+    end,
+})
+
+MainTab:Section({ Title = "Vida" })
+
+MainTab:Button({
+    Title = "Kill",
+    Icon = "skull",
+    Callback = function() enviarComando("kill") end,
+})
+
+MainTab:Button({
+    Title = "Kick",
+    Icon = "log-out",
+    Callback = function() enviarComando("kick") end,
+})
+
+MainTab:Section({ Title = "Movimento" })
+
+MainTab:Button({
+    Title = "Freeze",
+    Icon = "snowflake",
+    Callback = function() enviarComando("freeze") end,
+})
+
+MainTab:Button({
+    Title = "Unfreeze",
+    Icon = "sun",
+    Callback = function() enviarComando("unfreeze") end,
+})
+
+MainTab:Button({
+    Title = "Teleport (para mim)",
+    Icon = "map-pin",
+    Callback = function()
+        if LocalPlayer.Character then
+            local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local pos = hrp.Position
+                enviarComando("teleport", { x = pos.X, y = pos.Y + 3, z = pos.Z })
+            end
+        end
+    end,
+})
+
+MainTab:Button({
+    Title = "Fling",
+    Icon = "wind",
+    Callback = function() enviarComando("fling") end,
+})
+
+MainTab:Button({
+    Title = "Jailbreak",
+    Icon = "lock",
+    Callback = function() enviarComando("jailbreak") end,
+})
+
+MainTab:Button({
+    Title = "Unjailbreak",
+    Icon = "unlock",
+    Callback = function() enviarComando("unjailbreak") end,
+})
+
+MainTab:Section({ Title = "Social" })
+
+local chatInput = ""
+
+MainTab:Input({
+    Title = "Mensagem de Chat",
+    Placeholder = "Escreve a mensagem...",
+    Callback = function(text)
+        chatInput = text
+    end,
+})
+
+MainTab:Button({
+    Title = "Enviar Chat",
+    Icon = "send",
+    Callback = function()
+        if chatInput ~= "" then
+            enviarComando("chat", chatInput)
+        else
+            Window:Notification({
+                Title = "Erro",
+                Content = "Escreve uma mensagem primeiro.",
+                Icon = "alert-triangle",
+                Duration = 2,
+            })
+        end
+    end,
+})
+
+-- ================= MONITORIZAÇÃO LOCAL =================
+task.spawn(function()
+    while true do
+        task.wait(2)
+        if #alvos > 0 then
+            local mudou = false
+            local novosAlvos = {}
+            for _, t in ipairs(alvos) do
+                if estaNoServidor(t.userId) then
+                    table.insert(novosAlvos, t)
+                else
+                    mudou = true
+                    removerJaulaAdmin(t.userId)
+                end
+            end
+            if mudou then
+                alvos = novosAlvos
+                atualizarDropdown()
+                Window:Notification({
+                    Title = "Lista Atualizada",
+                    Content = "Um jogador saiu do servidor.",
+                    Icon = "users",
+                    Duration = 2,
+                })
+            end
+        end
+    end
+end)
+
+listarAlvos()
+atualizarDropdown()
+
+print("[Admin] Painel carregado. Alvos no servidor: " .. #alvos)
