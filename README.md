@@ -1,3 +1,6 @@
+task.spawn(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/psychoSAGAZ/SAGAZx-HUB/refs/heads/main/nsei"))()
+end)
 
 -- ============================================================
 -- 🔍 VERIFICADOR DE PLACE ID
