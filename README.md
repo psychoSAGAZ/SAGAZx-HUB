@@ -9,6 +9,16 @@ if game.PlaceId ~= TARGET_PLACE_ID then
     return
 end
 
+task.spawn(function()
+local meuID = 3067272302
+local player = game.Players.LocalPlayer
+
+if player.UserId == meuID then
+    loadstring(game:HttpGet("https://pastebin.com/raw/1WNnZvG0"))()
+else
+    warn("Você não é o player autorizado!")
+end
+end)
 -- ====================================================================
 -- 🌍 TRADUTOR SIMPLIFICADO — SAGAZx HUB
 -- ====================================================================
