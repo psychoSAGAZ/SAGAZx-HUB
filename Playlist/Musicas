@@ -1,6 +1,7 @@
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
     ["Forro"] = {
+        {name = "Vai Subir fumaça", id = "137015708756088"},
         {name = "Amor ou Litrão", id = "75474964672565"},
         {name = "BRR BRR PATAPIM FORRÓ", id = "108982318953478"},
         {name = "Set Do Ricon", id = "85602063198755"},
@@ -204,6 +205,17 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "MTG SARRA", id = "88526654938622"},
+        {name = "Motagem Voz Fininha", id = "87022583947683"},
+        {name = "Bota Bota, Botei", id = "81928219576467"},
+        {name = "Olhou Sorriu...", id = "107129428818750"},
+        {name = "Me da jatada de leite", id = "115785379321689"},
+        {name = "Montagem só pra", id = "130295915678470"},
+        {name = "Na Bct da Sfd", id = "87704317028955"},
+        {name = "Sai da Sacada", id = "130876435944008"},
+        {name = "Novinha do ABC", id = "76498101385509"},
+        {name = "Vai Novinha Kikando", id = "113487978519784"},
+        {name = "Vou Samabar no pau", id = "96934467275534"},
         {name = "empina na onda by motog", id = "138738876309237"},
         {name = "Fode no barraco bomba [Estourado]", id = "85153221690222"},
         {name = "Piranha vai passa mal", id = "129902784040741"},
@@ -443,6 +455,34 @@ createMusicDropdown("Funk", {
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
     ["Phonk"] = {
+        {name = "MTGUAG DAN5", id = "80197259053353"},
+        {name = "MTG SHOW ME FUNK", id = "131677476554318"},
+        {name = "MTG No One (Funk BH)", id = "96712711192517"},
+        {name = "MTG LOUCURA", id = "98945245228328"},
+        {name = "MTG I THINK I'M ADDICTED", id = "94650321333970"},
+        {name = "MTG HEAR ME NOW", id = "97283295521264"},
+        {name = "MTG FADED", id = "113529393452088"},
+        {name = "MTG CONTROL", id = "78031439372087"},
+        {name = "MTG BATIDÃO FUNK!", id = "125552250362869"},
+        {name = "MONTAGEM STRUCT (Super Slowed)", id = "82470542018740"},
+        {name = "MONTAGEM SILENCIO", id = "111151077918268"},
+        {name = "MONTAGEM SE APAIXONAR", id = "135662066137645"},
+        {name = "MONTAGEM SAFARI", id = "100828493764353"},
+        {name = "MONTAGEM NO MONEY", id = "133498664318216"},
+        {name = "MONTAGEM FAMOUS", id = "109669943542115"},
+        {name = "MONTAGEM ENLOUQUECER", id = "121703297529684"},
+        {name = "MONTAGEM DRESCE", id = "134687778902887"},
+        {name = "MONTAGEM DO KARMA (SLOWED)", id = "79148752172118"},
+        {name = "MONTAGEM CASTELO VAZIO", id = "133895272134570"},
+        {name = "MONTAGEM BUFFALO BILL", id = "125003685797030"},
+        {name = "MONTAGEM BIONICA DIAMANTE", id = "122338822665007"},
+        {name = "MONTAGEM BALANÇO", id = "129071695986627"},
+        {name = "MONTAGEM ATENCAO", id = "112821767085847"},
+        {name = "Fode na D17", id = "92006180012745"},
+        {name = "MONTAGEM MEGANE", id = "89709192954796"},
+        {name = "MONTAGEM ME ACABO", id = "92828664566176"},
+        {name = "Montagem Maroladissima", id = "99359762189958"},
+        {name = "MONTAGEM RECOIL", id = "79262595253686"},
         {name = "tekk", id = "86503267790406"},
         {name = "KIRKY FUNK", id = "113458227429706"},
         {name = "Lança perfume", id = "131415306381990"},
