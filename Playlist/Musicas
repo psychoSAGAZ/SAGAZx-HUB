@@ -443,6 +443,7 @@ createMusicDropdown("Funk", {
 -- Dropdown "Phonk"
 createMusicDropdown("Phonk", {
     ["Phonk"] = {
+        {name = "tekk", id = "86503267790406"},
         {name = "KIRKY FUNK", id = "113458227429706"},
         {name = "Lança perfume", id = "131415306381990"},
         {name = "THE LARTE0", id = "106711954990826"},
