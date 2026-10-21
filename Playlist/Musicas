@@ -187,7 +187,6 @@ createMusicDropdown("Vibe Tipo Festa", {
         {name = "Ascensão do Monarca", id = "101864243033211"},
         {name = "MIKU MIKU HATSUNE", id = "112783541496955"},
         {name = "Air", id = "73197748961359"},
-        {name = "COUNTIN STARS", id = "118957335322667"},
         {name = "WardrobeFox", id = "89258052168328"},
         {name = "BurningWorld", id = "111351357978027"},
         {name = "SunMoon", id = "91995598699901"},
