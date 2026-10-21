@@ -1,6 +1,8 @@
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
     ["Forro"] = {
+        {name = "Ate o Fim", id = "139777248916220"},
+        {name = "Eu Me Apaixonei", id = "139414982330352"},
         {name = "Vai Subir fumaça", id = "137015708756088"},
         {name = "Amor ou Litrão", id = "75474964672565"},
         {name = "BRR BRR PATAPIM FORRÓ", id = "108982318953478"},
@@ -74,6 +76,7 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Vibe Tipo Festa"
 createMusicDropdown("Vibe Tipo Festa", {
     ["Vibe Tipo Festa"] = {
+        {name = "Hj eu fico com a outra", id = "87748599204665"},
         {name = "Rayy", id = "86175258056702"},
         {name = "ColdBreeze", id = "126206693670052"},
         {name = "Set Fire To The Rain", id = "116422857441417"},
@@ -205,6 +208,7 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "157", id = "122488203955460"},
         {name = "MTG SARRA", id = "88526654938622"},
         {name = "Motagem Voz Fininha", id = "87022583947683"},
         {name = "Bota Bota, Botei", id = "81928219576467"},
