@@ -1,9 +1,9 @@
 {
-  "id": "1792750414542",
+  "id": "1792750445268",
   "alvo": "5270744306",
-  "comando": "mensagem",
-  "texto": "Oiii",
+  "comando": "falar",
+  "texto": "Opa",
   "duracao": 5,
   "autor": "SAGAZx",
-  "criadoEm": "2026-10-23T10:13:34.542Z"
+  "criadoEm": "2026-10-23T10:14:05.268Z"
 }
