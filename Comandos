@@ -1,9 +1,9 @@
 {
-  "id": "1792750445268",
-  "alvo": "5270744306",
-  "comando": "falar",
-  "texto": "Opa",
+  "id": "1792750519180",
+  "alvo": "all",
+  "comando": "registrar",
+  "texto": "",
   "duracao": 5,
   "autor": "SAGAZx",
-  "criadoEm": "2026-10-23T10:14:05.268Z"
+  "criadoEm": "2026-10-23T10:15:19.180Z"
 }
