@@ -207,6 +207,15 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Montagem Sinistra", id = "109571466677649"},
+        {name = "BAILE DO SÃO JORGE", id = "122650858043559"},
+        {name = "VOU PASSAR", id = "129784572747585"},
+        {name = "Baile da Caititu", id = "122394483729363"},
+        {name = "Bem Louca", id = "94365050554101"},
+        {name = "Porra Isabela", id = "124950663117359"},
+        {name = "Mamadão", id = "103811087853875"},
+        {name = "Senta no Pau", id = "107571287950625"},
+        {name = "Paris", id = "93483751210667"},
         {name = "157", id = "122488203955460"},
         {name = "MTG SARRA", id = "88526654938622"},
         {name = "Motagem Voz Fininha", id = "87022583947683"},
