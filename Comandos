@@ -1,9 +1,9 @@
 {
-  "id": "1792748136114",
-  "alvo": "5270744306",
-  "comando": "falar",
-  "texto": "Iai",
+  "id": "1792748704262",
+  "alvo": "all",
+  "comando": "kill",
+  "texto": "",
   "duracao": 5,
   "autor": "SAGAZx",
-  "criadoEm": "2026-10-23T09:35:36.114Z"
+  "criadoEm": "2026-10-23T09:45:04.262Z"
 }
