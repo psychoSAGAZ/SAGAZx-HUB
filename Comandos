@@ -1,20 +1,11 @@
 [
   {
-    "id": "1792770142503",
+    "id": "1792772520278",
     "alvo": "all",
     "comando": "registrar",
     "texto": "",
     "duracao": 5,
     "autor": "SAGAZx",
-    "criadoEm": "2026-10-23T15:42:22.503Z"
-  },
-  {
-    "id": "1792770176786",
-    "alvo": "all",
-    "comando": "registrar",
-    "texto": "",
-    "duracao": 5,
-    "autor": "SAGAZx",
-    "criadoEm": "2026-10-23T15:42:56.786Z"
+    "criadoEm": "2026-10-23T16:22:00.278Z"
   }
 ]
