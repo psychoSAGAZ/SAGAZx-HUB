@@ -1,9 +1,9 @@
 {
-  "id": "1792746648441",
-  "alvo": "5270744306",
-  "comando": "mensagem",
-  "texto": "Oi",
+  "id": "1792746679290",
+  "alvo": "all",
+  "comando": "registrar",
+  "texto": "",
   "duracao": 5,
   "autor": "SAGAZx",
-  "criadoEm": "2026-10-23T09:10:48.441Z"
+  "criadoEm": "2026-10-23T09:11:19.290Z"
 }
