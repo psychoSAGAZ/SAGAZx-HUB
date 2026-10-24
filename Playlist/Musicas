@@ -1,6 +1,7 @@
 -- Dropdown "Forro"
 createMusicDropdown("Forro", {
     ["Forro"] = {
+        {name = "Sou Vgbnd e feio", id = "117584211896757"},
         {name = "Ate o Fim", id = "139777248916220"},
         {name = "Eu Me Apaixonei", id = "139414982330352"},
         {name = "Vai Subir fumaça", id = "137015708756088"},
@@ -43,6 +44,7 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "União flasco", id = "125594000795206"},
         {name = "MTG DO LULA", id = "96506574156847"},
         {name = "KIRKY FUNK", id = "113458227429706"},
         {name = "Hino do Bigodinho", id = "108267211827921"},
@@ -77,6 +79,8 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Vibe Tipo Festa"
 createMusicDropdown("Vibe Tipo Festa", {
     ["Vibe Tipo Festa"] = {
+        {name = "Ela Me Falou Que Quer Rave", id = "100956935190680"},
+        {name = "Ouvi dizer", id = "111532655640658"},
         {name = "I CANT FEEL MY FACE", id = "94461209227934"},
         {name = "Hj eu fico com a outra", id = "87748599204665"},
         {name = "Rayy", id = "86175258056702"},
@@ -209,6 +213,9 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "M44", id = "97864011831624"},
+        {name = "m4", id = "119930615452514"},
+        {name = "M4 Chamando meu nome", id = "112994827632588"},
         {name = "Passo Bem Solto", id = "106185171358009"},
         {name = "Montagem Sinistra", id = "109571466677649"},
         {name = "BAILE DO SÃO JORGE", id = "122650858043559"},
@@ -708,5 +715,11 @@ createMusicDropdown("Rap", {
         {name = "xarope", id = "84255167497110"},
         {name = "Amor Hospitalar", id = "96259351729049"},
         {name = "lampada da sorte", id = "71393805905055"}
+    }
+}, "Option 1")
+
+-- Dropdown "Brasil"
+createMusicDropdown("Brasil", {
+    ["Brasil"] = {
     }
 }, "Option 1")
