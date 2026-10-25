@@ -719,15 +719,3 @@ createMusicDropdown("Rap", {
         {name = "lampada da sorte", id = "71393805905055"}
     }
 }, "Option 1")
-
--- Dropdown "Brasil"
-createMusicDropdown("Brasil", {
-    ["Brasil"] = {
-    }
-}, "Option 1")
-
--- Dropdown "Política"
-createMusicDropdown("Política", {
-    ["Política"] = {
-    }
-}, "Option 1")
