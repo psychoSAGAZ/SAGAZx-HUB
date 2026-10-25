@@ -44,6 +44,8 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "Flavio Bolsonaro 22", id = "89091214574341"},
+        {name = "Lula Ladrão", id = "82428824095296"},
         {name = "União flasco", id = "125594000795206"},
         {name = "MTG DO LULA", id = "96506574156847"},
         {name = "KIRKY FUNK", id = "113458227429706"},
@@ -721,5 +723,11 @@ createMusicDropdown("Rap", {
 -- Dropdown "Brasil"
 createMusicDropdown("Brasil", {
     ["Brasil"] = {
+    }
+}, "Option 1")
+
+-- Dropdown "Política"
+createMusicDropdown("Política", {
+    ["Política"] = {
     }
 }, "Option 1")
