@@ -1,11 +1,11 @@
 [
   {
-    "id": "1792876482500",
+    "id": "1793209625800",
     "alvo": "all",
-    "comando": "registrar",
-    "texto": "",
+    "comando": "allmsg",
+    "texto": "Oooopa",
     "duracao": 5,
-    "autor": "LUCASx",
-    "criadoEm": "2026-10-24T21:14:42.500Z"
+    "autor": "kadmiel",
+    "criadoEm": "2026-10-28T17:47:05.800Z"
   }
 ]
