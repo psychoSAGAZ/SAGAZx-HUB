@@ -16,5 +16,14 @@
     "duracao": 5,
     "autor": "kadmiel",
     "criadoEm": "2026-10-28T17:47:29.523Z"
+  },
+  {
+    "id": "1793209658801",
+    "alvo": "all",
+    "comando": "registrar",
+    "texto": "",
+    "duracao": 5,
+    "autor": "kadmiel",
+    "criadoEm": "2026-10-28T17:47:38.801Z"
   }
 ]
