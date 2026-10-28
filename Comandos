@@ -25,5 +25,14 @@
     "duracao": 5,
     "autor": "kadmiel",
     "criadoEm": "2026-10-28T17:47:38.801Z"
+  },
+  {
+    "id": "1793209680414",
+    "alvo": "all",
+    "comando": "allmsg",
+    "texto": "Oi",
+    "duracao": 5,
+    "autor": "kadmiel",
+    "criadoEm": "2026-10-28T17:48:00.414Z"
   }
 ]
