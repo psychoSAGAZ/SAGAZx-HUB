@@ -170,6 +170,8 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "TODA HORA", id = "124768087285254"},
+        {name = "Na Casa do Seu Zé", id = "82889452939550"},
         {name = "MTG APOCALÍPTICA", id = "94729386479038"},
         {name = "M44", id = "97864011831624"},
         {name = "m4", id = "119930615452514"},
