@@ -16,5 +16,14 @@
     "duracao": 5,
     "autor": "SAGAZx",
     "criadoEm": "2026-11-01T19:22:10.700Z"
+  },
+  {
+    "id": "1793560954645",
+    "alvo": "all",
+    "comando": "allmsg",
+    "texto": "Kkkkk",
+    "duracao": 5,
+    "autor": "SAGAZx",
+    "criadoEm": "2026-11-01T19:22:34.645Z"
   }
 ]
