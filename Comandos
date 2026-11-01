@@ -34,5 +34,14 @@
     "duracao": 5,
     "autor": "SAGAZx",
     "criadoEm": "2026-11-01T19:22:43.058Z"
+  },
+  {
+    "id": "1793560965239",
+    "alvo": "all",
+    "comando": "kill",
+    "texto": "",
+    "duracao": 5,
+    "autor": "SAGAZx",
+    "criadoEm": "2026-11-01T19:22:45.239Z"
   }
 ]
