@@ -1,14 +1,5 @@
 [
   {
-    "id": "1793502557590",
-    "alvo": "all",
-    "comando": "registrar",
-    "texto": "",
-    "duracao": 5,
-    "autor": "SAGAZx",
-    "criadoEm": "2026-11-01T03:09:17.590Z"
-  },
-  {
     "id": "1793502596776",
     "alvo": "all",
     "comando": "registrar",
@@ -16,5 +7,14 @@
     "duracao": 5,
     "autor": "SAGAZx",
     "criadoEm": "2026-11-01T03:09:56.776Z"
+  },
+  {
+    "id": "1793502642901",
+    "alvo": "all",
+    "comando": "registrar",
+    "texto": "",
+    "duracao": 5,
+    "autor": "SAGAZx",
+    "criadoEm": "2026-11-01T03:10:42.901Z"
   }
 ]
