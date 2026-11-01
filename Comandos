@@ -1,14 +1,5 @@
 [
   {
-    "id": "1793560909836",
-    "alvo": "all",
-    "comando": "registrar",
-    "texto": "",
-    "duracao": 5,
-    "autor": "SAGAZx",
-    "criadoEm": "2026-11-01T19:21:49.836Z"
-  },
-  {
     "id": "1793560930700",
     "alvo": "all",
     "comando": "allmsg",
@@ -43,5 +34,14 @@
     "duracao": 5,
     "autor": "SAGAZx",
     "criadoEm": "2026-11-01T19:22:45.239Z"
+  },
+  {
+    "id": "1793560971691",
+    "alvo": "all",
+    "comando": "kill",
+    "texto": "",
+    "duracao": 5,
+    "autor": "SAGAZx",
+    "criadoEm": "2026-11-01T19:22:51.691Z"
   }
 ]
