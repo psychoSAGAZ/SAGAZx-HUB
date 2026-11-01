@@ -7,5 +7,14 @@
     "duracao": 5,
     "autor": "SAGAZx",
     "criadoEm": "2026-11-01T19:21:49.836Z"
+  },
+  {
+    "id": "1793560930700",
+    "alvo": "all",
+    "comando": "allmsg",
+    "texto": "Oii",
+    "duracao": 5,
+    "autor": "SAGAZx",
+    "criadoEm": "2026-11-01T19:22:10.700Z"
   }
 ]
