@@ -7,5 +7,14 @@
     "duracao": 5,
     "autor": "SAGAZx",
     "criadoEm": "2026-11-01T03:09:17.590Z"
+  },
+  {
+    "id": "1793502596776",
+    "alvo": "all",
+    "comando": "registrar",
+    "texto": "",
+    "duracao": 5,
+    "autor": "SAGAZx",
+    "criadoEm": "2026-11-01T03:09:56.776Z"
   }
 ]
