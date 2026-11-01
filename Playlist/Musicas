@@ -44,6 +44,7 @@ createMusicDropdown("Forro", {
 -- Dropdown "Músicas e Memes Aleatorios"
 createMusicDropdown("Músicas e Memes Aleatorios", {
     ["Músicas e Memes Aleatorios"] = {
+        {name = "OLÊ OLÊ OLÊ OLÁ (LULA, LULA)", id = "75058518860851"},
         {name = "Flavio Bolsonaro 22", id = "89091214574341"},
         {name = "Lula Ladrão", id = "82428824095296"},
         {name = "União flasco", id = "125594000795206"},
