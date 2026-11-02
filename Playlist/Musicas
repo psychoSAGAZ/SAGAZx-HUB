@@ -4,7 +4,6 @@ createMusicDropdown("Forro", {
         {name = "Sou Vgbnd e feio", id = "117584211896757"},
         {name = "Ate o Fim", id = "139777248916220"},
         {name = "Eu Me Apaixonei", id = "139414982330352"},
-        {name = "Vai Subir fumaça", id = "137015708756088"},
         {name = "Amor ou Litrão", id = "75474964672565"},
         {name = "BRR BRR PATAPIM FORRÓ", id = "108982318953478"},
         {name = "Set Do Ricon", id = "85602063198755"},
@@ -75,6 +74,7 @@ createMusicDropdown("Músicas e Memes Aleatorios", {
 -- Dropdown "Vibe Tipo Festa"
 createMusicDropdown("Vibe Tipo Festa", {
     ["Vibe Tipo Festa"] = {
+        {name = "Msc Legau", id = "137041919303472"},
         {name = "Doomdoom", id = "89468064746667"},
         {name = "Letters on the Tide Line", id = "104932048517135"},
         {name = "Ouch, that hurts!", id = "116340302813502"},
