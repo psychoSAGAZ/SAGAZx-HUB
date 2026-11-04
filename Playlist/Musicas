@@ -171,6 +171,7 @@ createMusicDropdown("Vibe Tipo Festa", {
 -- Dropdown "Funk"
 createMusicDropdown("Funk", {
     ["Funk"] = {
+        {name = "Então Toma", id = "134679962114231"},
         {name = "Ce Ta Nervosa", id = "81744758291664"},
         {name = "TODA HORA", id = "124768087285254"},
         {name = "Na Casa do Seu Zé", id = "82889452939550"},
@@ -272,7 +273,6 @@ createMusicDropdown("Funk", {
         {name = "Xrc de bala [Estourado]", id = "107174883653819"},
         {name = "Deixa ela tomar zebrada (Estourado)", id = "80282038249456"},
         {name = "Antares [Estourado]", id = "102853170480978"},
-        {name = "surra de piroca [Estourado]", id = "81730477878065"},
         {name = "Berimbau [Estourado]", id = "80937607674721"},
         {name = "ondalolo", id = "120892610283928"},
         {name = "RLK", id = "116417585885956"},
@@ -352,7 +352,6 @@ createMusicDropdown("Funk", {
         {name = "Senju Sounds 1", id = "125276472076218"},
         {name = "sadd", id = "131013862565986"},
         {name = "Tropa Do Gordão", id = "83400946888030"},
-        {name = "Te Chamo de Amor", id = "111118068516413"},
         {name = "Tapete Mágico", id = "122488679897031"},
         {name = "Assombra Matrix", id = "84806858575292"},
         {name = "lei dos 3(Estourado)", id = "118279338474223"},
